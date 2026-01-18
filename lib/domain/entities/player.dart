@@ -1,81 +1,64 @@
+import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'player.freezed.dart';
 part 'player.g.dart';
 
-/// Player statistics
-@freezed
-abstract class PlayerStats with _$PlayerStats {
-  const factory PlayerStats({
-    @Default(0) int totalGamesPlayed,
-    @Default(0) int totalGamesWon,
-    @Default(0) int totalScore,
-    @Default(0) int highestScore,
-    @Default(0) int totalMatches,
-    @Default(0) int perfectGames,
-    @Default(0) int maxCombo,
-    @Default(0) int totalPlayTimeSeconds,
-    @Default(0) int currentStreak,
-    @Default(0) int longestStreak,
-  }) = _PlayerStats;
-
-  factory PlayerStats.fromJson(Map<String, dynamic> json) =>
-      _$PlayerStatsFromJson(json);
-}
-
-/// Level progress tracking
-@freezed
-abstract class LevelProgress with _$LevelProgress {
-  const factory LevelProgress({
-    required int level,
-    @Default(0) int bestScore,
-    @Default(0) int bestMoves,
-    @Default(0) int bestTimeSeconds,
-    @Default(0) int stars,
-    @Default(false) bool isCompleted,
-    DateTime? completedAt,
-  }) = _LevelProgress;
-
-  factory LevelProgress.fromJson(Map<String, dynamic> json) =>
-      _$LevelProgressFromJson(json);
-}
-
-/// Player data model
+/// Represents a player in multiplayer mode
 @freezed
 abstract class Player with _$Player {
   const Player._();
 
   const factory Player({
+    /// Unique player identifier
     required String id,
-    @Default('Player') String username,
-    required DateTime createdAt,
-    required DateTime lastActiveAt,
-    @Default(PlayerStats()) PlayerStats stats,
-    @Default({}) Map<int, LevelProgress> levelProgress,
-    @Default(['animals']) List<String> unlockedThemes,
-    @Default(1) int currentLevel,
+
+    /// Player display name
+    required String name,
+
+    /// Player color index (0-3 for predefined colors)
+    @Default(0) int colorIndex,
+
+    /// Player's current score
+    @Default(0) int score,
+
+    /// Number of pairs matched by this player
+    @Default(0) int matches,
+
+    /// Number of moves made
+    @Default(0) int moves,
+
+    /// Current combo streak
+    @Default(0) int combo,
+
+    /// Maximum combo achieved
+    @Default(0) int maxCombo,
+
+    /// Number of errors (mismatches)
+    @Default(0) int errors,
   }) = _Player;
 
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
 
-  /// Get progress for a specific level
-  LevelProgress? getProgressForLevel(int level) => levelProgress[level];
+  /// Predefined player colors
+  static const List<Color> colors = [
+    Color(0xFF2196F3), // Blue
+    Color(0xFFF44336), // Red
+    Color(0xFF4CAF50), // Green
+    Color(0xFFFF9800), // Orange
+  ];
 
-  /// Check if a level is unlocked
-  bool isLevelUnlocked(int level) {
-    if (level == 1) return true;
-    final previousProgress = levelProgress[level - 1];
-    return previousProgress?.isCompleted ?? false;
-  }
+  /// Get player's color
+  Color get color => colors[colorIndex % colors.length];
 
-  /// Get the highest unlocked level
-  int get highestUnlockedLevel {
-    int highest = 1;
-    for (final entry in levelProgress.entries) {
-      if (entry.value.isCompleted && entry.key >= highest) {
-        highest = entry.key + 1;
-      }
-    }
-    return highest.clamp(1, 10);
-  }
+  /// Predefined player color names for display
+  static const List<String> colorNames = [
+    'Blue',
+    'Red',
+    'Green',
+    'Orange',
+  ];
+
+  /// Get player's color name
+  String get colorName => colorNames[colorIndex % colorNames.length];
 }

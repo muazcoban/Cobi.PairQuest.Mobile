@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'card.dart';
+import 'player.dart';
 
 part 'game.freezed.dart';
 part 'game.g.dart';
@@ -11,6 +12,9 @@ enum GameMode {
 
   /// Timed mode - complete before time runs out
   timed,
+
+  /// Multiplayer mode - turn-based local multiplayer
+  multiplayer,
 }
 
 /// Game state enum
@@ -110,9 +114,30 @@ abstract class Game with _$Game {
 
     /// Theme used for this game
     @Default('animals') String theme,
+
+    // ===== Multiplayer fields =====
+
+    /// List of players (for multiplayer mode)
+    List<Player>? players,
+
+    /// Index of current player (0 to players.length-1)
+    @Default(0) int currentPlayerIndex,
+
+    /// Whether the current player earned an extra turn (matched successfully)
+    @Default(false) bool extraTurnAwarded,
   }) = _Game;
 
   factory Game.fromJson(Map<String, dynamic> json) => _$GameFromJson(json);
+
+  /// Check if this is a multiplayer game
+  bool get isMultiplayer => mode == GameMode.multiplayer && players != null;
+
+  /// Get number of players
+  int get playerCount => players?.length ?? 1;
+
+  /// Get current player (for multiplayer)
+  Player? get currentPlayer =>
+      isMultiplayer ? players![currentPlayerIndex] : null;
 
   /// Check if all pairs are matched
   bool get isCompleted => matches == gridSize.pairs;
@@ -135,4 +160,24 @@ abstract class Game with _$Game {
 
   /// Check if this was a perfect game (no errors)
   bool get isPerfectGame => errors == 0 && isCompleted;
+
+  /// Get winner player (for multiplayer) - player with highest score
+  Player? get winner {
+    if (!isMultiplayer || players == null || players!.isEmpty) return null;
+    return players!.reduce((a, b) => a.score >= b.score ? a : b);
+  }
+
+  /// Get players sorted by score (descending)
+  List<Player> get rankedPlayers {
+    if (!isMultiplayer || players == null) return [];
+    final sorted = List<Player>.from(players!);
+    sorted.sort((a, b) => b.score.compareTo(a.score));
+    return sorted;
+  }
+
+  /// Total matches found by all players in multiplayer
+  int get totalMultiplayerMatches {
+    if (!isMultiplayer || players == null) return matches;
+    return players!.fold(0, (sum, p) => sum + p.matches);
+  }
 }

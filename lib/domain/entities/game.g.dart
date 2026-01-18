@@ -42,6 +42,11 @@ _Game _$GameFromJson(Map<String, dynamic> json) => _Game(
   timeLimit: (json['timeLimit'] as num?)?.toInt(),
   timeRemaining: (json['timeRemaining'] as num?)?.toInt(),
   theme: json['theme'] as String? ?? 'animals',
+  players: (json['players'] as List<dynamic>?)
+      ?.map((e) => Player.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  currentPlayerIndex: (json['currentPlayerIndex'] as num?)?.toInt() ?? 0,
+  extraTurnAwarded: json['extraTurnAwarded'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$GameToJson(_Game instance) => <String, dynamic>{
@@ -62,11 +67,15 @@ Map<String, dynamic> _$GameToJson(_Game instance) => <String, dynamic>{
   'timeLimit': instance.timeLimit,
   'timeRemaining': instance.timeRemaining,
   'theme': instance.theme,
+  'players': instance.players,
+  'currentPlayerIndex': instance.currentPlayerIndex,
+  'extraTurnAwarded': instance.extraTurnAwarded,
 };
 
 const _$GameModeEnumMap = {
   GameMode.classic: 'classic',
   GameMode.timed: 'timed',
+  GameMode.multiplayer: 'multiplayer',
 };
 
 const _$GameStateEnumMap = {

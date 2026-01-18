@@ -401,5 +401,15 @@
   "claimDailyReward": "Ödülünü Al",
   "streakBonus": "Seri Bonusu: Gün {day}",
 
-  "memorize": "Ezberle!"
+  "memorize": "Ezberle!",
+
+  "localMultiplayer": "Yerel Çok Oyunculu",
+  "localMultiplayerDesc": "Arkadaşlarınla oyna",
+  "playerCount": "Oyuncu Sayısı",
+  "players": "Oyuncular",
+  "startGame": "Oyunu Başlat",
+  "yourTurn": "Senin Sıran",
+  "gameOver": "Oyun Bitti",
+  "wins": "kazandı",
+  "player": "Oyuncu"
 }

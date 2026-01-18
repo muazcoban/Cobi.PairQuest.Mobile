@@ -11,6 +11,7 @@ import '../achievements/achievements_screen.dart';
 import '../game/game_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../levels/level_select_screen.dart';
+import '../multiplayer/multiplayer_lobby_screen.dart';
 import '../quests/daily_quests_screen.dart';
 import '../settings/settings_screen.dart';
 import '../stats/statistics_screen.dart';
@@ -126,6 +127,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       onTap: () => _startGame(
                         context,
                         GameMode.timed,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Multiplayer Mode Button
+                    _MenuButton(
+                      icon: Icons.people,
+                      label: l10n.localMultiplayer,
+                      sublabel: l10n.localMultiplayerDesc,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const MultiplayerLobbyScreen(),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),

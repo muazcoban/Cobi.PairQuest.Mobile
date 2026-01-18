@@ -298,7 +298,11 @@ mixin _$Game {
  DateTime? get endTime;/// Time limit in seconds (for timed mode)
  int? get timeLimit;/// Remaining time in seconds
  int? get timeRemaining;/// Theme used for this game
- String get theme;
+ String get theme;// ===== Multiplayer fields =====
+/// List of players (for multiplayer mode)
+ List<Player>? get players;/// Index of current player (0 to players.length-1)
+ int get currentPlayerIndex;/// Whether the current player earned an extra turn (matched successfully)
+ bool get extraTurnAwarded;
 /// Create a copy of Game
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -311,16 +315,16 @@ $GameCopyWith<Game> get copyWith => _$GameCopyWithImpl<Game>(this as Game, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Game&&(identical(other.id, id) || other.id == id)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.level, level) || other.level == level)&&(identical(other.gridSize, gridSize) || other.gridSize == gridSize)&&const DeepCollectionEquality().equals(other.cards, cards)&&(identical(other.state, state) || other.state == state)&&(identical(other.score, score) || other.score == score)&&(identical(other.moves, moves) || other.moves == moves)&&(identical(other.matches, matches) || other.matches == matches)&&(identical(other.combo, combo) || other.combo == combo)&&(identical(other.maxCombo, maxCombo) || other.maxCombo == maxCombo)&&(identical(other.errors, errors) || other.errors == errors)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.timeLimit, timeLimit) || other.timeLimit == timeLimit)&&(identical(other.timeRemaining, timeRemaining) || other.timeRemaining == timeRemaining)&&(identical(other.theme, theme) || other.theme == theme));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Game&&(identical(other.id, id) || other.id == id)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.level, level) || other.level == level)&&(identical(other.gridSize, gridSize) || other.gridSize == gridSize)&&const DeepCollectionEquality().equals(other.cards, cards)&&(identical(other.state, state) || other.state == state)&&(identical(other.score, score) || other.score == score)&&(identical(other.moves, moves) || other.moves == moves)&&(identical(other.matches, matches) || other.matches == matches)&&(identical(other.combo, combo) || other.combo == combo)&&(identical(other.maxCombo, maxCombo) || other.maxCombo == maxCombo)&&(identical(other.errors, errors) || other.errors == errors)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.timeLimit, timeLimit) || other.timeLimit == timeLimit)&&(identical(other.timeRemaining, timeRemaining) || other.timeRemaining == timeRemaining)&&(identical(other.theme, theme) || other.theme == theme)&&const DeepCollectionEquality().equals(other.players, players)&&(identical(other.currentPlayerIndex, currentPlayerIndex) || other.currentPlayerIndex == currentPlayerIndex)&&(identical(other.extraTurnAwarded, extraTurnAwarded) || other.extraTurnAwarded == extraTurnAwarded));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,mode,level,gridSize,const DeepCollectionEquality().hash(cards),state,score,moves,matches,combo,maxCombo,errors,startTime,endTime,timeLimit,timeRemaining,theme);
+int get hashCode => Object.hashAll([runtimeType,id,mode,level,gridSize,const DeepCollectionEquality().hash(cards),state,score,moves,matches,combo,maxCombo,errors,startTime,endTime,timeLimit,timeRemaining,theme,const DeepCollectionEquality().hash(players),currentPlayerIndex,extraTurnAwarded]);
 
 @override
 String toString() {
-  return 'Game(id: $id, mode: $mode, level: $level, gridSize: $gridSize, cards: $cards, state: $state, score: $score, moves: $moves, matches: $matches, combo: $combo, maxCombo: $maxCombo, errors: $errors, startTime: $startTime, endTime: $endTime, timeLimit: $timeLimit, timeRemaining: $timeRemaining, theme: $theme)';
+  return 'Game(id: $id, mode: $mode, level: $level, gridSize: $gridSize, cards: $cards, state: $state, score: $score, moves: $moves, matches: $matches, combo: $combo, maxCombo: $maxCombo, errors: $errors, startTime: $startTime, endTime: $endTime, timeLimit: $timeLimit, timeRemaining: $timeRemaining, theme: $theme, players: $players, currentPlayerIndex: $currentPlayerIndex, extraTurnAwarded: $extraTurnAwarded)';
 }
 
 
@@ -331,7 +335,7 @@ abstract mixin class $GameCopyWith<$Res>  {
   factory $GameCopyWith(Game value, $Res Function(Game) _then) = _$GameCopyWithImpl;
 @useResult
 $Res call({
- String id, GameMode mode, int level, GridSize gridSize, List<GameCard> cards, GameState state, int score, int moves, int matches, int combo, int maxCombo, int errors, DateTime? startTime, DateTime? endTime, int? timeLimit, int? timeRemaining, String theme
+ String id, GameMode mode, int level, GridSize gridSize, List<GameCard> cards, GameState state, int score, int moves, int matches, int combo, int maxCombo, int errors, DateTime? startTime, DateTime? endTime, int? timeLimit, int? timeRemaining, String theme, List<Player>? players, int currentPlayerIndex, bool extraTurnAwarded
 });
 
 
@@ -348,7 +352,7 @@ class _$GameCopyWithImpl<$Res>
 
 /// Create a copy of Game
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? mode = null,Object? level = null,Object? gridSize = null,Object? cards = null,Object? state = null,Object? score = null,Object? moves = null,Object? matches = null,Object? combo = null,Object? maxCombo = null,Object? errors = null,Object? startTime = freezed,Object? endTime = freezed,Object? timeLimit = freezed,Object? timeRemaining = freezed,Object? theme = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? mode = null,Object? level = null,Object? gridSize = null,Object? cards = null,Object? state = null,Object? score = null,Object? moves = null,Object? matches = null,Object? combo = null,Object? maxCombo = null,Object? errors = null,Object? startTime = freezed,Object? endTime = freezed,Object? timeLimit = freezed,Object? timeRemaining = freezed,Object? theme = null,Object? players = freezed,Object? currentPlayerIndex = null,Object? extraTurnAwarded = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
@@ -367,7 +371,10 @@ as DateTime?,endTime: freezed == endTime ? _self.endTime : endTime // ignore: ca
 as DateTime?,timeLimit: freezed == timeLimit ? _self.timeLimit : timeLimit // ignore: cast_nullable_to_non_nullable
 as int?,timeRemaining: freezed == timeRemaining ? _self.timeRemaining : timeRemaining // ignore: cast_nullable_to_non_nullable
 as int?,theme: null == theme ? _self.theme : theme // ignore: cast_nullable_to_non_nullable
-as String,
+as String,players: freezed == players ? _self.players : players // ignore: cast_nullable_to_non_nullable
+as List<Player>?,currentPlayerIndex: null == currentPlayerIndex ? _self.currentPlayerIndex : currentPlayerIndex // ignore: cast_nullable_to_non_nullable
+as int,extraTurnAwarded: null == extraTurnAwarded ? _self.extraTurnAwarded : extraTurnAwarded // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of Game
@@ -461,10 +468,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  GameMode mode,  int level,  GridSize gridSize,  List<GameCard> cards,  GameState state,  int score,  int moves,  int matches,  int combo,  int maxCombo,  int errors,  DateTime? startTime,  DateTime? endTime,  int? timeLimit,  int? timeRemaining,  String theme)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  GameMode mode,  int level,  GridSize gridSize,  List<GameCard> cards,  GameState state,  int score,  int moves,  int matches,  int combo,  int maxCombo,  int errors,  DateTime? startTime,  DateTime? endTime,  int? timeLimit,  int? timeRemaining,  String theme,  List<Player>? players,  int currentPlayerIndex,  bool extraTurnAwarded)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Game() when $default != null:
-return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that.state,_that.score,_that.moves,_that.matches,_that.combo,_that.maxCombo,_that.errors,_that.startTime,_that.endTime,_that.timeLimit,_that.timeRemaining,_that.theme);case _:
+return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that.state,_that.score,_that.moves,_that.matches,_that.combo,_that.maxCombo,_that.errors,_that.startTime,_that.endTime,_that.timeLimit,_that.timeRemaining,_that.theme,_that.players,_that.currentPlayerIndex,_that.extraTurnAwarded);case _:
   return orElse();
 
 }
@@ -482,10 +489,10 @@ return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  GameMode mode,  int level,  GridSize gridSize,  List<GameCard> cards,  GameState state,  int score,  int moves,  int matches,  int combo,  int maxCombo,  int errors,  DateTime? startTime,  DateTime? endTime,  int? timeLimit,  int? timeRemaining,  String theme)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  GameMode mode,  int level,  GridSize gridSize,  List<GameCard> cards,  GameState state,  int score,  int moves,  int matches,  int combo,  int maxCombo,  int errors,  DateTime? startTime,  DateTime? endTime,  int? timeLimit,  int? timeRemaining,  String theme,  List<Player>? players,  int currentPlayerIndex,  bool extraTurnAwarded)  $default,) {final _that = this;
 switch (_that) {
 case _Game():
-return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that.state,_that.score,_that.moves,_that.matches,_that.combo,_that.maxCombo,_that.errors,_that.startTime,_that.endTime,_that.timeLimit,_that.timeRemaining,_that.theme);case _:
+return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that.state,_that.score,_that.moves,_that.matches,_that.combo,_that.maxCombo,_that.errors,_that.startTime,_that.endTime,_that.timeLimit,_that.timeRemaining,_that.theme,_that.players,_that.currentPlayerIndex,_that.extraTurnAwarded);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -502,10 +509,10 @@ return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  GameMode mode,  int level,  GridSize gridSize,  List<GameCard> cards,  GameState state,  int score,  int moves,  int matches,  int combo,  int maxCombo,  int errors,  DateTime? startTime,  DateTime? endTime,  int? timeLimit,  int? timeRemaining,  String theme)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  GameMode mode,  int level,  GridSize gridSize,  List<GameCard> cards,  GameState state,  int score,  int moves,  int matches,  int combo,  int maxCombo,  int errors,  DateTime? startTime,  DateTime? endTime,  int? timeLimit,  int? timeRemaining,  String theme,  List<Player>? players,  int currentPlayerIndex,  bool extraTurnAwarded)?  $default,) {final _that = this;
 switch (_that) {
 case _Game() when $default != null:
-return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that.state,_that.score,_that.moves,_that.matches,_that.combo,_that.maxCombo,_that.errors,_that.startTime,_that.endTime,_that.timeLimit,_that.timeRemaining,_that.theme);case _:
+return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that.state,_that.score,_that.moves,_that.matches,_that.combo,_that.maxCombo,_that.errors,_that.startTime,_that.endTime,_that.timeLimit,_that.timeRemaining,_that.theme,_that.players,_that.currentPlayerIndex,_that.extraTurnAwarded);case _:
   return null;
 
 }
@@ -517,7 +524,7 @@ return $default(_that.id,_that.mode,_that.level,_that.gridSize,_that.cards,_that
 @JsonSerializable()
 
 class _Game extends Game {
-  const _Game({required this.id, required this.mode, required this.level, required this.gridSize, required final  List<GameCard> cards, this.state = GameState.notStarted, this.score = 0, this.moves = 0, this.matches = 0, this.combo = 0, this.maxCombo = 0, this.errors = 0, this.startTime, this.endTime, this.timeLimit, this.timeRemaining, this.theme = 'animals'}): _cards = cards,super._();
+  const _Game({required this.id, required this.mode, required this.level, required this.gridSize, required final  List<GameCard> cards, this.state = GameState.notStarted, this.score = 0, this.moves = 0, this.matches = 0, this.combo = 0, this.maxCombo = 0, this.errors = 0, this.startTime, this.endTime, this.timeLimit, this.timeRemaining, this.theme = 'animals', final  List<Player>? players, this.currentPlayerIndex = 0, this.extraTurnAwarded = false}): _cards = cards,_players = players,super._();
   factory _Game.fromJson(Map<String, dynamic> json) => _$GameFromJson(json);
 
 /// Unique game identifier
@@ -561,6 +568,23 @@ class _Game extends Game {
 @override final  int? timeRemaining;
 /// Theme used for this game
 @override@JsonKey() final  String theme;
+// ===== Multiplayer fields =====
+/// List of players (for multiplayer mode)
+ final  List<Player>? _players;
+// ===== Multiplayer fields =====
+/// List of players (for multiplayer mode)
+@override List<Player>? get players {
+  final value = _players;
+  if (value == null) return null;
+  if (_players is EqualUnmodifiableListView) return _players;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+/// Index of current player (0 to players.length-1)
+@override@JsonKey() final  int currentPlayerIndex;
+/// Whether the current player earned an extra turn (matched successfully)
+@override@JsonKey() final  bool extraTurnAwarded;
 
 /// Create a copy of Game
 /// with the given fields replaced by the non-null parameter values.
@@ -575,16 +599,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Game&&(identical(other.id, id) || other.id == id)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.level, level) || other.level == level)&&(identical(other.gridSize, gridSize) || other.gridSize == gridSize)&&const DeepCollectionEquality().equals(other._cards, _cards)&&(identical(other.state, state) || other.state == state)&&(identical(other.score, score) || other.score == score)&&(identical(other.moves, moves) || other.moves == moves)&&(identical(other.matches, matches) || other.matches == matches)&&(identical(other.combo, combo) || other.combo == combo)&&(identical(other.maxCombo, maxCombo) || other.maxCombo == maxCombo)&&(identical(other.errors, errors) || other.errors == errors)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.timeLimit, timeLimit) || other.timeLimit == timeLimit)&&(identical(other.timeRemaining, timeRemaining) || other.timeRemaining == timeRemaining)&&(identical(other.theme, theme) || other.theme == theme));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Game&&(identical(other.id, id) || other.id == id)&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.level, level) || other.level == level)&&(identical(other.gridSize, gridSize) || other.gridSize == gridSize)&&const DeepCollectionEquality().equals(other._cards, _cards)&&(identical(other.state, state) || other.state == state)&&(identical(other.score, score) || other.score == score)&&(identical(other.moves, moves) || other.moves == moves)&&(identical(other.matches, matches) || other.matches == matches)&&(identical(other.combo, combo) || other.combo == combo)&&(identical(other.maxCombo, maxCombo) || other.maxCombo == maxCombo)&&(identical(other.errors, errors) || other.errors == errors)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.timeLimit, timeLimit) || other.timeLimit == timeLimit)&&(identical(other.timeRemaining, timeRemaining) || other.timeRemaining == timeRemaining)&&(identical(other.theme, theme) || other.theme == theme)&&const DeepCollectionEquality().equals(other._players, _players)&&(identical(other.currentPlayerIndex, currentPlayerIndex) || other.currentPlayerIndex == currentPlayerIndex)&&(identical(other.extraTurnAwarded, extraTurnAwarded) || other.extraTurnAwarded == extraTurnAwarded));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,mode,level,gridSize,const DeepCollectionEquality().hash(_cards),state,score,moves,matches,combo,maxCombo,errors,startTime,endTime,timeLimit,timeRemaining,theme);
+int get hashCode => Object.hashAll([runtimeType,id,mode,level,gridSize,const DeepCollectionEquality().hash(_cards),state,score,moves,matches,combo,maxCombo,errors,startTime,endTime,timeLimit,timeRemaining,theme,const DeepCollectionEquality().hash(_players),currentPlayerIndex,extraTurnAwarded]);
 
 @override
 String toString() {
-  return 'Game(id: $id, mode: $mode, level: $level, gridSize: $gridSize, cards: $cards, state: $state, score: $score, moves: $moves, matches: $matches, combo: $combo, maxCombo: $maxCombo, errors: $errors, startTime: $startTime, endTime: $endTime, timeLimit: $timeLimit, timeRemaining: $timeRemaining, theme: $theme)';
+  return 'Game(id: $id, mode: $mode, level: $level, gridSize: $gridSize, cards: $cards, state: $state, score: $score, moves: $moves, matches: $matches, combo: $combo, maxCombo: $maxCombo, errors: $errors, startTime: $startTime, endTime: $endTime, timeLimit: $timeLimit, timeRemaining: $timeRemaining, theme: $theme, players: $players, currentPlayerIndex: $currentPlayerIndex, extraTurnAwarded: $extraTurnAwarded)';
 }
 
 
@@ -595,7 +619,7 @@ abstract mixin class _$GameCopyWith<$Res> implements $GameCopyWith<$Res> {
   factory _$GameCopyWith(_Game value, $Res Function(_Game) _then) = __$GameCopyWithImpl;
 @override @useResult
 $Res call({
- String id, GameMode mode, int level, GridSize gridSize, List<GameCard> cards, GameState state, int score, int moves, int matches, int combo, int maxCombo, int errors, DateTime? startTime, DateTime? endTime, int? timeLimit, int? timeRemaining, String theme
+ String id, GameMode mode, int level, GridSize gridSize, List<GameCard> cards, GameState state, int score, int moves, int matches, int combo, int maxCombo, int errors, DateTime? startTime, DateTime? endTime, int? timeLimit, int? timeRemaining, String theme, List<Player>? players, int currentPlayerIndex, bool extraTurnAwarded
 });
 
 
@@ -612,7 +636,7 @@ class __$GameCopyWithImpl<$Res>
 
 /// Create a copy of Game
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? mode = null,Object? level = null,Object? gridSize = null,Object? cards = null,Object? state = null,Object? score = null,Object? moves = null,Object? matches = null,Object? combo = null,Object? maxCombo = null,Object? errors = null,Object? startTime = freezed,Object? endTime = freezed,Object? timeLimit = freezed,Object? timeRemaining = freezed,Object? theme = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? mode = null,Object? level = null,Object? gridSize = null,Object? cards = null,Object? state = null,Object? score = null,Object? moves = null,Object? matches = null,Object? combo = null,Object? maxCombo = null,Object? errors = null,Object? startTime = freezed,Object? endTime = freezed,Object? timeLimit = freezed,Object? timeRemaining = freezed,Object? theme = null,Object? players = freezed,Object? currentPlayerIndex = null,Object? extraTurnAwarded = null,}) {
   return _then(_Game(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
@@ -631,7 +655,10 @@ as DateTime?,endTime: freezed == endTime ? _self.endTime : endTime // ignore: ca
 as DateTime?,timeLimit: freezed == timeLimit ? _self.timeLimit : timeLimit // ignore: cast_nullable_to_non_nullable
 as int?,timeRemaining: freezed == timeRemaining ? _self.timeRemaining : timeRemaining // ignore: cast_nullable_to_non_nullable
 as int?,theme: null == theme ? _self.theme : theme // ignore: cast_nullable_to_non_nullable
-as String,
+as String,players: freezed == players ? _self._players : players // ignore: cast_nullable_to_non_nullable
+as List<Player>?,currentPlayerIndex: null == currentPlayerIndex ? _self.currentPlayerIndex : currentPlayerIndex // ignore: cast_nullable_to_non_nullable
+as int,extraTurnAwarded: null == extraTurnAwarded ? _self.extraTurnAwarded : extraTurnAwarded // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

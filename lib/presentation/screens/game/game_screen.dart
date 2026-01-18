@@ -13,9 +13,12 @@ import '../../providers/settings_provider.dart';
 import '../../providers/stats_provider.dart';
 import '../../widgets/dialogs/game_complete_dialog.dart';
 import '../../widgets/dialogs/game_over_dialog.dart';
+import '../../widgets/dialogs/multiplayer_result_dialog.dart';
 import '../../widgets/game/combo_popup.dart';
 import '../../widgets/game/game_board.dart';
 import '../../widgets/game/game_header.dart';
+import '../../widgets/game/multiplayer_header.dart';
+import '../../widgets/game/turn_indicator.dart';
 
 /// Main game screen
 class GameScreen extends ConsumerStatefulWidget {
@@ -52,6 +55,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _startGame() {
+    // Skip if multiplayer - game is started from lobby
+    if (widget.mode == 'multiplayer') return;
+
     // End any existing game first
     ref.read(gameProvider.notifier).endGame();
 
@@ -205,19 +211,26 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final gameState = ref.watch(gameProvider);
     final game = gameState.currentGame;
     final isPreview = game?.state == GameState.preview;
+    final isMultiplayer = game?.isMultiplayer ?? false;
 
     ref.listen<GameStateData>(gameProvider, (previous, next) {
-      // Check for combo changes
-      final prevCombo = previous?.currentGame?.combo ?? 0;
-      final nextCombo = next.currentGame?.combo ?? 0;
-      if (nextCombo > prevCombo && nextCombo >= 2) {
-        setState(() => _currentCombo = nextCombo);
+      // Check for combo changes (single player only)
+      if (!isMultiplayer) {
+        final prevCombo = previous?.currentGame?.combo ?? 0;
+        final nextCombo = next.currentGame?.combo ?? 0;
+        if (nextCombo > prevCombo && nextCombo >= 2) {
+          setState(() => _currentCombo = nextCombo);
+        }
       }
 
       if (next.currentGame?.state == GameState.completed &&
           previous?.currentGame?.state != GameState.completed) {
         _confettiController.play();
-        _showGameCompleteDialog();
+        if (next.currentGame?.isMultiplayer ?? false) {
+          _showMultiplayerResultDialog();
+        } else {
+          _showGameCompleteDialog();
+        }
       } else if (next.currentGame?.state == GameState.failed &&
           previous?.currentGame?.state != GameState.failed) {
         _saveGameLoss(next.currentGame!);
@@ -231,7 +244,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         children: [
           Column(
             children: [
-              const GameHeader(),
+              // Use different header for multiplayer
+              if (isMultiplayer)
+                const MultiplayerHeader()
+              else
+                const GameHeader(),
               _buildControls(game),
               Expanded(
                 child: gameState.isLoading
@@ -245,8 +262,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           if (isPreview)
             _PreviewOverlay(progress: gameState.previewProgress),
 
-          // Combo popup
-          if (_currentCombo != null && _currentCombo! >= 2)
+          // Turn transition indicator (multiplayer only)
+          if (isMultiplayer && gameState.showTurnTransition)
+            const TurnIndicator(),
+
+          // Combo popup (single player only)
+          if (!isMultiplayer && _currentCombo != null && _currentCombo! >= 2)
             ComboPopup(
               combo: _currentCombo!,
               onComplete: () => setState(() => _currentCombo = null),
@@ -428,6 +449,28 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           Navigator.of(context).pop();
         },
         onTryAgain: () {
+          Navigator.of(dialogContext).pop();
+          ref.read(gameProvider.notifier).resetGame();
+        },
+      ),
+    );
+  }
+
+  void _showMultiplayerResultDialog() {
+    final game = ref.read(gameProvider).currentGame;
+    if (game == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => MultiplayerResultDialog(
+        game: game,
+        onMainMenu: () {
+          Navigator.of(dialogContext).pop();
+          ref.read(gameProvider.notifier).endGame();
+          Navigator.of(context).pop();
+        },
+        onPlayAgain: () {
           Navigator.of(dialogContext).pop();
           ref.read(gameProvider.notifier).resetGame();
         },

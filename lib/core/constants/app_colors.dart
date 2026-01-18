@@ -87,4 +87,16 @@ class AppColors {
       Theme.of(context).brightness == Brightness.dark
           ? textMuted
           : textSecondaryLight;
+
+  // Card background color
+  static Color cardBackground(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? surfaceDark
+          : surface;
+
+  // Card border color
+  static Color cardBorder(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF475569) // Slate 600
+          : const Color(0xFFE2E8F0); // Slate 200
 }

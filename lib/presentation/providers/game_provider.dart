@@ -7,6 +7,7 @@ import '../../core/services/haptic_service.dart';
 import '../../core/utils/card_shuffle.dart';
 import '../../domain/entities/card.dart';
 import '../../domain/entities/game.dart';
+import '../../domain/entities/player.dart';
 import 'settings_provider.dart';
 
 /// Game state for the provider
@@ -17,6 +18,7 @@ class GameStateData {
   final bool isLoading;
   final String? error;
   final double previewProgress; // 0.0 to 1.0 for countdown animation
+  final bool showTurnTransition; // Show turn change overlay
 
   const GameStateData({
     this.currentGame,
@@ -25,6 +27,7 @@ class GameStateData {
     this.isLoading = false,
     this.error,
     this.previewProgress = 0.0,
+    this.showTurnTransition = false,
   });
 
   GameStateData copyWith({
@@ -34,6 +37,7 @@ class GameStateData {
     bool? isLoading,
     String? error,
     double? previewProgress,
+    bool? showTurnTransition,
   }) {
     return GameStateData(
       currentGame: currentGame ?? this.currentGame,
@@ -42,6 +46,7 @@ class GameStateData {
       isLoading: isLoading ?? this.isLoading,
       error: error,
       previewProgress: previewProgress ?? this.previewProgress,
+      showTurnTransition: showTurnTransition ?? this.showTurnTransition,
     );
   }
 }
@@ -128,6 +133,75 @@ class GameNotifier extends StateNotifier<GameStateData> {
 
       // Start sequential card reveal animation
       _startSequentialReveal(gridSize.totalCards, mode);
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString(),
+        isLoading: false,
+      );
+    }
+  }
+
+  /// Starts a new multiplayer game
+  Future<void> startMultiplayerGame({
+    required int level,
+    required List<String> playerNames,
+    String theme = 'animals',
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      // Get grid configuration for the level
+      final gridConfig = GameConfig.levels.firstWhere(
+        (l) => l.level == level,
+        orElse: () => GameConfig.levels[4],
+      );
+
+      final gridSize = GridSize(rows: gridConfig.rows, cols: gridConfig.cols);
+
+      // Generate cards
+      final cards = CardShuffle.generateCards(
+        pairs: gridSize.pairs,
+        theme: theme,
+      );
+
+      // Create players
+      final players = playerNames.asMap().entries.map((entry) {
+        return Player(
+          id: _uuid.v4(),
+          name: entry.value,
+          colorIndex: entry.key,
+        );
+      }).toList();
+
+      final game = Game(
+        id: _uuid.v4(),
+        mode: GameMode.multiplayer,
+        level: level,
+        gridSize: gridSize,
+        cards: cards,
+        state: GameState.preview,
+        startTime: DateTime.now(),
+        theme: theme,
+        players: players,
+        currentPlayerIndex: 0,
+      );
+
+      state = state.copyWith(
+        currentGame: game,
+        selectedCards: [],
+        isProcessing: false,
+        isLoading: false,
+        previewProgress: 1.0,
+        showTurnTransition: false,
+      );
+
+      // Start background music if enabled
+      if (_settings.musicEnabled) {
+        _audioService.playBackgroundMusic();
+      }
+
+      // Start sequential card reveal animation
+      _startSequentialReveal(gridSize.totalCards, GameMode.multiplayer);
     } catch (e) {
       state = state.copyWith(
         error: e.toString(),
@@ -325,6 +399,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
 
     final game = state.currentGame!;
     final isMatch = card1.pairId == card2.pairId;
+    final isMultiplayer = game.isMultiplayer;
 
     final updatedCards = List<GameCard>.from(game.cards);
 
@@ -341,17 +416,39 @@ class GameNotifier extends StateNotifier<GameStateData> {
       );
 
       // Calculate points
-      final newCombo = game.combo + 1;
+      final newCombo = isMultiplayer
+          ? (game.currentPlayer?.combo ?? 0) + 1
+          : game.combo + 1;
       final points = _calculatePoints(combo: newCombo);
 
-      var updatedGame = game.copyWith(
-        cards: updatedCards,
-        score: game.score + points,
-        moves: game.moves + 1,
-        matches: game.matches + 1,
-        combo: newCombo,
-        maxCombo: newCombo > game.maxCombo ? newCombo : game.maxCombo,
-      );
+      var updatedGame = game;
+
+      if (isMultiplayer) {
+        // Update current player's stats
+        final updatedPlayers = _updateCurrentPlayerStats(
+          game,
+          scoreAdd: points,
+          matchesAdd: 1,
+          movesAdd: 1,
+          newCombo: newCombo,
+        );
+
+        updatedGame = game.copyWith(
+          cards: updatedCards,
+          matches: game.matches + 1,
+          players: updatedPlayers,
+          extraTurnAwarded: true, // Player gets another turn
+        );
+      } else {
+        updatedGame = game.copyWith(
+          cards: updatedCards,
+          score: game.score + points,
+          moves: game.moves + 1,
+          matches: game.matches + 1,
+          combo: newCombo,
+          maxCombo: newCombo > game.maxCombo ? newCombo : game.maxCombo,
+        );
+      }
 
       // Play match sound and haptic
       _audioService.playSound(SoundEffect.cardMatch);
@@ -362,14 +459,18 @@ class GameNotifier extends StateNotifier<GameStateData> {
         _audioService.playSound(SoundEffect.comboBonus);
       }
 
-      // Check if game is completed
-      if (updatedGame.isCompleted) {
+      // Check if game is completed (for both single and multiplayer)
+      final totalMatches = isMultiplayer
+          ? updatedGame.totalMultiplayerMatches
+          : updatedGame.matches;
+
+      if (totalMatches >= game.gridSize.pairs) {
         _stopTimer();
         updatedGame = updatedGame.copyWith(
           state: GameState.completed,
           endTime: DateTime.now(),
-          // Add perfect game bonus
-          score: updatedGame.isPerfectGame
+          // Add perfect game bonus for single player only
+          score: !isMultiplayer && updatedGame.isPerfectGame
               ? updatedGame.score + GameConfig.perfectGameBonus
               : updatedGame.score,
         );
@@ -400,18 +501,80 @@ class GameNotifier extends StateNotifier<GameStateData> {
       _audioService.playSound(SoundEffect.cardMismatch);
       _hapticService.cardMismatch();
 
-      state = state.copyWith(
-        currentGame: game.copyWith(
-          cards: updatedCards,
-          moves: game.moves + 1,
-          combo: 0,
-          errors: game.errors + 1,
-          score: (game.score - GameConfig.errorPenalty).clamp(0, game.score),
-        ),
-        selectedCards: [],
-        isProcessing: false,
-      );
+      if (isMultiplayer) {
+        // Update current player's stats and switch turn
+        final updatedPlayers = _updateCurrentPlayerStats(
+          game,
+          movesAdd: 1,
+          errorsAdd: 1,
+          resetCombo: true,
+        );
+
+        final nextPlayerIndex = (game.currentPlayerIndex + 1) % game.playerCount;
+
+        state = state.copyWith(
+          currentGame: game.copyWith(
+            cards: updatedCards,
+            players: updatedPlayers,
+            currentPlayerIndex: nextPlayerIndex,
+            extraTurnAwarded: false,
+          ),
+          selectedCards: [],
+          isProcessing: false,
+          showTurnTransition: true,
+        );
+
+        // Hide turn transition after delay
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            state = state.copyWith(showTurnTransition: false);
+          }
+        });
+      } else {
+        state = state.copyWith(
+          currentGame: game.copyWith(
+            cards: updatedCards,
+            moves: game.moves + 1,
+            combo: 0,
+            errors: game.errors + 1,
+            score: (game.score - GameConfig.errorPenalty).clamp(0, game.score),
+          ),
+          selectedCards: [],
+          isProcessing: false,
+        );
+      }
     }
+  }
+
+  /// Updates the current player's stats in multiplayer mode
+  List<Player> _updateCurrentPlayerStats(
+    Game game, {
+    int scoreAdd = 0,
+    int matchesAdd = 0,
+    int movesAdd = 0,
+    int errorsAdd = 0,
+    int? newCombo,
+    bool resetCombo = false,
+  }) {
+    if (!game.isMultiplayer || game.players == null) return [];
+
+    final players = List<Player>.from(game.players!);
+    final currentPlayer = players[game.currentPlayerIndex];
+
+    final updatedCombo = resetCombo ? 0 : (newCombo ?? currentPlayer.combo);
+
+    players[game.currentPlayerIndex] = currentPlayer.copyWith(
+      score: currentPlayer.score + scoreAdd,
+      matches: currentPlayer.matches + matchesAdd,
+      moves: currentPlayer.moves + movesAdd,
+      errors: currentPlayer.errors + errorsAdd,
+      combo: updatedCombo,
+      maxCombo: updatedCombo > currentPlayer.maxCombo
+          ? updatedCombo
+          : currentPlayer.maxCombo,
+    );
+
+    return players;
   }
 
   /// Calculates points for a match
@@ -466,11 +629,21 @@ class GameNotifier extends StateNotifier<GameStateData> {
     if (game == null) return;
 
     _stopTimer();
-    await startGame(
-      level: game.level,
-      mode: game.mode,
-      theme: game.theme,
-    );
+
+    if (game.isMultiplayer && game.players != null) {
+      // Reset multiplayer game with same players
+      await startMultiplayerGame(
+        level: game.level,
+        playerNames: game.players!.map((p) => p.name).toList(),
+        theme: game.theme,
+      );
+    } else {
+      await startGame(
+        level: game.level,
+        mode: game.mode,
+        theme: game.theme,
+      );
+    }
   }
 
   /// Ends the current game

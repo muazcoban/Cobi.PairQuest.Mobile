@@ -134,5 +134,15 @@
   "claimDailyReward": "Claim Your Reward",
   "streakBonus": "Streak Bonus: Day {day}",
 
-  "memorize": "Memorize!"
+  "memorize": "Memorize!",
+
+  "localMultiplayer": "Local Multiplayer",
+  "localMultiplayerDesc": "Play with friends",
+  "playerCount": "Number of Players",
+  "players": "Players",
+  "startGame": "Start Game",
+  "yourTurn": "Your Turn",
+  "gameOver": "Game Over",
+  "wins": "wins",
+  "player": "Player"
 }
