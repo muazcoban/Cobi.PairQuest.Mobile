@@ -10,6 +10,7 @@ class SettingsState {
   final bool musicEnabled;
   final bool vibrationEnabled;
   final String cardTheme;
+  final String playerName;
 
   const SettingsState({
     this.locale = const Locale('tr'),
@@ -18,6 +19,7 @@ class SettingsState {
     this.musicEnabled = true,
     this.vibrationEnabled = true,
     this.cardTheme = 'animals',
+    this.playerName = 'Player',
   });
 
   SettingsState copyWith({
@@ -27,6 +29,7 @@ class SettingsState {
     bool? musicEnabled,
     bool? vibrationEnabled,
     String? cardTheme,
+    String? playerName,
   }) {
     return SettingsState(
       locale: locale ?? this.locale,
@@ -35,6 +38,7 @@ class SettingsState {
       musicEnabled: musicEnabled ?? this.musicEnabled,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       cardTheme: cardTheme ?? this.cardTheme,
+      playerName: playerName ?? this.playerName,
     );
   }
 }
@@ -47,6 +51,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _musicKey = 'music';
   static const _vibrationKey = 'vibration';
   static const _cardThemeKey = 'cardTheme';
+  static const _playerNameKey = 'playerName';
 
   SettingsNotifier() : super(const SettingsState()) {
     _loadSettings();
@@ -61,6 +66,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final musicEnabled = prefs.getBool(_musicKey) ?? true;
     final vibrationEnabled = prefs.getBool(_vibrationKey) ?? true;
     final cardTheme = prefs.getString(_cardThemeKey) ?? 'animals';
+    final playerName = prefs.getString(_playerNameKey) ?? 'Player';
 
     state = SettingsState(
       locale: Locale(localeCode),
@@ -69,6 +75,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       musicEnabled: musicEnabled,
       vibrationEnabled: vibrationEnabled,
       cardTheme: cardTheme,
+      playerName: playerName,
     );
   }
 
@@ -125,6 +132,14 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   void toggleVibration() {
     setVibrationEnabled(!state.vibrationEnabled);
+  }
+
+  Future<void> setPlayerName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    final trimmedName = name.trim();
+    final finalName = trimmedName.isEmpty ? 'Player' : trimmedName;
+    await prefs.setString(_playerNameKey, finalName);
+    state = state.copyWith(playerName: finalName);
   }
 }
 

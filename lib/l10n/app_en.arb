@@ -119,6 +119,15 @@
   "yourRank": "Your Rank",
   "topPlayers": "Top Players",
   "noScoresYet": "No scores yet",
+  "playGamesToSeeScores": "Play games to see your scores!",
+  "allLevels": "All Levels",
+  "you": "You",
+
+  "playerName": "Player Name",
+  "tapToChange": "Tap to change",
+  "enterYourName": "Enter your name",
+  "save": "Save",
+  "cancel": "Cancel",
 
   "dailyReward": "Daily Reward",
   "dailyRewardClaimed": "Come back tomorrow!",

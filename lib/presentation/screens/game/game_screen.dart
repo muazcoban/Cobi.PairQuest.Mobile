@@ -102,8 +102,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
 
     // Add to leaderboard
+    final playerName = ref.read(settingsProvider).playerName;
     ref.read(leaderboardProvider.notifier).addEntry(
-          playerName: 'Player',
+          playerName: playerName,
           level: game.level,
           score: game.score,
           stars: stars,

@@ -307,6 +307,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noScoresYet => 'No scores yet';
 
   @override
+  String get playGamesToSeeScores => 'Play games to see your scores!';
+
+  @override
+  String get allLevels => 'All Levels';
+
+  @override
+  String get you => 'You';
+
+  @override
+  String get playerName => 'Player Name';
+
+  @override
+  String get tapToChange => 'Tap to change';
+
+  @override
+  String get enterYourName => 'Enter your name';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
   String get dailyReward => 'Daily Reward';
 
   @override

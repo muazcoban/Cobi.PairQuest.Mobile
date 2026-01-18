@@ -307,6 +307,30 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noScoresYet => 'Henüz skor yok';
 
   @override
+  String get playGamesToSeeScores => 'Skorlarını görmek için oyna!';
+
+  @override
+  String get allLevels => 'Tüm Seviyeler';
+
+  @override
+  String get you => 'Sen';
+
+  @override
+  String get playerName => 'Oyuncu Adı';
+
+  @override
+  String get tapToChange => 'Değiştirmek için dokun';
+
+  @override
+  String get enterYourName => 'Adınızı girin';
+
+  @override
+  String get save => 'Kaydet';
+
+  @override
+  String get cancel => 'İptal';
+
+  @override
   String get dailyReward => 'Günlük Ödül';
 
   @override

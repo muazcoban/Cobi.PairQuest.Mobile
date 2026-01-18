@@ -23,6 +23,11 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Player Name Section
+          _buildSectionHeader(l10n.playerName),
+          _buildPlayerNameTile(context, ref, settings.playerName, l10n),
+          const SizedBox(height: 24),
+
           // Language Section
           _buildSectionHeader(l10n.language),
           _buildLanguageTile(
@@ -93,6 +98,80 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (value) {
               ref.read(settingsProvider.notifier).toggleVibration();
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlayerNameTile(
+    BuildContext context,
+    WidgetRef ref,
+    String currentName,
+    AppLocalizations l10n,
+  ) {
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          Icons.person_rounded,
+          color: AppColors.primary,
+        ),
+      ),
+      title: Text(currentName),
+      subtitle: Text(l10n.tapToChange),
+      trailing: const Icon(Icons.edit_rounded),
+      onTap: () => _showPlayerNameDialog(context, ref, currentName, l10n),
+    );
+  }
+
+  void _showPlayerNameDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String currentName,
+    AppLocalizations l10n,
+  ) {
+    final controller = TextEditingController(text: currentName);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.playerName),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 20,
+          decoration: InputDecoration(
+            hintText: l10n.enterYourName,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onSubmitted: (value) {
+            ref.read(settingsProvider.notifier).setPlayerName(value);
+            Navigator.of(context).pop();
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              ref.read(settingsProvider.notifier).setPlayerName(controller.text);
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(l10n.save),
           ),
         ],
       ),

@@ -674,6 +674,54 @@ abstract class AppLocalizations {
   /// **'Henüz skor yok'**
   String get noScoresYet;
 
+  /// No description provided for @playGamesToSeeScores.
+  ///
+  /// In tr, this message translates to:
+  /// **'Skorlarını görmek için oyna!'**
+  String get playGamesToSeeScores;
+
+  /// No description provided for @allLevels.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm Seviyeler'**
+  String get allLevels;
+
+  /// No description provided for @you.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sen'**
+  String get you;
+
+  /// No description provided for @playerName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu Adı'**
+  String get playerName;
+
+  /// No description provided for @tapToChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değiştirmek için dokun'**
+  String get tapToChange;
+
+  /// No description provided for @enterYourName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adınızı girin'**
+  String get enterYourName;
+
+  /// No description provided for @save.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get save;
+
+  /// No description provided for @cancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal'**
+  String get cancel;
+
   /// No description provided for @dailyReward.
   ///
   /// In tr, this message translates to:

@@ -120,9 +120,14 @@ class _MemoryCardState extends State<MemoryCard>
     final canTap =
         widget.card.state == CardState.hidden && !widget.isDisabled;
 
-    return GestureDetector(
-      onTap: canTap ? widget.onTap : null,
-      child: AnimatedBuilder(
+    return Semantics(
+      label: _getSemanticLabel(),
+      button: canTap,
+      enabled: canTap,
+      child: RepaintBoundary(
+        child: GestureDetector(
+          onTap: canTap ? widget.onTap : null,
+          child: AnimatedBuilder(
         animation: Listenable.merge([_flipAnimation, _matchScaleAnimation, _shakeAnimation]),
         builder: (context, child) {
           final angle = _flipAnimation.value * math.pi;
@@ -166,7 +171,20 @@ class _MemoryCardState extends State<MemoryCard>
           );
         },
       ),
+      ),
+    ),
     );
+  }
+
+  String _getSemanticLabel() {
+    switch (widget.card.state) {
+      case CardState.hidden:
+        return 'Card ${widget.card.id}, face down. Tap to reveal.';
+      case CardState.revealed:
+        return 'Card ${widget.card.id}, showing ${widget.card.imageAsset}';
+      case CardState.matched:
+        return 'Card ${widget.card.id}, matched';
+    }
   }
 
   Widget _buildFront() {

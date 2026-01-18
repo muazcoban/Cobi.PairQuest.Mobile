@@ -386,6 +386,15 @@
   "yourRank": "Sıralamanız",
   "topPlayers": "En İyi Oyuncular",
   "noScoresYet": "Henüz skor yok",
+  "playGamesToSeeScores": "Skorlarını görmek için oyna!",
+  "allLevels": "Tüm Seviyeler",
+  "you": "Sen",
+
+  "playerName": "Oyuncu Adı",
+  "tapToChange": "Değiştirmek için dokun",
+  "enterYourName": "Adınızı girin",
+  "save": "Kaydet",
+  "cancel": "İptal",
 
   "dailyReward": "Günlük Ödül",
   "dailyRewardClaimed": "Yarın tekrar gel!",
