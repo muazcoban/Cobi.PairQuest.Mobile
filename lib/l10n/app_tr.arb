@@ -1,0 +1,394 @@
+{
+  "@@locale": "tr",
+
+  "appTitle": "PairQuest",
+  "@appTitle": {
+    "description": "Uygulama başlığı"
+  },
+
+  "appSubtitle": "Hafıza Eşleştirme Oyunu",
+  "@appSubtitle": {
+    "description": "Uygulama alt başlığı"
+  },
+
+  "classicMode": "Klasik Mod",
+  "@classicMode": {
+    "description": "Klasik mod butonu"
+  },
+
+  "classicModeDesc": "Zamansız oyna",
+  "@classicModeDesc": {
+    "description": "Klasik mod açıklaması"
+  },
+
+  "timedMode": "Zamanlı Mod",
+  "@timedMode": {
+    "description": "Zamanlı mod butonu"
+  },
+
+  "timedModeDesc": "Süreye karşı yarış",
+  "@timedModeDesc": {
+    "description": "Zamanlı mod açıklaması"
+  },
+
+  "selectLevel": "Seviye Seç",
+  "@selectLevel": {
+    "description": "Seviye seçim butonu"
+  },
+
+  "selectLevelDesc": "Istediğin seviyeyi seç",
+  "@selectLevelDesc": {
+    "description": "Seviye seçim açıklaması"
+  },
+
+  "settings": "Ayarlar",
+  "@settings": {
+    "description": "Ayarlar butonu"
+  },
+
+  "level": "Seviye",
+  "@level": {
+    "description": "Seviye etiketi"
+  },
+
+  "levelNumber": "Seviye {number}",
+  "@levelNumber": {
+    "description": "Numaralı seviye",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+
+  "score": "Skor",
+  "@score": {
+    "description": "Skor etiketi"
+  },
+
+  "moves": "Hamle",
+  "@moves": {
+    "description": "Hamle etiketi"
+  },
+
+  "pairs": "Eşleşme",
+  "@pairs": {
+    "description": "Eşleşme etiketi"
+  },
+
+  "remaining": "Kalan",
+  "@remaining": {
+    "description": "Kalan çift etiketi"
+  },
+
+  "time": "Süre",
+  "@time": {
+    "description": "Süre etiketi"
+  },
+
+  "combo": "Combo",
+  "@combo": {
+    "description": "Combo etiketi"
+  },
+
+  "maxCombo": "Maks Combo",
+  "@maxCombo": {
+    "description": "Maksimum combo etiketi"
+  },
+
+  "pause": "Duraklat",
+  "@pause": {
+    "description": "Duraklat butonu"
+  },
+
+  "resume": "Devam Et",
+  "@resume": {
+    "description": "Devam et butonu"
+  },
+
+  "restart": "Yeniden Başla",
+  "@restart": {
+    "description": "Yeniden başla butonu"
+  },
+
+  "quit": "Çıkış",
+  "@quit": {
+    "description": "Çıkış butonu"
+  },
+
+  "mainMenu": "Ana Menü",
+  "@mainMenu": {
+    "description": "Ana menü butonu"
+  },
+
+  "gamePaused": "Oyun Duraklatıldı",
+  "@gamePaused": {
+    "description": "Oyun duraklatıldı başlığı"
+  },
+
+  "continueQuestion": "Devam etmek istiyor musunuz?",
+  "@continueQuestion": {
+    "description": "Devam sorusu"
+  },
+
+  "congratulations": "Tebrikler!",
+  "@congratulations": {
+    "description": "Tebrikler başlığı"
+  },
+
+  "levelCompleted": "Seviye {level} tamamlandı!",
+  "@levelCompleted": {
+    "description": "Seviye tamamlandı mesajı",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+
+  "perfectGame": "Mükemmel Oyun!",
+  "@perfectGame": {
+    "description": "Mükemmel oyun mesajı"
+  },
+
+  "playAgain": "Tekrar Oyna",
+  "@playAgain": {
+    "description": "Tekrar oyna butonu"
+  },
+
+  "nextLevel": "Sonraki Seviye",
+  "@nextLevel": {
+    "description": "Sonraki seviye butonu"
+  },
+
+  "timeUp": "Süre Doldu!",
+  "@timeUp": {
+    "description": "Süre doldu başlığı"
+  },
+
+  "timeUpMessage": "Maalesef süren doldu.",
+  "@timeUpMessage": {
+    "description": "Süre doldu mesajı"
+  },
+
+  "tryAgain": "Tekrar Dene",
+  "@tryAgain": {
+    "description": "Tekrar dene butonu"
+  },
+
+  "matched": "Eşleşen",
+  "@matched": {
+    "description": "Eşleşen çift etiketi"
+  },
+
+  "tutorial": "Başlangıç",
+  "@tutorial": {
+    "description": "Tutorial zorluk"
+  },
+
+  "veryEasy": "Çok Kolay",
+  "@veryEasy": {
+    "description": "Çok kolay zorluk"
+  },
+
+  "easy": "Kolay",
+  "@easy": {
+    "description": "Kolay zorluk"
+  },
+
+  "medium": "Orta",
+  "@medium": {
+    "description": "Orta zorluk"
+  },
+
+  "hard": "Zor",
+  "@hard": {
+    "description": "Zor zorluk"
+  },
+
+  "veryHard": "Çok Zor",
+  "@veryHard": {
+    "description": "Çok zor zorluk"
+  },
+
+  "expert": "Uzman",
+  "@expert": {
+    "description": "Uzman zorluk"
+  },
+
+  "language": "Dil",
+  "@language": {
+    "description": "Dil ayarı"
+  },
+
+  "turkish": "Türkçe",
+  "@turkish": {
+    "description": "Türkçe dil seçeneği"
+  },
+
+  "english": "English",
+  "@english": {
+    "description": "İngilizce dil seçeneği"
+  },
+
+  "sound": "Ses",
+  "@sound": {
+    "description": "Ses ayarı"
+  },
+
+  "music": "Müzik",
+  "@music": {
+    "description": "Müzik ayarı"
+  },
+
+  "vibration": "Titreşim",
+  "@vibration": {
+    "description": "Titreşim ayarı"
+  },
+
+  "theme": "Tema",
+  "@theme": {
+    "description": "Tema ayarı"
+  },
+
+  "darkMode": "Karanlık Mod",
+  "@darkMode": {
+    "description": "Karanlık mod ayarı"
+  },
+
+  "lightMode": "Aydınlık Mod",
+  "@lightMode": {
+    "description": "Aydınlık mod ayarı"
+  },
+
+  "systemDefault": "Sistem Varsayılanı",
+  "@systemDefault": {
+    "description": "Sistem varsayılanı"
+  },
+
+  "cardTheme": "Kart Teması",
+  "@cardTheme": {
+    "description": "Kart teması ayarı"
+  },
+
+  "animals": "Hayvanlar",
+  "@animals": {
+    "description": "Hayvanlar teması"
+  },
+
+  "fruits": "Meyveler",
+  "@fruits": {
+    "description": "Meyveler teması"
+  },
+
+  "flags": "Bayraklar",
+  "@flags": {
+    "description": "Bayraklar teması"
+  },
+
+  "sports": "Sporlar",
+  "@sports": {
+    "description": "Sporlar teması"
+  },
+
+  "nature": "Doğa",
+  "@nature": {
+    "description": "Doğa teması"
+  },
+
+  "travel": "Ulaşım",
+  "@travel": {
+    "description": "Ulaşım teması"
+  },
+
+  "food": "Yiyecekler",
+  "@food": {
+    "description": "Yiyecekler teması"
+  },
+
+  "objects": "Objeler",
+  "@objects": {
+    "description": "Objeler teması"
+  },
+
+  "stars": "Yıldız",
+  "@stars": {
+    "description": "Yıldız etiketi"
+  },
+
+  "bestScore": "En İyi Skor",
+  "@bestScore": {
+    "description": "En iyi skor etiketi"
+  },
+
+  "bestTime": "En İyi Süre",
+  "@bestTime": {
+    "description": "En iyi süre etiketi"
+  },
+
+  "statistics": "İstatistikler",
+  "@statistics": {
+    "description": "İstatistikler başlığı"
+  },
+
+  "totalGames": "Toplam Oyun",
+  "@totalGames": {
+    "description": "Toplam oyun etiketi"
+  },
+
+  "gamesWon": "Kazanılan",
+  "@gamesWon": {
+    "description": "Kazanılan oyun etiketi"
+  },
+
+  "totalPlayTime": "Toplam Süre",
+  "@totalPlayTime": {
+    "description": "Toplam oynama süresi"
+  },
+
+  "locked": "Kilitli",
+  "@locked": {
+    "description": "Kilitli seviye"
+  },
+
+  "unlocked": "Açık",
+  "@unlocked": {
+    "description": "Açık seviye"
+  },
+
+  "overview": "Genel Bakış",
+  "performance": "Performans",
+  "records": "Rekorlar",
+  "progress": "İlerleme",
+  "playTime": "Oynama Süresi",
+  "winRate": "Kazanma Oranı",
+  "avgMoves": "Ort. Hamle",
+  "totalMatches": "Toplam Eşleşme",
+  "starsEarned": "Kazanılan Yıldız",
+  "highestCombo": "En İyi Combo",
+  "longestStreak": "En Uzun Seri",
+  "perfectGames": "Mükemmel Oyun",
+  "threeStarLevels": "3 Yıldızlı Seviye",
+  "levelProgress": "Seviye İlerlemesi",
+
+  "achievements": "Başarımlar",
+  "achievementUnlocked": "Başarım Kazanıldı!",
+  "achievementsEarned": "{count} / {total} Kazanıldı",
+  "locked_achievement": "Oynamaya devam et",
+
+  "dailyQuests": "Günlük Görevler",
+  "questsCompleted": "{count} / {total} Tamamlandı",
+  "claimReward": "Al",
+  "claimed": "Alındı",
+  "questRefresh": "Yeni görevler: {hours}s {minutes}dk",
+
+  "leaderboard": "Liderlik Tablosu",
+  "yourRank": "Sıralamanız",
+  "topPlayers": "En İyi Oyuncular",
+  "noScoresYet": "Henüz skor yok",
+
+  "dailyReward": "Günlük Ödül",
+  "dailyRewardClaimed": "Yarın tekrar gel!",
+  "claimDailyReward": "Ödülünü Al",
+  "streakBonus": "Seri Bonusu: Gün {day}"
+}

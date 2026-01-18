@@ -1,0 +1,91 @@
+name: pair_quest
+description: "PairQuest - Memory Card Matching Game"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # Local Storage
+  shared_preferences: ^2.3.5
+
+  # Code Generation
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+
+  # Utilities
+  uuid: ^4.5.1
+  equatable: ^2.0.7
+
+  # UI
+  flutter_animate: ^4.5.2
+  google_fonts: ^6.2.1
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+  # Audio
+  audioplayers: ^6.1.0
+
+  # Haptic Feedback
+  vibration: ^2.0.0
+
+  # Confetti Animation
+  confetti: ^0.8.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Code Generation
+  build_runner: ^2.4.15
+  freezed: ^3.0.6
+  json_serializable: ^6.9.5
+  riverpod_generator: ^2.6.5
+
+  # App Icon Generator
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "docs/app_icon1.png"
+  adaptive_icon_background: "#14B8A6"
+  adaptive_icon_foreground: "docs/app_icon1.png"
+  web:
+    generate: true
+    image_path: "docs/app_icon1.png"
+  windows:
+    generate: true
+    image_path: "docs/app_icon1.png"
+  macos:
+    generate: true
+    image_path: "docs/app_icon1.png"
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/images/
+    - assets/images/themes/
+    - assets/images/themes/animals/
+    - assets/images/card_backs/
+    - assets/sounds/
+    - assets/music/

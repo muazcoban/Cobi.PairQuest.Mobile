@@ -1,0 +1,127 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "PairQuest",
+  "appSubtitle": "Memory Matching Game",
+
+  "classicMode": "Classic Mode",
+  "classicModeDesc": "Play without time limit",
+
+  "timedMode": "Timed Mode",
+  "timedModeDesc": "Race against the clock",
+
+  "selectLevel": "Select Level",
+  "selectLevelDesc": "Choose your level",
+
+  "settings": "Settings",
+
+  "level": "Level",
+  "levelNumber": "Level {number}",
+
+  "score": "Score",
+  "moves": "Moves",
+  "pairs": "Pairs",
+  "remaining": "Left",
+  "time": "Time",
+  "combo": "Combo",
+  "maxCombo": "Max Combo",
+
+  "pause": "Pause",
+  "resume": "Resume",
+  "restart": "Restart",
+  "quit": "Quit",
+  "mainMenu": "Main Menu",
+
+  "gamePaused": "Game Paused",
+  "continueQuestion": "Do you want to continue?",
+
+  "congratulations": "Congratulations!",
+  "levelCompleted": "Level {level} completed!",
+  "perfectGame": "Perfect Game!",
+  "playAgain": "Play Again",
+  "nextLevel": "Next Level",
+
+  "timeUp": "Time's Up!",
+  "timeUpMessage": "Unfortunately, time ran out.",
+  "tryAgain": "Try Again",
+  "matched": "Matched",
+
+  "tutorial": "Tutorial",
+  "veryEasy": "Very Easy",
+  "easy": "Easy",
+  "medium": "Medium",
+  "hard": "Hard",
+  "veryHard": "Very Hard",
+  "expert": "Expert",
+
+  "language": "Language",
+  "turkish": "Türkçe",
+  "english": "English",
+
+  "sound": "Sound",
+  "music": "Music",
+  "vibration": "Vibration",
+
+  "theme": "Theme",
+  "darkMode": "Dark Mode",
+  "lightMode": "Light Mode",
+  "systemDefault": "System Default",
+
+  "cardTheme": "Card Theme",
+  "animals": "Animals",
+  "fruits": "Fruits",
+  "flags": "Flags",
+  "sports": "Sports",
+  "nature": "Nature",
+  "travel": "Transportation",
+  "food": "Food",
+  "objects": "Objects",
+
+  "stars": "Stars",
+  "bestScore": "Best Score",
+  "bestTime": "Best Time",
+
+  "statistics": "Statistics",
+  "totalGames": "Total Games",
+  "gamesWon": "Games Won",
+  "totalPlayTime": "Total Play Time",
+
+  "locked": "Locked",
+  "unlocked": "Unlocked",
+
+  "overview": "Overview",
+  "performance": "Performance",
+  "records": "Records",
+  "progress": "Progress",
+  "playTime": "Play Time",
+  "winRate": "Win Rate",
+  "avgMoves": "Avg. Moves",
+  "totalMatches": "Total Matches",
+  "starsEarned": "Stars Earned",
+  "highestCombo": "Best Combo",
+  "longestStreak": "Best Streak",
+  "perfectGames": "Perfect Games",
+  "threeStarLevels": "3-Star Levels",
+  "levelProgress": "Level Progress",
+
+  "achievements": "Achievements",
+  "achievementUnlocked": "Achievement Unlocked!",
+  "achievementsEarned": "{count} / {total} Earned",
+  "locked_achievement": "Keep playing to unlock",
+
+  "dailyQuests": "Daily Quests",
+  "questsCompleted": "{count} / {total} Completed",
+  "claimReward": "Claim",
+  "claimed": "Claimed",
+  "questRefresh": "New quests in {hours}h {minutes}m",
+
+  "leaderboard": "Leaderboard",
+  "yourRank": "Your Rank",
+  "topPlayers": "Top Players",
+  "noScoresYet": "No scores yet",
+
+  "dailyReward": "Daily Reward",
+  "dailyRewardClaimed": "Come back tomorrow!",
+  "claimDailyReward": "Claim Your Reward",
+  "streakBonus": "Streak Bonus: Day {day}"
+}
