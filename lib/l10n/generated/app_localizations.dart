@@ -745,6 +745,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Seri Bonusu: Gün {day}'**
   String streakBonus(Object day);
+
+  /// No description provided for @memorize.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ezberle!'**
+  String get memorize;
 }
 
 class _AppLocalizationsDelegate

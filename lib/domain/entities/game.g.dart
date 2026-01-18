@@ -71,6 +71,7 @@ const _$GameModeEnumMap = {
 
 const _$GameStateEnumMap = {
   GameState.notStarted: 'notStarted',
+  GameState.preview: 'preview',
   GameState.inProgress: 'inProgress',
   GameState.paused: 'paused',
   GameState.completed: 'completed',

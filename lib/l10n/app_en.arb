@@ -132,5 +132,7 @@
   "dailyReward": "Daily Reward",
   "dailyRewardClaimed": "Come back tomorrow!",
   "claimDailyReward": "Claim Your Reward",
-  "streakBonus": "Streak Bonus: Day {day}"
+  "streakBonus": "Streak Bonus: Day {day}",
+
+  "memorize": "Memorize!"
 }

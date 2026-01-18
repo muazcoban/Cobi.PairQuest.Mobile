@@ -343,4 +343,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String streakBonus(Object day) {
     return 'Seri Bonusu: Gün $day';
   }
+
+  @override
+  String get memorize => 'Ezberle!';
 }

@@ -18,6 +18,9 @@ enum GameState {
   /// Game hasn't started yet
   notStarted,
 
+  /// Cards are being previewed (shown face up briefly)
+  preview,
+
   /// Game is in progress
   inProgress,
 
@@ -126,6 +129,9 @@ abstract class Game with _$Game {
 
   /// Check if game is currently playable
   bool get isPlayable => state == GameState.inProgress;
+
+  /// Check if game is in preview mode
+  bool get isPreview => state == GameState.preview;
 
   /// Check if this was a perfect game (no errors)
   bool get isPerfectGame => errors == 0 && isCompleted;

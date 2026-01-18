@@ -16,6 +16,7 @@ class GameStateData {
   final bool isProcessing;
   final bool isLoading;
   final String? error;
+  final double previewProgress; // 0.0 to 1.0 for countdown animation
 
   const GameStateData({
     this.currentGame,
@@ -23,6 +24,7 @@ class GameStateData {
     this.isProcessing = false,
     this.isLoading = false,
     this.error,
+    this.previewProgress = 0.0,
   });
 
   GameStateData copyWith({
@@ -31,6 +33,7 @@ class GameStateData {
     bool? isProcessing,
     bool? isLoading,
     String? error,
+    double? previewProgress,
   }) {
     return GameStateData(
       currentGame: currentGame ?? this.currentGame,
@@ -38,6 +41,7 @@ class GameStateData {
       isProcessing: isProcessing ?? this.isProcessing,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      previewProgress: previewProgress ?? this.previewProgress,
     );
   }
 }
@@ -46,15 +50,31 @@ class GameStateData {
 class GameNotifier extends StateNotifier<GameStateData> {
   static const _uuid = Uuid();
   Timer? _timer;
+  Timer? _previewTimer;
   final AudioService _audioService;
   final HapticService _hapticService;
   final SettingsState _settings;
+
+  /// Preview duration constants
+  static const int _maxPreviewDurationMs = 2000; // Max 2 seconds
+  static const int _minPreviewDurationMs = 800;  // Min 0.8 seconds
+  static const int _previewUpdateIntervalMs = 50; // Update every 50ms for smooth animation
 
   GameNotifier(this._audioService, this._hapticService, this._settings)
       : super(const GameStateData()) {
     _audioService.setSoundEnabled(_settings.soundEnabled);
     _audioService.setMusicEnabled(_settings.musicEnabled);
     _hapticService.setEnabled(_settings.vibrationEnabled);
+  }
+
+  /// Calculate preview duration based on card count
+  /// Fewer cards = shorter preview, more cards = longer preview (max 2 sec)
+  int _calculatePreviewDuration(int totalCards) {
+    // Scale from 800ms (4 cards) to 2000ms (64 cards)
+    // Formula: 800 + (cards - 4) * (1200 / 60)
+    final duration = _minPreviewDurationMs +
+        ((totalCards - 4) * (_maxPreviewDurationMs - _minPreviewDurationMs) / 60).round();
+    return duration.clamp(_minPreviewDurationMs, _maxPreviewDurationMs);
   }
 
   /// Starts a new game
@@ -74,7 +94,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
 
       final gridSize = GridSize(rows: gridConfig.rows, cols: gridConfig.cols);
 
-      // Generate cards
+      // Generate cards - initially all hidden
       final cards = CardShuffle.generateCards(
         pairs: gridSize.pairs,
         theme: theme,
@@ -86,7 +106,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
         level: level,
         gridSize: gridSize,
         cards: cards,
-        state: GameState.inProgress,
+        state: GameState.preview, // Start in preview state
         startTime: DateTime.now(),
         timeLimit: mode == GameMode.timed ? gridConfig.timeLimit : null,
         timeRemaining: mode == GameMode.timed ? gridConfig.timeLimit : null,
@@ -98,6 +118,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
         selectedCards: [],
         isProcessing: false,
         isLoading: false,
+        previewProgress: 1.0, // Start at 100%
       );
 
       // Start background music if enabled
@@ -105,15 +126,154 @@ class GameNotifier extends StateNotifier<GameStateData> {
         _audioService.playBackgroundMusic();
       }
 
-      // Start timer for timed mode
-      if (mode == GameMode.timed) {
-        _startTimer();
-      }
+      // Start sequential card reveal animation
+      _startSequentialReveal(gridSize.totalCards, mode);
     } catch (e) {
       state = state.copyWith(
         error: e.toString(),
         isLoading: false,
       );
+    }
+  }
+
+  /// Reveal cards one by one with sound, then hide them
+  void _startSequentialReveal(int totalCards, GameMode mode) {
+    _previewTimer?.cancel();
+
+    // Calculate delay per card (faster for more cards)
+    // 4 cards: 80ms each, 64 cards: 30ms each
+    final delayPerCard = (80 - (totalCards - 4) * 0.83).clamp(30, 80).toInt();
+    var currentCardIndex = 0;
+
+    // Phase 1: Reveal cards one by one
+    _previewTimer = Timer.periodic(
+      Duration(milliseconds: delayPerCard),
+      (timer) {
+        final game = state.currentGame;
+        if (game == null) {
+          timer.cancel();
+          return;
+        }
+
+        if (currentCardIndex < totalCards) {
+          // Reveal the next card
+          final updatedCards = List<GameCard>.from(game.cards);
+          updatedCards[currentCardIndex] = updatedCards[currentCardIndex].copyWith(
+            state: CardState.revealed,
+          );
+
+          // Play flip sound for each card (light haptic for every 3rd card)
+          _audioService.playSound(SoundEffect.cardFlip);
+          if (currentCardIndex % 3 == 0) {
+            _hapticService.trigger(HapticType.light);
+          }
+
+          // Update progress
+          final progress = 1.0 - (currentCardIndex / totalCards * 0.5);
+
+          state = state.copyWith(
+            currentGame: game.copyWith(cards: updatedCards),
+            previewProgress: progress,
+          );
+
+          currentCardIndex++;
+        } else {
+          // All cards revealed, start countdown then hide
+          timer.cancel();
+          _startPreviewCountdown(totalCards, mode);
+        }
+      },
+    );
+  }
+
+  /// Starts the preview countdown after all cards are revealed
+  void _startPreviewCountdown(int totalCards, GameMode mode) {
+    _previewTimer?.cancel();
+
+    // Show cards for a moment before hiding
+    final showDurationMs = _calculatePreviewDuration(totalCards) ~/ 2;
+    final totalSteps = showDurationMs ~/ _previewUpdateIntervalMs;
+    var currentStep = 0;
+
+    _previewTimer = Timer.periodic(
+      Duration(milliseconds: _previewUpdateIntervalMs),
+      (timer) {
+        currentStep++;
+        final progress = 0.5 - (currentStep / totalSteps * 0.5);
+
+        if (currentStep >= totalSteps) {
+          // Preview complete - hide all cards sequentially
+          timer.cancel();
+          _previewTimer = null;
+          _startSequentialHide(totalCards, mode);
+        } else {
+          // Update preview progress for animation
+          state = state.copyWith(previewProgress: progress.clamp(0.0, 1.0));
+        }
+      },
+    );
+  }
+
+  /// Hide cards one by one, then start the game
+  void _startSequentialHide(int totalCards, GameMode mode) {
+    _previewTimer?.cancel();
+
+    // Faster hide animation
+    final delayPerCard = (50 - (totalCards - 4) * 0.5).clamp(20, 50).toInt();
+    var currentCardIndex = 0;
+
+    _previewTimer = Timer.periodic(
+      Duration(milliseconds: delayPerCard),
+      (timer) {
+        final game = state.currentGame;
+        if (game == null) {
+          timer.cancel();
+          return;
+        }
+
+        if (currentCardIndex < totalCards) {
+          // Hide the next card
+          final updatedCards = List<GameCard>.from(game.cards);
+          updatedCards[currentCardIndex] = updatedCards[currentCardIndex].copyWith(
+            state: CardState.hidden,
+          );
+
+          // Play flip sound for each card
+          _audioService.playSound(SoundEffect.cardFlip);
+
+          state = state.copyWith(
+            currentGame: game.copyWith(cards: updatedCards),
+          );
+
+          currentCardIndex++;
+        } else {
+          // All cards hidden, start the game
+          timer.cancel();
+          _previewTimer = null;
+          _endPreviewAndStartGame(mode);
+        }
+      },
+    );
+  }
+
+  /// Ends the preview phase and starts the actual game
+  void _endPreviewAndStartGame(GameMode mode) {
+    final game = state.currentGame;
+    if (game == null) return;
+
+    // Play a sound to indicate game start
+    _hapticService.trigger(HapticType.medium);
+
+    state = state.copyWith(
+      currentGame: game.copyWith(
+        state: GameState.inProgress,
+      ),
+      previewProgress: 0.0,
+    );
+
+    // Start timer for timed mode
+    if (mode == GameMode.timed) {
+      _startTimer();
     }
   }
 
@@ -316,6 +476,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
   /// Ends the current game
   void endGame() {
     _stopTimer();
+    _stopPreviewTimer();
     _audioService.stopBackgroundMusic();
     state = const GameStateData();
   }
@@ -361,9 +522,16 @@ class GameNotifier extends StateNotifier<GameStateData> {
     _timer = null;
   }
 
+  /// Stops the preview timer
+  void _stopPreviewTimer() {
+    _previewTimer?.cancel();
+    _previewTimer = null;
+  }
+
   @override
   void dispose() {
     _stopTimer();
+    _stopPreviewTimer();
     super.dispose();
   }
 }

@@ -204,6 +204,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameProvider);
     final game = gameState.currentGame;
+    final isPreview = game?.state == GameState.preview;
 
     ref.listen<GameStateData>(gameProvider, (previous, next) {
       // Check for combo changes
@@ -239,6 +240,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ),
             ],
           ),
+
+          // Preview overlay with countdown
+          if (isPreview)
+            _PreviewOverlay(progress: gameState.previewProgress),
 
           // Combo popup
           if (_currentCombo != null && _currentCombo! >= 2)
@@ -426,6 +431,121 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           Navigator.of(dialogContext).pop();
           ref.read(gameProvider.notifier).resetGame();
         },
+      ),
+    );
+  }
+}
+
+/// Preview overlay widget with animated countdown
+class _PreviewOverlay extends StatelessWidget {
+  final double progress;
+
+  const _PreviewOverlay({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Container(
+          color: Colors.transparent,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Animated "Memorize!" text
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.8, end: 1.2),
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                builder: (context, scale, child) {
+                  return Transform.scale(
+                    scale: scale,
+                    child: child,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withOpacity(0.9),
+                        AppColors.accent.withOpacity(0.9),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.4),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.visibility,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        l10n.memorize,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Circular progress indicator
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 6,
+                        backgroundColor: Colors.white.withOpacity(0.3),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          progress > 0.3 ? AppColors.success : AppColors.error,
+                        ),
+                      ),
+                    ),
+                    // Pulsing eye icon
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.9, end: 1.1),
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                      builder: (context, scale, child) {
+                        return Transform.scale(
+                          scale: scale,
+                          child: Icon(
+                            Icons.remove_red_eye,
+                            color: progress > 0.3 ? AppColors.success : AppColors.error,
+                            size: 36,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

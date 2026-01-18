@@ -399,5 +399,7 @@
   "dailyReward": "Günlük Ödül",
   "dailyRewardClaimed": "Yarın tekrar gel!",
   "claimDailyReward": "Ödülünü Al",
-  "streakBonus": "Seri Bonusu: Gün {day}"
+  "streakBonus": "Seri Bonusu: Gün {day}",
+
+  "memorize": "Ezberle!"
 }

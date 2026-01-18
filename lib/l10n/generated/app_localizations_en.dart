@@ -343,4 +343,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String streakBonus(Object day) {
     return 'Streak Bonus: Day $day';
   }
+
+  @override
+  String get memorize => 'Memorize!';
 }
