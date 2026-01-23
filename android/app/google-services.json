@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "99735612337",
+    "project_id": "cobi-pairquest",
+    "storage_bucket": "cobi-pairquest.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:99735612337:android:cafa9c30d2df44fdcdeb90",
+        "android_client_info": {
+          "package_name": "com.cobistudio.pairquest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "99735612337-rbfr4i7b4tim9tk10kii84568t95g7dt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCD-e1ZGHldbLTUmA-B_D3mQvJ11Q3fJxM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "99735612337-rbfr4i7b4tim9tk10kii84568t95g7dt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "99735612337-pocr4s53e9nisft73v04p6p7es3o6o77.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cobistudio.pairquest"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

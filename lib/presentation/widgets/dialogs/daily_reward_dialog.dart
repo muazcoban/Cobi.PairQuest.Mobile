@@ -135,14 +135,7 @@ class DailyRewardDialog extends ConsumerWidget {
                             color: AppColors.textSecondary(context),
                           ),
                         ),
-                        Text(
-                          '+${todaysReward.amount}',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.accent,
-                          ),
-                        ),
+                        _buildRewardText(todaysReward),
                       ],
                     ),
                   ],
@@ -156,11 +149,13 @@ class DailyRewardDialog extends ConsumerWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: canClaim
-                    ? () {
-                        final points = ref
+                    ? () async {
+                        final reward = await ref
                             .read(dailyRewardProvider.notifier)
                             .claimReward();
-                        Navigator.of(context).pop(points);
+                        if (context.mounted) {
+                          Navigator.of(context).pop(reward);
+                        }
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
@@ -184,6 +179,69 @@ class DailyRewardDialog extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRewardText(DailyReward reward) {
+    final List<Widget> items = [];
+
+    if (reward.coins > 0) {
+      items.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.monetization_on_rounded, color: Colors.amber, size: 20),
+          const SizedBox(width: 4),
+          Text(
+            '+${reward.coins}',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.amber,
+            ),
+          ),
+        ],
+      ));
+    }
+
+    if (reward.gems > 0) {
+      items.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.diamond_rounded, color: Colors.purple, size: 20),
+          const SizedBox(width: 4),
+          Text(
+            '+${reward.gems}',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.purple,
+            ),
+          ),
+        ],
+      ));
+    }
+
+    if (reward.powerUpId != null) {
+      items.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.lightbulb_rounded, color: Colors.orange, size: 20),
+          const SizedBox(width: 4),
+          const Text(
+            '+1',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.orange,
+            ),
+          ),
+        ],
+      ));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items,
     );
   }
 }
@@ -248,16 +306,57 @@ class _RewardDay extends StatelessWidget {
                 color: _iconColor,
                 size: 12,
               ),
-            Text(
-              '+${status.reward.amount}',
-              style: TextStyle(
-                fontSize: 7,
-                fontWeight: FontWeight.bold,
-                color: _iconColor,
-              ),
-            ),
+            _buildRewardLabel(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRewardLabel() {
+    final reward = status.reward;
+
+    if (reward.gems > 0) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.monetization_on_rounded, color: _iconColor, size: 6),
+          Text(
+            '+${reward.coins}',
+            style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: _iconColor),
+          ),
+          const SizedBox(width: 2),
+          Icon(Icons.diamond_rounded, color: _iconColor, size: 6),
+          Text(
+            '+${reward.gems}',
+            style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: _iconColor),
+          ),
+        ],
+      );
+    }
+
+    if (reward.powerUpId != null) {
+      return Column(
+        children: [
+          Text(
+            '+${reward.coins}',
+            style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: _iconColor),
+          ),
+          Text(
+            '💡',
+            style: TextStyle(fontSize: 6),
+          ),
+        ],
+      );
+    }
+
+    return Text(
+      '+${reward.coins}',
+      style: TextStyle(
+        fontSize: 7,
+        fontWeight: FontWeight.bold,
+        color: _iconColor,
       ),
     );
   }

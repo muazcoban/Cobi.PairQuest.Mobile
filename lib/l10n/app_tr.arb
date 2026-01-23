@@ -271,6 +271,11 @@
     "description": "Kart teması ayarı"
   },
 
+  "randomTheme": "Rastgele",
+  "@randomTheme": {
+    "description": "Rastgele tema seçeneği"
+  },
+
   "animals": "Hayvanlar",
   "@animals": {
     "description": "Hayvanlar teması"
@@ -411,5 +416,66 @@
   "yourTurn": "Senin Sıran",
   "gameOver": "Oyun Bitti",
   "wins": "kazandı",
-  "player": "Oyuncu"
+  "player": "Oyuncu",
+
+  "signIn": "Giriş Yap",
+  "signOut": "Çıkış Yap",
+  "signInWithGoogle": "Google ile Giriş",
+  "continueAsGuest": "Misafir Olarak Devam Et",
+  "signInToSaveProgress": "İlerlemenizi kaydetmek ve skor tablosunda yarışmak için giriş yapın",
+  "privacyPolicy": "Gizlilik Politikası",
+  "account": "Hesap",
+  "guest": "Misafir",
+  "linkAccount": "Hesap Bağla",
+  "linkAccountDesc": "İlerlemenizi kaydetmek için hesabınızı bağlayın",
+  "deleteAccount": "Hesabı Sil",
+  "deleteAccountConfirm": "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+  "accountLinked": "Hesap başarıyla bağlandı!",
+  "signInRequired": "Giriş gerekli",
+  "signInToSubmitScore": "Skorunuzu global skor tablosuna göndermek için giriş yapın",
+  "globalLeaderboard": "Global Skor Tablosu",
+  "localLeaderboard": "Yerel Skorlar",
+
+  "notifications": "Bildirimler",
+  "dailyReminder": "Günlük Hatırlatıcı",
+  "dailyReminderDesc": "Oynamam için hatırlat",
+  "achievementAlerts": "Başarım Uyarıları",
+  "achievementAlertsDesc": "Başarımlar açıldığında bildir",
+  "questAlerts": "Görev Uyarıları",
+  "questAlertsDesc": "Görevler tamamlandığında bildir",
+  "reminderTime": "Hatırlatma Saati",
+
+  "coins": "Altın",
+  "gems": "Elmas",
+  "wallet": "Cüzdan",
+  "notEnoughCoins": "Yeterli altın yok",
+  "notEnoughGems": "Yeterli elmas yok",
+  "purchase": "Satın Al",
+  "purchaseSuccess": "Satın alma başarılı!",
+
+  "powerUps": "Güç-Uplar",
+  "powerUpPeek": "Göz At",
+  "powerUpPeekDesc": "Tüm kartları birkaç saniye göster",
+  "powerUpFreeze": "Dondur",
+  "powerUpFreezeDesc": "Zamanlayıcıyı 10 saniye durdur",
+  "powerUpHint": "İpucu",
+  "powerUpHintDesc": "Eşleşen bir çifti vurgula",
+  "powerUpShuffle": "Karıştır",
+  "powerUpShuffleDesc": "Eşleşmemiş kartları yeniden karıştır",
+  "powerUpTimeBonus": "Süre Bonusu",
+  "powerUpTimeBonusDesc": "Ekstra süre ekle",
+  "powerUpMagnet": "Mıknatıs",
+  "powerUpMagnetDesc": "Sonraki kart otomatik eşini bulur",
+
+  "powerUpUsed": "Güç-up kullanıldı!",
+  "powerUpActive": "Aktif: {seconds}sn",
+  "powerUpLimitReached": "Bu oyun için limit doldu",
+  "timedModeOnly": "Sadece Zamanlı Modda",
+  "buyPowerUp": "Güç-Up Satın Al",
+  "usePowerUp": "Kullan",
+  "owned": "Sahip: {count}",
+
+  "shop": "Mağaza",
+  "inventory": "Envanter",
+  "emptyInventory": "Henüz güç-up yok"
 }

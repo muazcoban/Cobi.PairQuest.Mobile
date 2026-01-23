@@ -8,9 +8,11 @@ import '../../providers/achievement_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/leaderboard_provider.dart';
+import '../../providers/power_up_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/stats_provider.dart';
+import '../../providers/wallet_provider.dart';
 import '../../widgets/dialogs/game_complete_dialog.dart';
 import '../../widgets/dialogs/game_over_dialog.dart';
 import '../../widgets/dialogs/multiplayer_result_dialog.dart';
@@ -18,6 +20,7 @@ import '../../widgets/game/combo_popup.dart';
 import '../../widgets/game/game_board.dart';
 import '../../widgets/game/game_header.dart';
 import '../../widgets/game/multiplayer_header.dart';
+import '../../widgets/game/power_up_bar.dart';
 import '../../widgets/game/turn_indicator.dart';
 
 /// Main game screen
@@ -61,6 +64,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // End any existing game first
     ref.read(gameProvider.notifier).endGame();
 
+    // Reset power-up usage for new game
+    ref.read(gamePowerUpUsageProvider.notifier).resetForNewGame();
+
     final gameMode = widget.mode == 'timed' ? GameMode.timed : GameMode.classic;
     final cardTheme = ref.read(settingsProvider).cardTheme;
 
@@ -71,10 +77,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
   }
 
-  void _saveProgress(Game game, int stars) {
+  int _lastCoinsEarned = 0;
+
+  Future<void> _saveProgress(Game game, int stars) async {
     final timeSpent = game.endTime != null && game.startTime != null
         ? game.endTime!.difference(game.startTime!).inSeconds
         : 0;
+
+    // Award coins for game completion
+    _lastCoinsEarned = await ref.read(walletProvider.notifier).awardGameCompletion(
+      level: game.level,
+      stars: stars,
+      isPerfect: game.isPerfectGame,
+      maxCombo: game.maxCombo,
+    );
 
     // Save level progress
     ref.read(progressProvider.notifier).completeLevelProgress(
@@ -250,6 +266,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               else
                 const GameHeader(),
               _buildControls(game),
+
+              // Power-up bar (single player only)
+              if (!isMultiplayer && game?.state == GameState.inProgress)
+                PowerUpBar(
+                  isTimedMode: game?.mode == GameMode.timed,
+                ),
+
               Expanded(
                 child: gameState.isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -382,7 +405,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  void _showGameCompleteDialog() {
+  void _showGameCompleteDialog() async {
     final game = ref.read(gameProvider).currentGame;
     if (game == null) return;
 
@@ -394,8 +417,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           isPerfectGame: game.isPerfectGame,
         );
 
-    // Save progress with stars
-    _saveProgress(game, stars);
+    // Save progress with stars and get coins earned (awaited to ensure coins are calculated)
+    await _saveProgress(game, stars);
+
+    if (!mounted) return;
 
     showDialog(
       context: context,
@@ -408,6 +433,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         maxCombo: game.maxCombo,
         isPerfectGame: game.isPerfectGame,
         hasNextLevel: game.level < 10,
+        coinsEarned: _lastCoinsEarned,
         onMainMenu: () {
           Navigator.of(dialogContext).pop();
           ref.read(gameProvider.notifier).endGame();

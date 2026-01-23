@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/notification_service.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/player_stats.dart';
 import 'stats_provider.dart';
@@ -21,6 +22,7 @@ class AchievementNotifier
     extends StateNotifier<Map<String, AchievementProgress>> {
   static const String _storageKey = 'achievement_progress';
   final PlayerStats _stats;
+  final NotificationService _notificationService = NotificationService();
 
   AchievementNotifier(this._stats) : super({}) {
     _loadProgress();
@@ -31,20 +33,20 @@ class AchievementNotifier
     try {
       final prefs = await SharedPreferences.getInstance();
       final progressJson = prefs.getString(_storageKey);
-      if (progressJson != null) {
+      if (progressJson != null && mounted) {
         final data = jsonDecode(progressJson) as Map<String, dynamic>;
         final progress = <String, AchievementProgress>{};
         data.forEach((key, value) {
           progress[key] = AchievementProgress.fromJson(value);
         });
-        state = progress;
+        if (mounted) state = progress;
       }
     } catch (e) {
       // Keep empty progress on error
     }
 
     // Check for any new unlocks based on current stats
-    _checkAllAchievements();
+    if (mounted) _checkAllAchievements();
   }
 
   /// Save progress to local storage
@@ -63,6 +65,8 @@ class AchievementNotifier
 
   /// Check all achievements and update progress
   void _checkAllAchievements() {
+    if (!mounted) return;
+
     final newState = Map<String, AchievementProgress>.from(state);
     Achievement? newlyUnlocked;
 
@@ -88,8 +92,10 @@ class AchievementNotifier
       }
     }
 
-    state = newState;
-    _saveProgress();
+    if (mounted) {
+      state = newState;
+      _saveProgress();
+    }
   }
 
   /// Get current progress for an achievement based on stats
@@ -160,6 +166,15 @@ class AchievementNotifier
         .map((e) => Achievements.getById(e.key))
         .whereType<Achievement>()
         .toList();
+
+    // Show notification for newly unlocked achievements
+    if (newlyUnlocked.isNotEmpty) {
+      final achievement = newlyUnlocked.first;
+      _notificationService.showAchievementNotification(
+        achievementTitle: achievement.titleKey,
+        achievementDescription: achievement.descriptionKey,
+      );
+    }
 
     return newlyUnlocked;
   }

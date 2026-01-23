@@ -1,4 +1,4 @@
-package com.cobi.pair_quest
+package com.cobistudio.pairquest
 
 import io.flutter.embedding.android.FlutterActivity
 

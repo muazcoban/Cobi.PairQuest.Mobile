@@ -80,6 +80,8 @@ class _CardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hintedCardIds = ref.watch(gameProvider.select((s) => s.hintedCardIds));
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -92,10 +94,12 @@ class _CardGrid extends ConsumerWidget {
       itemCount: cards.length,
       itemBuilder: (context, index) {
         final card = cards[index];
+        final isHinted = hintedCardIds.contains(card.id);
         return _CardItem(
           key: ValueKey(card.id),
           card: card,
           isProcessing: isProcessing,
+          isHinted: isHinted,
         );
       },
     );
@@ -106,11 +110,13 @@ class _CardGrid extends ConsumerWidget {
 class _CardItem extends ConsumerWidget {
   final GameCard card;
   final bool isProcessing;
+  final bool isHinted;
 
   const _CardItem({
     super.key,
     required this.card,
     required this.isProcessing,
+    this.isHinted = false,
   });
 
   @override
@@ -118,6 +124,7 @@ class _CardItem extends ConsumerWidget {
     return MemoryCard(
       card: card,
       isDisabled: isProcessing,
+      isHinted: isHinted,
       onTap: () {
         ref.read(gameProvider.notifier).selectCard(card.id);
       },

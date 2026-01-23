@@ -11,6 +11,7 @@ class GameCompleteDialog extends StatelessWidget {
   final int maxCombo;
   final bool isPerfectGame;
   final bool hasNextLevel;
+  final int coinsEarned;
   final VoidCallback onMainMenu;
   final VoidCallback onPlayAgain;
   final VoidCallback? onNextLevel;
@@ -24,6 +25,7 @@ class GameCompleteDialog extends StatelessWidget {
     required this.maxCombo,
     required this.isPerfectGame,
     required this.hasNextLevel,
+    this.coinsEarned = 0,
     required this.onMainMenu,
     required this.onPlayAgain,
     this.onNextLevel,
@@ -174,6 +176,55 @@ class GameCompleteDialog extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: AppColors.accentDark,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Coins earned
+                  if (coinsEarned > 0) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.amber.withValues(alpha: 0.15),
+                            Colors.orange.withValues(alpha: 0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.monetization_on_rounded,
+                            color: Colors.amber,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '+$coinsEarned',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber,
+                              fontSize: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            l10n.coins,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.amber.shade700,
                               fontSize: 14,
                             ),
                           ),

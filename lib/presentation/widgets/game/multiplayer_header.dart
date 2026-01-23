@@ -22,7 +22,19 @@ class MultiplayerHeader extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: Column(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Player score cards
@@ -42,6 +54,7 @@ class MultiplayerHeader extends ConsumerWidget {
             }).toList(),
           ),
         ],
+        ),
       ),
     );
   }

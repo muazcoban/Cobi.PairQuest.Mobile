@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../auth/auth_screen.dart';
 
-/// Local leaderboard screen
+/// Leaderboard screen with Global and Local tabs
 class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
 
@@ -14,19 +16,26 @@ class LeaderboardScreen extends ConsumerStatefulWidget {
   ConsumerState<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
-class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
+class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
+    with SingleTickerProviderStateMixin {
   int? _selectedLevel;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final allEntries = ref.watch(leaderboardProvider);
-    final playerName = ref.watch(settingsProvider).playerName;
-
-    // Filter by level if selected
-    final entries = _selectedLevel == null
-        ? allEntries.take(20).toList()
-        : allEntries.where((e) => e.level == _selectedLevel).take(20).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background(context),
@@ -35,6 +44,16 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          tabs: [
+            Tab(text: l10n.globalLeaderboard),
+            Tab(text: l10n.localLeaderboard),
+          ],
+        ),
       ),
       body: Column(
         children: [
@@ -43,11 +62,118 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
           // Leaderboard content
           Expanded(
-            child: entries.isEmpty
-                ? _buildEmptyState(context, l10n)
-                : _buildLeaderboard(context, l10n, entries, playerName),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildGlobalTab(context, l10n),
+                _buildLocalTab(context, l10n),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGlobalTab(BuildContext context, AppLocalizations l10n) {
+    final authState = ref.watch(authProvider);
+    final globalScores = ref.watch(globalLeaderboardProvider(_selectedLevel));
+    final playerName = ref.watch(settingsProvider).playerName;
+
+    if (!authState.isAuthenticated) {
+      return _buildSignInPrompt(context, l10n);
+    }
+
+    return globalScores.when(
+      data: (entries) => entries.isEmpty
+          ? _buildEmptyState(context, l10n)
+          : _buildLeaderboard(context, l10n, entries, playerName),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading leaderboard',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () => ref.invalidate(globalLeaderboardProvider(_selectedLevel)),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocalTab(BuildContext context, AppLocalizations l10n) {
+    final allEntries = ref.watch(leaderboardProvider);
+    final playerName = ref.watch(settingsProvider).playerName;
+
+    // Filter by level if selected
+    final entries = _selectedLevel == null
+        ? allEntries.take(20).toList()
+        : allEntries.where((e) => e.level == _selectedLevel).take(20).toList();
+
+    return entries.isEmpty
+        ? _buildEmptyState(context, l10n)
+        : _buildLeaderboard(context, l10n, entries, playerName);
+  }
+
+  Widget _buildSignInPrompt(BuildContext context, AppLocalizations l10n) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.leaderboard_rounded,
+              size: 80,
+              color: AppColors.primary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              l10n.signInRequired,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.signInToSubmitScore,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AuthScreen(
+                      returnMessage: l10n.signInToSubmitScore,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.login),
+              label: Text(l10n.signIn),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

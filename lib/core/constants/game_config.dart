@@ -7,6 +7,7 @@ class GameConfig {
   static const int cardMatchDelay = 800;
   static const int cardShakeDuration = 400;
   static const int scorePopupDuration = 1000;
+  static const int gameCompletionDelay = 1200; // Delay before showing completion popup
 
   // Scoring
   static const int matchPoints = 100;

@@ -10,6 +10,8 @@ class LeaderboardEntry extends Equatable {
   final int moves;
   final int timeSeconds;
   final DateTime playedAt;
+  final bool isSynced;
+  final DateTime? syncedAt;
 
   const LeaderboardEntry({
     required this.id,
@@ -20,6 +22,8 @@ class LeaderboardEntry extends Equatable {
     required this.moves,
     required this.timeSeconds,
     required this.playedAt,
+    this.isSynced = false,
+    this.syncedAt,
   });
 
   LeaderboardEntry copyWith({
@@ -31,6 +35,8 @@ class LeaderboardEntry extends Equatable {
     int? moves,
     int? timeSeconds,
     DateTime? playedAt,
+    bool? isSynced,
+    DateTime? syncedAt,
   }) {
     return LeaderboardEntry(
       id: id ?? this.id,
@@ -41,6 +47,8 @@ class LeaderboardEntry extends Equatable {
       moves: moves ?? this.moves,
       timeSeconds: timeSeconds ?? this.timeSeconds,
       playedAt: playedAt ?? this.playedAt,
+      isSynced: isSynced ?? this.isSynced,
+      syncedAt: syncedAt ?? this.syncedAt,
     );
   }
 
@@ -54,6 +62,8 @@ class LeaderboardEntry extends Equatable {
       'moves': moves,
       'timeSeconds': timeSeconds,
       'playedAt': playedAt.toIso8601String(),
+      'isSynced': isSynced,
+      'syncedAt': syncedAt?.toIso8601String(),
     };
   }
 
@@ -69,6 +79,10 @@ class LeaderboardEntry extends Equatable {
       playedAt: json['playedAt'] != null
           ? DateTime.parse(json['playedAt'])
           : DateTime.now(),
+      isSynced: json['isSynced'] ?? false,
+      syncedAt: json['syncedAt'] != null
+          ? DateTime.parse(json['syncedAt'])
+          : null,
     );
   }
 
@@ -89,5 +103,7 @@ class LeaderboardEntry extends Equatable {
         moves,
         timeSeconds,
         playedAt,
+        isSynced,
+        syncedAt,
       ];
 }

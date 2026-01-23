@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../domain/entities/daily_reward.dart';
 import '../../../domain/entities/game.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/daily_reward_provider.dart';
 import '../../providers/game_provider.dart';
+import '../../providers/leaderboard_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/wallet_provider.dart';
 import '../../widgets/dialogs/daily_reward_dialog.dart';
 import '../achievements/achievements_screen.dart';
 import '../game/game_screen.dart';
@@ -14,6 +17,7 @@ import '../levels/level_select_screen.dart';
 import '../multiplayer/multiplayer_lobby_screen.dart';
 import '../quests/daily_quests_screen.dart';
 import '../settings/settings_screen.dart';
+import '../shop/shop_screen.dart';
 import '../stats/statistics_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -30,27 +34,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Check for daily reward on app start
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkDailyReward();
+      _syncPendingScores();
     });
   }
 
-  void _checkDailyReward() {
+  /// Sync any pending leaderboard scores in the background
+  Future<void> _syncPendingScores() async {
+    final leaderboardNotifier = ref.read(leaderboardProvider.notifier);
+    await leaderboardNotifier.waitForLoad();
+
+    // Sync in background - don't block UI
+    leaderboardNotifier.syncPending();
+  }
+
+  Future<void> _checkDailyReward() async {
     final rewardNotifier = ref.read(dailyRewardProvider.notifier);
+
+    // Wait for progress to be loaded from storage
+    await rewardNotifier.waitForLoad();
+
+    // Check if reward can be claimed after loading
+    if (!mounted) return;
     if (rewardNotifier.canClaim) {
       showDialog(
         context: context,
         builder: (context) => const DailyRewardDialog(),
-      ).then((points) {
-        if (points != null && points > 0) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('+$points points claimed!'),
-              backgroundColor: AppColors.success,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+      ).then((reward) {
+        if (reward != null && mounted) {
+          final message = _buildRewardMessage(reward);
+          if (message.isNotEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-            ),
-          );
+            );
+          }
         }
       });
     }
@@ -228,19 +251,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
 
-              // Music toggle button - top right
+              // Top bar - wallet and music toggle
               Positioned(
                 top: 8,
+                left: 8,
                 right: 8,
-                child: IconButton(
-                  onPressed: () {
-                    ref.read(settingsProvider.notifier).toggleMusic();
-                  },
-                  icon: Icon(
-                    musicEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Wallet display
+                    _WalletButton(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ShopScreen(),
+                        ),
+                      ),
+                    ),
+                    // Music toggle
+                    IconButton(
+                      onPressed: () {
+                        ref.read(settingsProvider.notifier).toggleMusic();
+                      },
+                      icon: Icon(
+                        musicEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -264,6 +302,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+  }
+
+  String _buildRewardMessage(DailyReward reward) {
+    final parts = <String>[];
+    if (reward.coins > 0) {
+      parts.add('+${reward.coins} coins');
+    }
+    if (reward.gems > 0) {
+      parts.add('+${reward.gems} gems');
+    }
+    if (reward.powerUpId != null) {
+      parts.add('+1 power-up');
+    }
+    return parts.join(', ') + ' claimed!';
   }
 
   void _showLevelSelector(BuildContext context) {
@@ -520,5 +572,70 @@ class _LevelTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _WalletButton extends ConsumerWidget {
+  final VoidCallback onTap;
+
+  const _WalletButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wallet = ref.watch(walletProvider);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.monetization_on_rounded,
+              color: Colors.amber,
+              size: 20,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _formatAmount(wallet.coins),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.diamond_rounded,
+              color: Colors.purpleAccent,
+              size: 18,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              wallet.gems.toString(),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatAmount(int amount) {
+    if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}M';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(1)}K';
+    }
+    return amount.toString();
   }
 }

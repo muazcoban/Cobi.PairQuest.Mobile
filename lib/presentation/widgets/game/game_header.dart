@@ -121,20 +121,23 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _TimerWidget extends StatelessWidget {
+class _TimerWidget extends ConsumerWidget {
   final int timeRemaining;
   final String timeLabel;
 
   const _TimerWidget({required this.timeRemaining, required this.timeLabel});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFrozen = ref.watch(isTimerFrozenProvider);
     final minutes = timeRemaining ~/ 60;
     final seconds = timeRemaining % 60;
     final timeString = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
     Color timerColor;
-    if (timeRemaining <= GameConfig.timerDangerThreshold) {
+    if (isFrozen) {
+      timerColor = Colors.cyan;
+    } else if (timeRemaining <= GameConfig.timerDangerThreshold) {
       timerColor = AppColors.timerDanger;
     } else if (timeRemaining <= GameConfig.timerWarningThreshold) {
       timerColor = AppColors.timerWarning;
@@ -145,22 +148,38 @@ class _TimerWidget extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.timer, color: timerColor, size: 20),
+        Icon(
+          isFrozen ? Icons.ac_unit : Icons.timer,
+          color: timerColor,
+          size: 20,
+        ),
         const SizedBox(height: 2),
-        Text(
-          timeString,
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: timerColor,
           ),
+          child: Text(timeString),
         ),
-        Text(
-          timeLabel,
-          style: TextStyle(
-            fontSize: 10,
-            color: AppColors.textSecondaryLight,
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isFrozen)
+              const Padding(
+                padding: EdgeInsets.only(right: 2),
+                child: Icon(Icons.pause, size: 10, color: Colors.cyan),
+              ),
+            Text(
+              isFrozen ? 'FROZEN' : timeLabel,
+              style: TextStyle(
+                fontSize: 10,
+                color: isFrozen ? Colors.cyan : AppColors.textSecondaryLight,
+                fontWeight: isFrozen ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
         ),
       ],
     );

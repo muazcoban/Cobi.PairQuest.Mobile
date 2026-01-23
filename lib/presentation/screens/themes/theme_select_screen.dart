@@ -16,6 +16,7 @@ class ThemeSelectScreen extends ConsumerWidget {
     final currentTheme = settings.cardTheme;
 
     final themes = [
+      _ThemeData('random', l10n.randomTheme, Icons.shuffle_rounded, isRandom: true),
       _ThemeData('animals', l10n.animals, Icons.pets_rounded),
       _ThemeData('fruits', l10n.fruits, Icons.apple),
       _ThemeData('flags', l10n.flags, Icons.flag_rounded),
@@ -47,11 +48,21 @@ class ThemeSelectScreen extends ConsumerWidget {
           itemBuilder: (context, index) {
             final theme = themes[index];
             final isSelected = theme.id == currentTheme;
-            final emojis = CardShuffle.themeImages[theme.id] ?? [];
+
+            // For random theme, show one emoji from each theme
+            List<String> emojis;
+            if (theme.isRandom) {
+              emojis = CardShuffle.availableThemes
+                  .take(6)
+                  .map((t) => CardShuffle.themeImages[t]?.first ?? '❓')
+                  .toList();
+            } else {
+              emojis = (CardShuffle.themeImages[theme.id] ?? []).take(6).toList();
+            }
 
             return _ThemeCard(
               theme: theme,
-              emojis: emojis.take(6).toList(),
+              emojis: emojis,
               isSelected: isSelected,
               onTap: () {
                 ref.read(settingsProvider.notifier).setCardTheme(theme.id);
@@ -68,8 +79,9 @@ class _ThemeData {
   final String id;
   final String name;
   final IconData icon;
+  final bool isRandom;
 
-  const _ThemeData(this.id, this.name, this.icon);
+  const _ThemeData(this.id, this.name, this.icon, {this.isRandom = false});
 }
 
 class _ThemeCard extends StatelessWidget {

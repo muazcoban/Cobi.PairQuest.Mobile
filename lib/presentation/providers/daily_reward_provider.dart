@@ -2,20 +2,28 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/daily_reward.dart';
+import '../../domain/entities/power_up.dart';
+import 'wallet_provider.dart';
+import 'power_up_provider.dart';
 
 /// Provider for daily rewards
 final dailyRewardProvider =
     StateNotifierProvider<DailyRewardNotifier, DailyRewardProgress>((ref) {
-  return DailyRewardNotifier();
+  return DailyRewardNotifier(ref);
 });
 
 /// Notifier for managing daily rewards
 class DailyRewardNotifier extends StateNotifier<DailyRewardProgress> {
   static const String _storageKey = 'daily_reward_progress';
+  bool _isLoaded = false;
+  final Ref _ref;
 
-  DailyRewardNotifier() : super(const DailyRewardProgress()) {
+  DailyRewardNotifier(this._ref) : super(const DailyRewardProgress()) {
     _loadProgress();
   }
+
+  /// Check if progress has been loaded from storage
+  bool get isLoaded => _isLoaded;
 
   /// Load progress from local storage
   Future<void> _loadProgress() async {
@@ -34,6 +42,17 @@ class DailyRewardNotifier extends StateNotifier<DailyRewardProgress> {
       }
     } catch (e) {
       // Keep default progress on error
+    }
+    _isLoaded = true;
+  }
+
+  /// Wait for progress to be loaded
+  Future<void> waitForLoad() async {
+    if (_isLoaded) return;
+    // Wait for async load to complete (max 500ms)
+    for (int i = 0; i < 10; i++) {
+      await Future.delayed(const Duration(milliseconds: 50));
+      if (_isLoaded) return;
     }
   }
 
@@ -56,23 +75,62 @@ class DailyRewardNotifier extends StateNotifier<DailyRewardProgress> {
   /// Get today's reward
   DailyReward get todaysReward => DailyRewards.getRewardForDay(currentDay);
 
-  /// Claim daily reward
-  int claimReward() {
+  /// Claim daily reward and add to wallet/inventory
+  /// Returns the claimed reward, or null if cannot claim
+  Future<DailyReward?> claimReward() async {
     if (!state.canClaimToday) {
-      return 0;
+      return null;
     }
 
     final reward = todaysReward;
     final newStreak = state.isStreakValid ? state.currentStreak + 1 : 1;
 
+    // Add coins to wallet
+    if (reward.coins > 0) {
+      await _ref.read(walletProvider.notifier).addCoins(reward.coins);
+    }
+
+    // Add gems to wallet
+    if (reward.gems > 0) {
+      await _ref.read(walletProvider.notifier).addGems(reward.gems);
+    }
+
+    // Add power-up to inventory
+    if (reward.powerUpId != null) {
+      final powerUpType = _getPowerUpTypeFromId(reward.powerUpId!);
+      if (powerUpType != null) {
+        await _ref.read(powerUpInventoryProvider.notifier).addPowerUp(powerUpType, 1);
+      }
+    }
+
     state = state.copyWith(
       currentStreak: newStreak,
       lastClaimedAt: DateTime.now(),
-      totalClaimed: state.totalClaimed + reward.amount,
+      totalClaimed: state.totalClaimed + reward.coins,
     );
 
     _saveProgress();
-    return reward.amount;
+    return reward;
+  }
+
+  /// Convert power-up ID to PowerUpType
+  PowerUpType? _getPowerUpTypeFromId(String id) {
+    switch (id) {
+      case 'peek':
+        return PowerUpType.peek;
+      case 'freeze':
+        return PowerUpType.freeze;
+      case 'hint':
+        return PowerUpType.hint;
+      case 'shuffle':
+        return PowerUpType.shuffle;
+      case 'timeBonus':
+        return PowerUpType.timeBonus;
+      case 'magnet':
+        return PowerUpType.magnet;
+      default:
+        return null;
+    }
   }
 
   /// Get all weekly rewards with claimed status

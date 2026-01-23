@@ -3,27 +3,34 @@ import 'package:flutter/material.dart';
 
 /// Daily reward types
 enum RewardType {
-  points,
-  bonus,
-  special,
+  coins,
+  gems,
+  powerUp,
 }
 
 /// Daily reward model
 class DailyReward extends Equatable {
   final int day;
   final RewardType type;
-  final int amount;
+  final int coins;
+  final int gems;
+  final String? powerUpId; // For power-up rewards
   final IconData icon;
 
   const DailyReward({
     required this.day,
     required this.type,
-    required this.amount,
+    this.coins = 0,
+    this.gems = 0,
+    this.powerUpId,
     required this.icon,
   });
 
+  /// Legacy getter for backward compatibility
+  int get amount => coins;
+
   @override
-  List<Object?> get props => [day, type, amount];
+  List<Object?> get props => [day, type, coins, gems, powerUpId];
 }
 
 /// Daily reward progress
@@ -121,45 +128,47 @@ class DailyRewards {
   static const List<DailyReward> week = [
     DailyReward(
       day: 1,
-      type: RewardType.points,
-      amount: 50,
+      type: RewardType.coins,
+      coins: 50,
       icon: Icons.monetization_on_rounded,
     ),
     DailyReward(
       day: 2,
-      type: RewardType.points,
-      amount: 75,
+      type: RewardType.coins,
+      coins: 75,
       icon: Icons.monetization_on_rounded,
     ),
     DailyReward(
       day: 3,
-      type: RewardType.points,
-      amount: 100,
+      type: RewardType.coins,
+      coins: 100,
       icon: Icons.monetization_on_rounded,
     ),
     DailyReward(
       day: 4,
-      type: RewardType.bonus,
-      amount: 150,
-      icon: Icons.card_giftcard_rounded,
+      type: RewardType.powerUp,
+      coins: 50,
+      powerUpId: 'hint', // 1x Hint power-up
+      icon: Icons.lightbulb_rounded,
     ),
     DailyReward(
       day: 5,
-      type: RewardType.points,
-      amount: 125,
+      type: RewardType.coins,
+      coins: 125,
       icon: Icons.monetization_on_rounded,
     ),
     DailyReward(
       day: 6,
-      type: RewardType.points,
-      amount: 150,
+      type: RewardType.coins,
+      coins: 150,
       icon: Icons.monetization_on_rounded,
     ),
     DailyReward(
       day: 7,
-      type: RewardType.special,
-      amount: 300,
-      icon: Icons.workspace_premium_rounded,
+      type: RewardType.gems,
+      coins: 200,
+      gems: 5,
+      icon: Icons.diamond_rounded,
     ),
   ];
 

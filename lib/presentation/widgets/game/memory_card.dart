@@ -9,12 +9,14 @@ class MemoryCard extends StatefulWidget {
   final GameCard card;
   final VoidCallback? onTap;
   final bool isDisabled;
+  final bool isHinted;
 
   const MemoryCard({
     super.key,
     required this.card,
     this.onTap,
     this.isDisabled = false,
+    this.isHinted = false,
   });
 
   @override
@@ -221,16 +223,20 @@ class _MemoryCardState extends State<MemoryCard>
 
   Widget _buildBack() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.cardBackGradient,
+      decoration: BoxDecoration(
+        gradient: widget.isHinted ? null : AppColors.cardBackGradient,
+        color: widget.isHinted ? Colors.orange.shade400 : null,
+        border: widget.isHinted
+            ? Border.all(color: Colors.orange.shade700, width: 3)
+            : null,
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final iconSize = constraints.maxWidth * 0.4;
           return Center(
             child: Icon(
-              Icons.psychology_rounded,
-              color: Colors.white.withOpacity(0.8),
+              widget.isHinted ? Icons.lightbulb_rounded : Icons.psychology_rounded,
+              color: Colors.white.withValues(alpha: 0.9),
               size: iconSize.clamp(20.0, 40.0),
             ),
           );

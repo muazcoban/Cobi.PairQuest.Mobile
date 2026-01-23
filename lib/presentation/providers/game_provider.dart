@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/game_config.dart';
@@ -8,6 +9,8 @@ import '../../core/utils/card_shuffle.dart';
 import '../../domain/entities/card.dart';
 import '../../domain/entities/game.dart';
 import '../../domain/entities/player.dart';
+import '../../domain/entities/power_up.dart';
+import 'power_up_provider.dart';
 import 'settings_provider.dart';
 
 /// Game state for the provider
@@ -19,6 +22,9 @@ class GameStateData {
   final String? error;
   final double previewProgress; // 0.0 to 1.0 for countdown animation
   final bool showTurnTransition; // Show turn change overlay
+  final Set<String> hintedCardIds; // Cards highlighted by hint power-up
+  final bool magnetActive; // Magnet power-up active for next selection
+  final bool timerFrozen; // Timer is frozen by freeze power-up
 
   const GameStateData({
     this.currentGame,
@@ -28,6 +34,9 @@ class GameStateData {
     this.error,
     this.previewProgress = 0.0,
     this.showTurnTransition = false,
+    this.hintedCardIds = const {},
+    this.magnetActive = false,
+    this.timerFrozen = false,
   });
 
   GameStateData copyWith({
@@ -38,6 +47,9 @@ class GameStateData {
     String? error,
     double? previewProgress,
     bool? showTurnTransition,
+    Set<String>? hintedCardIds,
+    bool? magnetActive,
+    bool? timerFrozen,
   }) {
     return GameStateData(
       currentGame: currentGame ?? this.currentGame,
@@ -47,6 +59,9 @@ class GameStateData {
       error: error,
       previewProgress: previewProgress ?? this.previewProgress,
       showTurnTransition: showTurnTransition ?? this.showTurnTransition,
+      hintedCardIds: hintedCardIds ?? this.hintedCardIds,
+      magnetActive: magnetActive ?? this.magnetActive,
+      timerFrozen: timerFrozen ?? this.timerFrozen,
     );
   }
 }
@@ -56,16 +71,21 @@ class GameNotifier extends StateNotifier<GameStateData> {
   static const _uuid = Uuid();
   Timer? _timer;
   Timer? _previewTimer;
+  Timer? _peekTimer;
+  Timer? _freezeTimer;
+  Timer? _hintTimer;
   final AudioService _audioService;
   final HapticService _hapticService;
   final SettingsState _settings;
+  final SettingsNotifier _settingsNotifier;
+  final Ref _ref;
 
   /// Preview duration constants
   static const int _maxPreviewDurationMs = 2000; // Max 2 seconds
   static const int _minPreviewDurationMs = 800;  // Min 0.8 seconds
   static const int _previewUpdateIntervalMs = 50; // Update every 50ms for smooth animation
 
-  GameNotifier(this._audioService, this._hapticService, this._settings)
+  GameNotifier(this._audioService, this._hapticService, this._settings, this._settingsNotifier, this._ref)
       : super(const GameStateData()) {
     _audioService.setSoundEnabled(_settings.soundEnabled);
     _audioService.setMusicEnabled(_settings.musicEnabled);
@@ -91,6 +111,14 @@ class GameNotifier extends StateNotifier<GameStateData> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      // Handle random theme selection
+      String actualTheme = theme;
+      if (theme == 'random') {
+        final lastTheme = await _settingsNotifier.getLastRandomTheme();
+        actualTheme = CardShuffle.getRandomTheme(excludeTheme: lastTheme);
+        await _settingsNotifier.setLastRandomTheme(actualTheme);
+      }
+
       // Get grid configuration for the level
       final gridConfig = GameConfig.levels.firstWhere(
         (l) => l.level == level,
@@ -102,7 +130,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
       // Generate cards - initially all hidden
       final cards = CardShuffle.generateCards(
         pairs: gridSize.pairs,
-        theme: theme,
+        theme: actualTheme,
       );
 
       final game = Game(
@@ -115,7 +143,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
         startTime: DateTime.now(),
         timeLimit: mode == GameMode.timed ? gridConfig.timeLimit : null,
         timeRemaining: mode == GameMode.timed ? gridConfig.timeLimit : null,
-        theme: theme,
+        theme: actualTheme,
       );
 
       state = state.copyWith(
@@ -150,6 +178,14 @@ class GameNotifier extends StateNotifier<GameStateData> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      // Handle random theme selection
+      String actualTheme = theme;
+      if (theme == 'random') {
+        final lastTheme = await _settingsNotifier.getLastRandomTheme();
+        actualTheme = CardShuffle.getRandomTheme(excludeTheme: lastTheme);
+        await _settingsNotifier.setLastRandomTheme(actualTheme);
+      }
+
       // Get grid configuration for the level
       final gridConfig = GameConfig.levels.firstWhere(
         (l) => l.level == level,
@@ -161,7 +197,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
       // Generate cards
       final cards = CardShuffle.generateCards(
         pairs: gridSize.pairs,
-        theme: theme,
+        theme: actualTheme,
       );
 
       // Create players
@@ -181,7 +217,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
         cards: cards,
         state: GameState.preview,
         startTime: DateTime.now(),
-        theme: theme,
+        theme: actualTheme,
         players: players,
         currentPlayerIndex: 0,
       );
@@ -367,6 +403,9 @@ class GameNotifier extends StateNotifier<GameStateData> {
     // Check if card can be selected
     if (!_canSelectCard(card)) return;
 
+    // Clear hint if this card was hinted
+    _clearHintIfNeeded(cardId);
+
     // Reveal the card
     final updatedCards = List<GameCard>.from(game.cards);
     updatedCards[cardIndex] = card.copyWith(state: CardState.revealed);
@@ -382,6 +421,13 @@ class GameNotifier extends StateNotifier<GameStateData> {
       selectedCards: newSelectedCards,
     );
 
+    // Check for magnet power-up (only on first card selection)
+    if (state.magnetActive && newSelectedCards.length == 1) {
+      state = state.copyWith(magnetActive: false);
+      await _handleMagnetMatch(card);
+      return;
+    }
+
     // Check for match if 2 cards are selected
     if (newSelectedCards.length == 2) {
       await _checkMatch(newSelectedCards[0], newSelectedCards[1]);
@@ -392,13 +438,15 @@ class GameNotifier extends StateNotifier<GameStateData> {
   Future<void> _checkMatch(GameCard card1, GameCard card2) async {
     state = state.copyWith(isProcessing: true);
 
-    // Wait a bit to show the cards
-    await Future.delayed(
-      Duration(milliseconds: GameConfig.cardMatchDelay),
-    );
-
     final game = state.currentGame!;
     final isMatch = card1.pairId == card2.pairId;
+
+    // Only wait for mismatch - matches feel snappier without delay
+    if (!isMatch) {
+      await Future.delayed(
+        Duration(milliseconds: GameConfig.cardMatchDelay),
+      );
+    }
     final isMultiplayer = game.isMultiplayer;
 
     final updatedCards = List<GameCard>.from(game.cards);
@@ -464,27 +512,46 @@ class GameNotifier extends StateNotifier<GameStateData> {
           ? updatedGame.totalMultiplayerMatches
           : updatedGame.matches;
 
-      if (totalMatches >= game.gridSize.pairs) {
+      final isGameCompleted = totalMatches >= game.gridSize.pairs;
+
+      if (isGameCompleted) {
         _stopTimer();
-        updatedGame = updatedGame.copyWith(
-          state: GameState.completed,
-          endTime: DateTime.now(),
-          // Add perfect game bonus for single player only
-          score: !isMultiplayer && updatedGame.isPerfectGame
-              ? updatedGame.score + GameConfig.perfectGameBonus
-              : updatedGame.score,
+        // Update state with matched cards but keep game in progress for now
+        state = state.copyWith(
+          currentGame: updatedGame,
+          selectedCards: [],
+          isProcessing: false,
         );
 
         // Play level complete sound and haptic
         _audioService.playSound(SoundEffect.levelComplete);
         _hapticService.levelComplete();
-      }
 
-      state = state.copyWith(
-        currentGame: updatedGame,
-        selectedCards: [],
-        isProcessing: false,
-      );
+        // Delay before showing completion popup for better UX
+        await Future.delayed(
+          Duration(milliseconds: GameConfig.gameCompletionDelay),
+        );
+
+        // Now mark as completed
+        if (mounted) {
+          state = state.copyWith(
+            currentGame: updatedGame.copyWith(
+              state: GameState.completed,
+              endTime: DateTime.now(),
+              // Add perfect game bonus for single player only
+              score: !isMultiplayer && updatedGame.isPerfectGame
+                  ? updatedGame.score + GameConfig.perfectGameBonus
+                  : updatedGame.score,
+            ),
+          );
+        }
+      } else {
+        state = state.copyWith(
+          currentGame: updatedGame,
+          selectedCards: [],
+          isProcessing: false,
+        );
+      }
     } else {
       // Hide cards again
       final index1 = updatedCards.indexWhere((c) => c.id == card1.id);
@@ -629,6 +696,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
     if (game == null) return;
 
     _stopTimer();
+    _stopAllPowerUpTimers();
 
     if (game.isMultiplayer && game.players != null) {
       // Reset multiplayer game with same players
@@ -650,6 +718,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
   void endGame() {
     _stopTimer();
     _stopPreviewTimer();
+    _stopAllPowerUpTimers();
     _audioService.stopBackgroundMusic();
     state = const GameStateData();
   }
@@ -663,6 +732,9 @@ class GameNotifier extends StateNotifier<GameStateData> {
         _stopTimer();
         return;
       }
+
+      // Skip countdown if timer is frozen
+      if (state.timerFrozen) return;
 
       final newTimeRemaining = (game.timeRemaining ?? 0) - 1;
 
@@ -701,10 +773,286 @@ class GameNotifier extends StateNotifier<GameStateData> {
     _previewTimer = null;
   }
 
+  /// Stops all power-up timers
+  void _stopAllPowerUpTimers() {
+    _peekTimer?.cancel();
+    _peekTimer = null;
+    _freezeTimer?.cancel();
+    _freezeTimer = null;
+    _hintTimer?.cancel();
+    _hintTimer = null;
+  }
+
+  // ========== POWER-UP METHODS ==========
+
+  /// Use a power-up in the game
+  /// Note: Inventory and game usage checks are handled by PowerUpBar before calling this
+  Future<bool> usePowerUp(PowerUpType type) async {
+    final game = state.currentGame;
+    if (game == null || game.state != GameState.inProgress) return false;
+
+    switch (type) {
+      case PowerUpType.peek:
+        return _usePeek();
+      case PowerUpType.freeze:
+        return _useFreeze();
+      case PowerUpType.hint:
+        return _useHint();
+      case PowerUpType.shuffle:
+        return _useShuffle();
+      case PowerUpType.timeBonus:
+        return _useTimeBonus();
+      case PowerUpType.magnet:
+        return _useMagnet();
+    }
+  }
+
+  /// Peek - Show all cards for 3 seconds
+  bool _usePeek() {
+    final game = state.currentGame;
+    if (game == null) return false;
+
+    // Store which cards were already revealed before peek (to not hide them after)
+    final preRevealedIds = game.cards
+        .where((c) => c.state == CardState.revealed)
+        .map((c) => c.id)
+        .toSet();
+
+    // Reveal all hidden cards
+    final updatedCards = game.cards.map((card) {
+      if (card.state == CardState.hidden) {
+        return card.copyWith(state: CardState.revealed);
+      }
+      return card;
+    }).toList();
+
+    state = state.copyWith(
+      currentGame: game.copyWith(cards: updatedCards),
+      isProcessing: true, // Block card selection during peek
+      selectedCards: [], // Clear selection during peek
+    );
+
+    _audioService.playSound(SoundEffect.cardFlip);
+    _hapticService.trigger(HapticType.medium);
+
+    // Hide cards after 3 seconds (except matched ones and pre-revealed ones)
+    _peekTimer?.cancel();
+    _peekTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      final currentGame = state.currentGame;
+      if (currentGame == null) return;
+
+      final hiddenCards = currentGame.cards.map((card) {
+        // Don't hide matched cards or cards that were revealed before peek
+        if (card.state == CardState.matched || preRevealedIds.contains(card.id)) {
+          return card;
+        }
+        // Hide peek-revealed cards
+        if (card.state == CardState.revealed) {
+          return card.copyWith(state: CardState.hidden);
+        }
+        return card;
+      }).toList();
+
+      state = state.copyWith(
+        currentGame: currentGame.copyWith(cards: hiddenCards),
+        isProcessing: false,
+      );
+
+      _audioService.playSound(SoundEffect.cardFlip);
+    });
+
+    return true;
+  }
+
+  /// Freeze - Pause timer for 10 seconds
+  bool _useFreeze() {
+    final game = state.currentGame;
+    if (game == null || game.mode != GameMode.timed) return false;
+
+    // Set frozen state (timer keeps running but doesn't decrement)
+    state = state.copyWith(timerFrozen: true);
+
+    _audioService.playSound(SoundEffect.comboBonus);
+    _hapticService.trigger(HapticType.medium);
+
+    // Unfreeze after 10 seconds
+    _freezeTimer?.cancel();
+    _freezeTimer = Timer(const Duration(seconds: 10), () {
+      if (!mounted) return;
+      final currentGame = state.currentGame;
+      if (currentGame == null || currentGame.state != GameState.inProgress) return;
+
+      state = state.copyWith(timerFrozen: false);
+    });
+
+    return true;
+  }
+
+  /// Hint - Highlight a matching pair for 3 seconds
+  bool _useHint() {
+    final game = state.currentGame;
+    if (game == null) return false;
+
+    // Find an unmatched pair
+    final hiddenCards = game.cards.where((c) => c.state == CardState.hidden).toList();
+    if (hiddenCards.isEmpty) return false;
+
+    // Group by pairId
+    final pairGroups = <String, List<GameCard>>{};
+    for (final card in hiddenCards) {
+      pairGroups.putIfAbsent(card.pairId, () => []).add(card);
+    }
+
+    // Find a pair with 2 cards
+    MapEntry<String, List<GameCard>>? matchingPair;
+    for (final entry in pairGroups.entries) {
+      if (entry.value.length == 2) {
+        matchingPair = entry;
+        break;
+      }
+    }
+
+    if (matchingPair == null) return false;
+
+    final hintedIds = matchingPair.value.map((c) => c.id).toSet();
+    state = state.copyWith(hintedCardIds: hintedIds);
+
+    _audioService.playSound(SoundEffect.comboBonus);
+    _hapticService.trigger(HapticType.light);
+
+    // Clear hint after 3 seconds
+    _hintTimer?.cancel();
+    _hintTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      state = state.copyWith(hintedCardIds: const {});
+    });
+
+    return true;
+  }
+
+  /// Shuffle - Reshuffle unmatched cards
+  bool _useShuffle() {
+    final game = state.currentGame;
+    if (game == null) return false;
+
+    final cards = List<GameCard>.from(game.cards);
+
+    // Get indices of hidden (unmatched) cards
+    final hiddenIndices = <int>[];
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].state == CardState.hidden) {
+        hiddenIndices.add(i);
+      }
+    }
+
+    if (hiddenIndices.length < 2) return false;
+
+    // Collect the hidden cards
+    final hiddenCards = hiddenIndices.map((i) => cards[i]).toList();
+
+    // Shuffle them
+    final random = Random();
+    hiddenCards.shuffle(random);
+
+    // Put them back in the indices
+    for (var i = 0; i < hiddenIndices.length; i++) {
+      final originalIndex = hiddenIndices[i];
+      cards[originalIndex] = hiddenCards[i];
+    }
+
+    state = state.copyWith(
+      currentGame: game.copyWith(cards: cards),
+      selectedCards: [], // Clear any selection
+    );
+
+    _audioService.playSound(SoundEffect.cardFlip);
+    _hapticService.trigger(HapticType.medium);
+
+    return true;
+  }
+
+  /// Time Bonus - Add 15 seconds to timer
+  bool _useTimeBonus() {
+    final game = state.currentGame;
+    if (game == null || game.mode != GameMode.timed) return false;
+    if (game.timeRemaining == null) return false;
+
+    final newTime = game.timeRemaining! + 15;
+
+    state = state.copyWith(
+      currentGame: game.copyWith(timeRemaining: newTime),
+    );
+
+    _audioService.playSound(SoundEffect.comboBonus);
+    _hapticService.trigger(HapticType.success);
+
+    return true;
+  }
+
+  /// Magnet - Next card selection auto-matches
+  bool _useMagnet() {
+    state = state.copyWith(magnetActive: true);
+
+    _audioService.playSound(SoundEffect.comboBonus);
+    _hapticService.trigger(HapticType.medium);
+
+    return true;
+  }
+
+  /// Clear hint highlight (called when hinted card is selected)
+  void _clearHintIfNeeded(String cardId) {
+    if (state.hintedCardIds.contains(cardId)) {
+      state = state.copyWith(hintedCardIds: const {});
+    }
+  }
+
+  /// Handle magnet auto-match
+  Future<void> _handleMagnetMatch(GameCard selectedCard) async {
+    final game = state.currentGame;
+    if (game == null) return;
+
+    // Find the matching card
+    final matchingCard = game.cards.firstWhere(
+      (c) => c.pairId == selectedCard.pairId &&
+             c.id != selectedCard.id &&
+             c.state == CardState.hidden,
+      orElse: () => selectedCard,
+    );
+
+    if (matchingCard.id == selectedCard.id) return;
+
+    // Brief delay for effect
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    if (!mounted) return;
+    final currentGame = state.currentGame;
+    if (currentGame == null) return;
+
+    // Auto-reveal and match the pair
+    final updatedCards = List<GameCard>.from(currentGame.cards);
+    final index2 = updatedCards.indexWhere((c) => c.id == matchingCard.id);
+
+    // First reveal the matching card
+    updatedCards[index2] = updatedCards[index2].copyWith(state: CardState.revealed);
+
+    state = state.copyWith(
+      currentGame: currentGame.copyWith(cards: updatedCards),
+      selectedCards: [selectedCard, matchingCard],
+    );
+
+    _audioService.playSound(SoundEffect.cardFlip);
+
+    // Then match them
+    await Future.delayed(const Duration(milliseconds: 200));
+    await _checkMatch(selectedCard, matchingCard);
+  }
+
   @override
   void dispose() {
     _stopTimer();
     _stopPreviewTimer();
+    _stopAllPowerUpTimers();
     super.dispose();
   }
 }
@@ -714,8 +1062,9 @@ final gameProvider = StateNotifierProvider<GameNotifier, GameStateData>((ref) {
   final audioService = ref.watch(audioServiceProvider);
   final hapticService = ref.watch(hapticServiceProvider);
   final settings = ref.watch(settingsProvider);
+  final settingsNotifier = ref.read(settingsProvider.notifier);
 
-  return GameNotifier(audioService, hapticService, settings);
+  return GameNotifier(audioService, hapticService, settings, settingsNotifier, ref);
 });
 
 /// Provider for just the current game
@@ -727,4 +1076,14 @@ final currentGameProvider = Provider<Game?>((ref) {
 final isGameInProgressProvider = Provider<bool>((ref) {
   final game = ref.watch(currentGameProvider);
   return game?.state == GameState.inProgress;
+});
+
+/// Provider for checking if timer is frozen
+final isTimerFrozenProvider = Provider<bool>((ref) {
+  return ref.watch(gameProvider.select((s) => s.timerFrozen));
+});
+
+/// Provider for checking if magnet is active
+final isMagnetActiveProvider = Provider<bool>((ref) {
+  return ref.watch(gameProvider.select((s) => s.magnetActive));
 });

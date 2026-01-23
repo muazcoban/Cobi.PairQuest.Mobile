@@ -18,7 +18,7 @@ class SettingsState {
     this.soundEnabled = true,
     this.musicEnabled = true,
     this.vibrationEnabled = true,
-    this.cardTheme = 'animals',
+    this.cardTheme = 'random',
     this.playerName = 'Player',
   });
 
@@ -52,6 +52,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   static const _vibrationKey = 'vibration';
   static const _cardThemeKey = 'cardTheme';
   static const _playerNameKey = 'playerName';
+  static const _lastRandomThemeKey = 'lastRandomTheme';
 
   SettingsNotifier() : super(const SettingsState()) {
     _loadSettings();
@@ -65,7 +66,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final soundEnabled = prefs.getBool(_soundKey) ?? true;
     final musicEnabled = prefs.getBool(_musicKey) ?? true;
     final vibrationEnabled = prefs.getBool(_vibrationKey) ?? true;
-    final cardTheme = prefs.getString(_cardThemeKey) ?? 'animals';
+    final cardTheme = prefs.getString(_cardThemeKey) ?? 'random';
     final playerName = prefs.getString(_playerNameKey) ?? 'Player';
 
     state = SettingsState(
@@ -140,6 +141,18 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final finalName = trimmedName.isEmpty ? 'Player' : trimmedName;
     await prefs.setString(_playerNameKey, finalName);
     state = state.copyWith(playerName: finalName);
+  }
+
+  /// Get the last random theme used (for avoiding consecutive same themes)
+  Future<String?> getLastRandomTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastRandomThemeKey);
+  }
+
+  /// Set the last random theme used
+  Future<void> setLastRandomTheme(String theme) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastRandomThemeKey, theme);
   }
 }
 

@@ -7,6 +7,19 @@ class CardShuffle {
   static const _uuid = Uuid();
   static final _random = Random();
 
+  /// List of available theme keys (excluding 'random')
+  static List<String> get availableThemes => themeImages.keys.toList();
+
+  /// Get a random theme, excluding the specified theme
+  /// This ensures the same theme doesn't appear consecutively
+  static String getRandomTheme({String? excludeTheme}) {
+    final themes = availableThemes;
+    if (excludeTheme != null && themes.length > 1) {
+      themes.remove(excludeTheme);
+    }
+    return themes[_random.nextInt(themes.length)];
+  }
+
   /// Available images for each theme
   static const Map<String, List<String>> themeImages = {
     'animals': [
