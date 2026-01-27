@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/daily_quest.dart';
+import '../../domain/entities/power_up.dart';
 
 /// Provider for daily quests
 final dailyQuestProvider =
@@ -22,6 +23,9 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
   int _todayHighestCombo = 0;
   int _todayPerfectGames = 0;
   int _todayStarsEarned = 0;
+  int _todayPowerUpsUsed = 0;
+  int _todayWinsWithoutPowerUp = 0;
+  int _todayTimedModeWins = 0;
 
   DailyQuestNotifier()
       : super(DailyQuestsData(
@@ -64,6 +68,9 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
           _todayHighestCombo = data['todayHighestCombo'] ?? 0;
           _todayPerfectGames = data['todayPerfectGames'] ?? 0;
           _todayStarsEarned = data['todayStarsEarned'] ?? 0;
+          _todayPowerUpsUsed = data['todayPowerUpsUsed'] ?? 0;
+          _todayWinsWithoutPowerUp = data['todayWinsWithoutPowerUp'] ?? 0;
+          _todayTimedModeWins = data['todayTimedModeWins'] ?? 0;
 
           state = DailyQuestsData(
             date: savedDate,
@@ -107,6 +114,9 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
     _todayHighestCombo = 0;
     _todayPerfectGames = 0;
     _todayStarsEarned = 0;
+    _todayPowerUpsUsed = 0;
+    _todayWinsWithoutPowerUp = 0;
+    _todayTimedModeWins = 0;
 
     // Select random quests
     final quests = <DailyQuest>[];
@@ -154,6 +164,9 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
         'todayHighestCombo': _todayHighestCombo,
         'todayPerfectGames': _todayPerfectGames,
         'todayStarsEarned': _todayStarsEarned,
+        'todayPowerUpsUsed': _todayPowerUpsUsed,
+        'todayWinsWithoutPowerUp': _todayWinsWithoutPowerUp,
+        'todayTimedModeWins': _todayTimedModeWins,
       };
       await prefs.setString(_storageKey, jsonEncode(data));
     } catch (e) {
@@ -168,6 +181,8 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
     required int maxCombo,
     required bool isPerfect,
     required int starsEarned,
+    int powerUpsUsed = 0,
+    bool isTimedMode = false,
   }) {
     // Check if quests need refresh
     if (state.needsRefresh) {
@@ -182,6 +197,9 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
     if (maxCombo > _todayHighestCombo) _todayHighestCombo = maxCombo;
     if (isPerfect) _todayPerfectGames++;
     _todayStarsEarned += starsEarned;
+    _todayPowerUpsUsed += powerUpsUsed;
+    if (won && powerUpsUsed == 0) _todayWinsWithoutPowerUp++;
+    if (won && isTimedMode) _todayTimedModeWins++;
 
     // Update quest progress
     final newProgress = Map<String, QuestProgress>.from(state.progress);
@@ -209,6 +227,15 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
         case QuestType.earnStars:
           currentValue = _todayStarsEarned;
           break;
+        case QuestType.usePowerUps:
+          currentValue = _todayPowerUpsUsed;
+          break;
+        case QuestType.winWithoutPowerUp:
+          currentValue = _todayWinsWithoutPowerUp;
+          break;
+        case QuestType.timedModeWin:
+          currentValue = _todayTimedModeWins;
+          break;
       }
 
       final isCompleted = currentValue >= quest.targetValue;
@@ -225,7 +252,8 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
   }
 
   /// Claim reward for completed quest
-  int claimReward(String questId) {
+  /// Returns a record with (coins, powerUpType, powerUpQuantity)
+  ({int coins, PowerUpType? powerUp, int powerUpQuantity}) claimReward(String questId) {
     final quest = state.quests.firstWhere(
       (q) => q.id == questId,
       orElse: () => QuestTemplates.easy.first,
@@ -233,7 +261,7 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
 
     final progress = state.progress[questId];
     if (progress == null || !progress.isCompleted || progress.isRewardClaimed) {
-      return 0;
+      return (coins: 0, powerUp: null, powerUpQuantity: 0);
     }
 
     final newProgress = Map<String, QuestProgress>.from(state.progress);
@@ -242,7 +270,11 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
     state = state.copyWith(progress: newProgress);
     _saveQuests();
 
-    return quest.rewardPoints;
+    return (
+      coins: quest.rewardPoints,
+      powerUp: quest.rewardPowerUp,
+      powerUpQuantity: quest.rewardPowerUpQuantity,
+    );
   }
 
   /// Check if quests need refresh and refresh if needed

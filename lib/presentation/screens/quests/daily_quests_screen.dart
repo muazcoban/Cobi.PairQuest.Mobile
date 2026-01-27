@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../domain/entities/daily_quest.dart';
+import '../../../domain/entities/power_up.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/daily_quest_provider.dart';
+import '../../providers/power_up_provider.dart';
+import '../../providers/wallet_provider.dart';
 
 /// Daily quests screen
 class DailyQuestsScreen extends ConsumerWidget {
@@ -109,13 +112,32 @@ class DailyQuestsScreen extends ConsumerWidget {
                   quest: quest,
                   progress: progress,
                   onClaimReward: () {
-                    final points = ref
+                    final reward = ref
                         .read(dailyQuestProvider.notifier)
                         .claimReward(quest.id);
-                    if (points > 0) {
+                    if (reward.coins > 0) {
+                      // Add coins to wallet
+                      ref.read(walletProvider.notifier).addCoins(reward.coins);
+
+                      // Add power-up if rewarded
+                      if (reward.powerUp != null && reward.powerUpQuantity > 0) {
+                        ref.read(powerUpInventoryProvider.notifier).addPowerUp(
+                          reward.powerUp!,
+                          reward.powerUpQuantity,
+                        );
+                      }
+
+                      // Build snackbar message
+                      String message = '+${reward.coins} coins!';
+                      if (reward.powerUp != null && reward.powerUpQuantity > 0) {
+                        final powerUp = PowerUps.all
+                            .firstWhere((p) => p.type == reward.powerUp);
+                        message += ' +${reward.powerUpQuantity} ${powerUp.icon}';
+                      }
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('+$points points!'),
+                          content: Text(message),
                           backgroundColor: AppColors.success,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
@@ -159,6 +181,10 @@ class _QuestCard extends StatelessWidget {
       'perfect_1': 'Perfect Game',
       'stars_3': 'Earn 3 Stars',
       'stars_6': 'Earn 6 Stars',
+      'powerup_1': 'Power User',
+      'powerup_3': 'Power Master',
+      'no_powerup_win': 'Purist Victory',
+      'timed_3': 'Speed Runner',
     };
     return titles[quest.id] ?? quest.id;
   }
@@ -176,6 +202,10 @@ class _QuestCard extends StatelessWidget {
       'perfect_1': 'Complete without mistakes',
       'stars_3': 'Earn 3 stars total',
       'stars_6': 'Earn 6 stars today',
+      'powerup_1': 'Use any power-up in a game',
+      'powerup_3': 'Use 3 power-ups today',
+      'no_powerup_win': 'Win without using power-ups',
+      'timed_3': 'Win 3 games in Timed Mode',
     };
     return descriptions[quest.id] ?? '';
   }
@@ -351,6 +381,35 @@ class _QuestCard extends StatelessWidget {
                         color: AppColors.accent,
                       ),
                     ),
+                    // Show power-up reward if exists
+                    if (quest.rewardPowerUp != null && quest.rewardPowerUpQuantity > 0) ...[
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              PowerUps.all.firstWhere((p) => p.type == quest.rewardPowerUp).icon,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '+${quest.rewardPowerUpQuantity}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.purple,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 if (isCompleted && !isClaimed)

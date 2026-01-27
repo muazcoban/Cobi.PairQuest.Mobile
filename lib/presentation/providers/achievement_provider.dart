@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/services/notification_service.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/player_stats.dart';
 import 'stats_provider.dart';
@@ -22,7 +21,6 @@ class AchievementNotifier
     extends StateNotifier<Map<String, AchievementProgress>> {
   static const String _storageKey = 'achievement_progress';
   final PlayerStats _stats;
-  final NotificationService _notificationService = NotificationService();
 
   AchievementNotifier(this._stats) : super({}) {
     _loadProgress();
@@ -68,7 +66,6 @@ class AchievementNotifier
     if (!mounted) return;
 
     final newState = Map<String, AchievementProgress>.from(state);
-    Achievement? newlyUnlocked;
 
     for (final achievement in Achievements.all) {
       final currentProgress = _getProgressForAchievement(achievement);
@@ -84,11 +81,6 @@ class AchievementNotifier
           isUnlocked: isNowUnlocked,
           unlockedAt: isNowUnlocked && !wasUnlocked ? DateTime.now() : existing?.unlockedAt,
         );
-
-        // Track newly unlocked achievement
-        if (isNowUnlocked && !wasUnlocked) {
-          newlyUnlocked = achievement;
-        }
       }
     }
 
@@ -167,14 +159,8 @@ class AchievementNotifier
         .whereType<Achievement>()
         .toList();
 
-    // Show notification for newly unlocked achievements
-    if (newlyUnlocked.isNotEmpty) {
-      final achievement = newlyUnlocked.first;
-      _notificationService.showAchievementNotification(
-        achievementTitle: achievement.titleKey,
-        achievementDescription: achievement.descriptionKey,
-      );
-    }
+    // Notification is now handled by the caller using NotificationSettingsNotifier
+    // to respect user's notification preferences
 
     return newlyUnlocked;
   }

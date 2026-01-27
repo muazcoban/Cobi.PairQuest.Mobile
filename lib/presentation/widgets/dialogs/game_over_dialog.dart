@@ -7,6 +7,7 @@ class GameOverDialog extends StatelessWidget {
   final int score;
   final int matchedPairs;
   final int totalPairs;
+  final int coinsEarned;
   final VoidCallback onMainMenu;
   final VoidCallback onTryAgain;
 
@@ -15,6 +16,7 @@ class GameOverDialog extends StatelessWidget {
     required this.score,
     required this.matchedPairs,
     required this.totalPairs,
+    this.coinsEarned = 0,
     required this.onMainMenu,
     required this.onTryAgain,
   });
@@ -153,6 +155,54 @@ class GameOverDialog extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Coins earned (even in loss - partial completion)
+                  if (coinsEarned > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.amber.withOpacity(0.15),
+                            Colors.orange.withOpacity(0.1),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.amber.withOpacity(0.4),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.monetization_on_rounded,
+                            color: Colors.amber,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '+$coinsEarned',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber,
+                              fontSize: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            l10n.coins,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.amber.shade700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

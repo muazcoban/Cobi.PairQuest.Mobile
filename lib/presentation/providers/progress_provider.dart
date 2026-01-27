@@ -214,7 +214,7 @@ class ProgressNotifier extends StateNotifier<GameProgress> {
 
     // Update highest unlocked level
     int highestUnlocked = state.highestUnlockedLevel;
-    if (newStars >= 1 && level >= highestUnlocked && level < 10) {
+    if (newStars >= 1 && level >= highestUnlocked && level < 20) {
       highestUnlocked = level + 1;
     }
 

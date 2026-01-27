@@ -28,9 +28,11 @@ class _MemoryCardState extends State<MemoryCard>
   late AnimationController _controller;
   late AnimationController _matchController;
   late AnimationController _shakeController;
+  late AnimationController _hintGlowController;
   late Animation<double> _flipAnimation;
   late Animation<double> _matchScaleAnimation;
   late Animation<double> _shakeAnimation;
+  late Animation<double> _hintGlowAnimation;
   bool _showFront = false;
   bool _wasMatched = false;
 
@@ -68,6 +70,20 @@ class _MemoryCardState extends State<MemoryCard>
       TweenSequenceItem(tween: Tween(begin: -4, end: 0), weight: 25),
     ]).animate(CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut));
 
+    _hintGlowController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _hintGlowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _hintGlowController, curve: Curves.easeInOut),
+    );
+
+    // Start hint glow animation if already hinted
+    if (widget.isHinted) {
+      _hintGlowController.repeat(reverse: true);
+    }
+
     _controller.addListener(() {
       if (_controller.value >= 0.5 && !_showFront) {
         setState(() => _showFront = true);
@@ -86,6 +102,14 @@ class _MemoryCardState extends State<MemoryCard>
 
     if (widget.card.state != oldWidget.card.state) {
       _updateAnimationState();
+    }
+
+    // Handle hint glow animation
+    if (widget.isHinted && !oldWidget.isHinted) {
+      _hintGlowController.repeat(reverse: true);
+    } else if (!widget.isHinted && oldWidget.isHinted) {
+      _hintGlowController.stop();
+      _hintGlowController.reset();
     }
   }
 
@@ -113,6 +137,7 @@ class _MemoryCardState extends State<MemoryCard>
     _controller.dispose();
     _matchController.dispose();
     _shakeController.dispose();
+    _hintGlowController.dispose();
     super.dispose();
   }
 
@@ -222,26 +247,74 @@ class _MemoryCardState extends State<MemoryCard>
   }
 
   Widget _buildBack() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: widget.isHinted ? null : AppColors.cardBackGradient,
-        color: widget.isHinted ? Colors.orange.shade400 : null,
-        border: widget.isHinted
-            ? Border.all(color: Colors.orange.shade700, width: 3)
-            : null,
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final iconSize = constraints.maxWidth * 0.4;
-          return Center(
-            child: Icon(
-              widget.isHinted ? Icons.lightbulb_rounded : Icons.psychology_rounded,
-              color: Colors.white.withValues(alpha: 0.9),
-              size: iconSize.clamp(20.0, 40.0),
+    if (!widget.isHinted) {
+      // Normal card back - no animation needed
+      return Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.cardBackGradient,
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final iconSize = constraints.maxWidth * 0.4;
+            return Center(
+              child: Icon(
+                Icons.psychology_rounded,
+                color: Colors.white.withValues(alpha: 0.9),
+                size: iconSize.clamp(20.0, 40.0),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    // Hinted card back - with glow/pulse animation
+    return AnimatedBuilder(
+      animation: _hintGlowAnimation,
+      builder: (context, child) {
+        final glowIntensity = _hintGlowAnimation.value;
+        final baseColor = Color.lerp(
+          Colors.orange.shade400,
+          Colors.amber.shade300,
+          glowIntensity,
+        )!;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: baseColor,
+            border: Border.all(
+              color: Color.lerp(
+                Colors.orange.shade700,
+                Colors.amber.shade500,
+                glowIntensity,
+              )!,
+              width: 3 + glowIntensity,
             ),
-          );
-        },
-      ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withOpacity(0.4 + glowIntensity * 0.3),
+                blurRadius: 12 + glowIntensity * 8,
+                spreadRadius: 2 + glowIntensity * 3,
+              ),
+            ],
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final iconSize = constraints.maxWidth * 0.4;
+              return Center(
+                child: Transform.scale(
+                  scale: 1.0 + glowIntensity * 0.1,
+                  child: Icon(
+                    Icons.lightbulb_rounded,
+                    color: Colors.white.withValues(alpha: 0.9 + glowIntensity * 0.1),
+                    size: iconSize.clamp(20.0, 40.0),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

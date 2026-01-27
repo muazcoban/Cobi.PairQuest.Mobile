@@ -25,6 +25,8 @@ class GameStateData {
   final Set<String> hintedCardIds; // Cards highlighted by hint power-up
   final bool magnetActive; // Magnet power-up active for next selection
   final bool timerFrozen; // Timer is frozen by freeze power-up
+  final bool isShuffling; // Cards are being shuffled
+  final int powerUpsUsedCount; // Count of power-ups used in this game
 
   const GameStateData({
     this.currentGame,
@@ -37,6 +39,8 @@ class GameStateData {
     this.hintedCardIds = const {},
     this.magnetActive = false,
     this.timerFrozen = false,
+    this.isShuffling = false,
+    this.powerUpsUsedCount = 0,
   });
 
   GameStateData copyWith({
@@ -50,6 +54,8 @@ class GameStateData {
     Set<String>? hintedCardIds,
     bool? magnetActive,
     bool? timerFrozen,
+    bool? isShuffling,
+    int? powerUpsUsedCount,
   }) {
     return GameStateData(
       currentGame: currentGame ?? this.currentGame,
@@ -62,6 +68,8 @@ class GameStateData {
       hintedCardIds: hintedCardIds ?? this.hintedCardIds,
       magnetActive: magnetActive ?? this.magnetActive,
       timerFrozen: timerFrozen ?? this.timerFrozen,
+      isShuffling: isShuffling ?? this.isShuffling,
+      powerUpsUsedCount: powerUpsUsedCount ?? this.powerUpsUsedCount,
     );
   }
 }
@@ -791,20 +799,34 @@ class GameNotifier extends StateNotifier<GameStateData> {
     final game = state.currentGame;
     if (game == null || game.state != GameState.inProgress) return false;
 
+    bool success = false;
     switch (type) {
       case PowerUpType.peek:
-        return _usePeek();
+        success = _usePeek();
+        break;
       case PowerUpType.freeze:
-        return _useFreeze();
+        success = _useFreeze();
+        break;
       case PowerUpType.hint:
-        return _useHint();
+        success = _useHint();
+        break;
       case PowerUpType.shuffle:
-        return _useShuffle();
+        success = _useShuffle();
+        break;
       case PowerUpType.timeBonus:
-        return _useTimeBonus();
+        success = _useTimeBonus();
+        break;
       case PowerUpType.magnet:
-        return _useMagnet();
+        success = _useMagnet();
+        break;
     }
+
+    // Increment power-up usage counter if successful
+    if (success) {
+      state = state.copyWith(powerUpsUsedCount: state.powerUpsUsedCount + 1);
+    }
+
+    return success;
   }
 
   /// Peek - Show all cards for 3 seconds
@@ -931,7 +953,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
     return true;
   }
 
-  /// Shuffle - Reshuffle unmatched cards
+  /// Shuffle - Reshuffle unmatched cards with animation
   bool _useShuffle() {
     final game = state.currentGame;
     if (game == null) return false;
@@ -948,26 +970,35 @@ class GameNotifier extends StateNotifier<GameStateData> {
 
     if (hiddenIndices.length < 2) return false;
 
-    // Collect the hidden cards
-    final hiddenCards = hiddenIndices.map((i) => cards[i]).toList();
-
-    // Shuffle them
-    final random = Random();
-    hiddenCards.shuffle(random);
-
-    // Put them back in the indices
-    for (var i = 0; i < hiddenIndices.length; i++) {
-      final originalIndex = hiddenIndices[i];
-      cards[originalIndex] = hiddenCards[i];
-    }
-
-    state = state.copyWith(
-      currentGame: game.copyWith(cards: cards),
-      selectedCards: [], // Clear any selection
-    );
+    // Start shuffle animation
+    state = state.copyWith(isShuffling: true);
 
     _audioService.playSound(SoundEffect.cardFlip);
     _hapticService.trigger(HapticType.medium);
+
+    // Delay the actual shuffle to allow animation to play
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+
+      // Collect the hidden cards
+      final hiddenCards = hiddenIndices.map((i) => cards[i]).toList();
+
+      // Shuffle them
+      final random = Random();
+      hiddenCards.shuffle(random);
+
+      // Put them back in the indices
+      for (var i = 0; i < hiddenIndices.length; i++) {
+        final originalIndex = hiddenIndices[i];
+        cards[originalIndex] = hiddenCards[i];
+      }
+
+      state = state.copyWith(
+        currentGame: game.copyWith(cards: cards),
+        selectedCards: [], // Clear any selection
+        isShuffling: false,
+      );
+    });
 
     return true;
   }
@@ -1086,4 +1117,9 @@ final isTimerFrozenProvider = Provider<bool>((ref) {
 /// Provider for checking if magnet is active
 final isMagnetActiveProvider = Provider<bool>((ref) {
   return ref.watch(gameProvider.select((s) => s.magnetActive));
+});
+
+/// Provider for checking if cards are being shuffled
+final isShufflingProvider = Provider<bool>((ref) {
+  return ref.watch(gameProvider.select((s) => s.isShuffling));
 });

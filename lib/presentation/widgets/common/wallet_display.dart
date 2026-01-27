@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../providers/wallet_provider.dart';
 
-/// Compact wallet display showing coins and gems
-class WalletDisplay extends ConsumerWidget {
+/// Compact wallet display showing coins and gems with auto-animation
+class WalletDisplay extends ConsumerStatefulWidget {
   final bool showCoins;
   final bool showGems;
   final VoidCallback? onTap;
@@ -17,48 +17,122 @@ class WalletDisplay extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WalletDisplay> createState() => _WalletDisplayState();
+}
+
+class _WalletDisplayState extends ConsumerState<WalletDisplay> {
+  int? _animatingCoins;
+  int? _animatingGems;
+  int _previousCoins = 0;
+  int _previousGems = 0;
+  bool _isFirstBuild = true;
+
+  @override
+  Widget build(BuildContext context) {
     final wallet = ref.watch(walletProvider);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceColor(context),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.cardBorder(context),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+    // Detect coin/gem changes after first build
+    if (!_isFirstBuild) {
+      // Check for coin increase
+      if (wallet.coins > _previousCoins && _previousCoins > 0) {
+        final diff = wallet.coins - _previousCoins;
+        if (_animatingCoins == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => _animatingCoins = diff);
+              Future.delayed(const Duration(milliseconds: 1000), () {
+                if (mounted) setState(() => _animatingCoins = null);
+              });
+            }
+          });
+        }
+      }
+
+      // Check for gem increase
+      if (wallet.gems > _previousGems && _previousGems > 0) {
+        final diff = wallet.gems - _previousGems;
+        if (_animatingGems == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => _animatingGems = diff);
+              Future.delayed(const Duration(milliseconds: 1000), () {
+                if (mounted) setState(() => _animatingGems = null);
+              });
+            }
+          });
+        }
+      }
+    }
+
+    _previousCoins = wallet.coins;
+    _previousGems = wallet.gems;
+    _isFirstBuild = false;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GestureDetector(
+          onTap: widget.onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceColor(context),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.cardBorder(context),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.showCoins) ...[
+                  _CurrencyItem(
+                    icon: Icons.monetization_on_rounded,
+                    color: Colors.amber,
+                    amount: wallet.coins,
+                  ),
+                  if (widget.showGems) const SizedBox(width: 12),
+                ],
+                if (widget.showGems)
+                  _CurrencyItem(
+                    icon: Icons.diamond_rounded,
+                    color: Colors.purple,
+                    amount: wallet.gems,
+                  ),
+              ],
+            ),
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (showCoins) ...[
-              _CurrencyItem(
-                icon: Icons.monetization_on_rounded,
-                color: Colors.amber,
-                amount: wallet.coins,
-              ),
-              if (showGems) const SizedBox(width: 12),
-            ],
-            if (showGems)
-              _CurrencyItem(
-                icon: Icons.diamond_rounded,
-                color: Colors.purple,
-                amount: wallet.gems,
-              ),
-          ],
-        ),
-      ),
+        // Coin animation overlay
+        if (_animatingCoins != null && widget.showCoins)
+          Positioned(
+            top: -25,
+            left: 0,
+            right: widget.showGems ? null : 0,
+            child: CurrencyAddAnimation(
+              amount: _animatingCoins!,
+              isGem: false,
+            ),
+          ),
+        // Gem animation overlay
+        if (_animatingGems != null && widget.showGems)
+          Positioned(
+            top: -25,
+            right: 0,
+            child: CurrencyAddAnimation(
+              amount: _animatingGems!,
+              isGem: true,
+            ),
+          ),
+      ],
     );
   }
 }

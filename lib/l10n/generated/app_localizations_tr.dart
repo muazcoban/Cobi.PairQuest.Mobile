@@ -136,6 +136,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get expert => 'Uzman';
 
   @override
+  String get legendary => 'Efsanevi';
+
+  @override
+  String get master => 'Usta';
+
+  @override
   String get language => 'Dil';
 
   @override
@@ -549,4 +555,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get emptyInventory => 'Henüz güç-up yok';
+
+  @override
+  String get timeFrozen => 'SÜRE DONDURULDU';
+
+  @override
+  String get tapAnyCard => 'HERHANGİ BİR KARTA DOKUN';
 }

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'power_up.dart';
 
 /// Types of daily quests
 enum QuestType {
@@ -9,6 +10,9 @@ enum QuestType {
   getCombo,
   perfectGame,
   earnStars,
+  usePowerUps,      // Use power-ups
+  winWithoutPowerUp, // Win without using power-ups
+  timedModeWin,     // Win in timed mode
 }
 
 /// Daily quest model
@@ -20,6 +24,8 @@ class DailyQuest extends Equatable {
   final IconData icon;
   final int targetValue;
   final int rewardPoints;
+  final PowerUpType? rewardPowerUp;
+  final int rewardPowerUpQuantity;
 
   const DailyQuest({
     required this.id,
@@ -29,10 +35,12 @@ class DailyQuest extends Equatable {
     required this.icon,
     required this.targetValue,
     this.rewardPoints = 50,
+    this.rewardPowerUp,
+    this.rewardPowerUpQuantity = 1,
   });
 
   @override
-  List<Object?> get props => [id, type, targetValue];
+  List<Object?> get props => [id, type, targetValue, rewardPowerUp];
 }
 
 /// Player's progress on a daily quest
@@ -138,6 +146,8 @@ class DailyQuestsData extends Equatable {
         'type': q.type.index,
         'targetValue': q.targetValue,
         'rewardPoints': q.rewardPoints,
+        'rewardPowerUp': q.rewardPowerUp?.index,
+        'rewardPowerUpQuantity': q.rewardPowerUpQuantity,
       }).toList(),
       'progress': progress.map((key, value) => MapEntry(key, value.toJson())),
     };
@@ -177,6 +187,16 @@ class QuestTemplates {
       targetValue: 3,
       rewardPoints: 35,
     ),
+    // New power-up quest
+    DailyQuest(
+      id: 'powerup_1',
+      type: QuestType.usePowerUps,
+      titleKey: 'quest_powerup_1',
+      descriptionKey: 'quest_powerup_1_desc',
+      icon: Icons.auto_fix_high_rounded,
+      targetValue: 1,
+      rewardPoints: 30,
+    ),
   ];
 
   static const List<DailyQuest> medium = [
@@ -197,6 +217,7 @@ class QuestTemplates {
       icon: Icons.emoji_events_rounded,
       targetValue: 2,
       rewardPoints: 60,
+      rewardPowerUp: PowerUpType.hint,
     ),
     DailyQuest(
       id: 'matches_30',
@@ -216,6 +237,17 @@ class QuestTemplates {
       targetValue: 3,
       rewardPoints: 50,
     ),
+    // New power-up quest
+    DailyQuest(
+      id: 'powerup_3',
+      type: QuestType.usePowerUps,
+      titleKey: 'quest_powerup_3',
+      descriptionKey: 'quest_powerup_3_desc',
+      icon: Icons.auto_fix_high_rounded,
+      targetValue: 3,
+      rewardPoints: 50,
+      rewardPowerUp: PowerUpType.peek,
+    ),
   ];
 
   static const List<DailyQuest> hard = [
@@ -227,6 +259,7 @@ class QuestTemplates {
       icon: Icons.military_tech_rounded,
       targetValue: 5,
       rewardPoints: 100,
+      rewardPowerUp: PowerUpType.freeze,
     ),
     DailyQuest(
       id: 'perfect_1',
@@ -236,6 +269,7 @@ class QuestTemplates {
       icon: Icons.workspace_premium_rounded,
       targetValue: 1,
       rewardPoints: 100,
+      rewardPowerUp: PowerUpType.magnet,
     ),
     DailyQuest(
       id: 'combo_5',
@@ -254,6 +288,28 @@ class QuestTemplates {
       icon: Icons.stars_rounded,
       targetValue: 6,
       rewardPoints: 100,
+    ),
+    // New power-up quests
+    DailyQuest(
+      id: 'no_powerup_win',
+      type: QuestType.winWithoutPowerUp,
+      titleKey: 'quest_no_powerup',
+      descriptionKey: 'quest_no_powerup_desc',
+      icon: Icons.block_rounded,
+      targetValue: 1,
+      rewardPoints: 80,
+      rewardPowerUp: PowerUpType.freeze,
+    ),
+    DailyQuest(
+      id: 'timed_win_3',
+      type: QuestType.timedModeWin,
+      titleKey: 'quest_timed_3',
+      descriptionKey: 'quest_timed_3_desc',
+      icon: Icons.timer_rounded,
+      targetValue: 3,
+      rewardPoints: 100,
+      rewardPowerUp: PowerUpType.timeBonus,
+      rewardPowerUpQuantity: 2,
     ),
   ];
 }

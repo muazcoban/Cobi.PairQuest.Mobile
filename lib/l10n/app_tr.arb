@@ -216,6 +216,16 @@
     "description": "Uzman zorluk"
   },
 
+  "legendary": "Efsanevi",
+  "@legendary": {
+    "description": "Efsanevi zorluk"
+  },
+
+  "master": "Usta",
+  "@master": {
+    "description": "Usta zorluk"
+  },
+
   "language": "Dil",
   "@language": {
     "description": "Dil ayarı"
@@ -477,5 +487,8 @@
 
   "shop": "Mağaza",
   "inventory": "Envanter",
-  "emptyInventory": "Henüz güç-up yok"
+  "emptyInventory": "Henüz güç-up yok",
+
+  "timeFrozen": "SÜRE DONDURULDU",
+  "tapAnyCard": "HERHANGİ BİR KARTA DOKUN"
 }

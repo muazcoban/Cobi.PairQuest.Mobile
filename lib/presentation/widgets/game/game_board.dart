@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/entities/game.dart';
@@ -121,13 +122,36 @@ class _CardItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return MemoryCard(
+    final isShuffling = ref.watch(isShufflingProvider);
+    final isHiddenCard = card.state == CardState.hidden;
+
+    Widget cardWidget = MemoryCard(
       card: card,
-      isDisabled: isProcessing,
+      isDisabled: isProcessing || isShuffling,
       isHinted: isHinted,
       onTap: () {
         ref.read(gameProvider.notifier).selectCard(card.id);
       },
     );
+
+    // Apply shuffle animation to hidden cards only
+    if (isShuffling && isHiddenCard) {
+      cardWidget = cardWidget
+          .animate()
+          .scale(
+            begin: const Offset(1.0, 1.0),
+            end: const Offset(0.85, 0.85),
+            duration: 150.ms,
+          )
+          .shake(hz: 6, duration: 200.ms)
+          .then()
+          .scale(
+            begin: const Offset(0.85, 0.85),
+            end: const Offset(1.0, 1.0),
+            duration: 150.ms,
+          );
+    }
+
+    return cardWidget;
   }
 }

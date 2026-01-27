@@ -30,6 +30,17 @@ class GameConfig {
     8: 210,  // 6x6
     9: 240,  // 6x7
     10: 300, // 8x8
+    // New levels (11-20)
+    11: 270, // 7x6
+    12: 300, // 8x6
+    13: 330, // 8x7
+    14: 330, // 7x8
+    15: 360, // 8x8 (legendary)
+    16: 340, // 9x6
+    17: 400, // 9x8
+    18: 380, // 10x6
+    19: 450, // 10x8
+    20: 540, // 10x10 (master)
   };
 
   // Star thresholds (percentage of max possible score)
@@ -46,10 +57,13 @@ class GameConfig {
     'hard': 2.0,
     'very_hard': 2.5,
     'expert': 3.0,
+    'legendary': 3.5,
+    'master': 4.0,
   };
 
   // Grid configurations
   static const List<GridConfig> levels = [
+    // Chapter 1: Beginning (1-10)
     GridConfig(level: 1, rows: 2, cols: 2, difficulty: 'tutorial'),
     GridConfig(level: 2, rows: 2, cols: 3, difficulty: 'very_easy'),
     GridConfig(level: 3, rows: 2, cols: 4, difficulty: 'easy'),
@@ -60,7 +74,21 @@ class GameConfig {
     GridConfig(level: 8, rows: 6, cols: 6, difficulty: 'hard'),
     GridConfig(level: 9, rows: 6, cols: 7, difficulty: 'very_hard'),
     GridConfig(level: 10, rows: 8, cols: 8, difficulty: 'expert'),
+    // Chapter 2: Challenge (11-20)
+    GridConfig(level: 11, rows: 7, cols: 6, difficulty: 'expert'),
+    GridConfig(level: 12, rows: 8, cols: 6, difficulty: 'expert'),
+    GridConfig(level: 13, rows: 8, cols: 7, difficulty: 'expert'),
+    GridConfig(level: 14, rows: 7, cols: 8, difficulty: 'expert'),
+    GridConfig(level: 15, rows: 8, cols: 8, difficulty: 'legendary'),
+    GridConfig(level: 16, rows: 9, cols: 6, difficulty: 'legendary'),
+    GridConfig(level: 17, rows: 9, cols: 8, difficulty: 'legendary'),
+    GridConfig(level: 18, rows: 10, cols: 6, difficulty: 'legendary'),
+    GridConfig(level: 19, rows: 10, cols: 8, difficulty: 'legendary'),
+    GridConfig(level: 20, rows: 10, cols: 10, difficulty: 'master'),
   ];
+
+  /// Total number of levels in the game
+  static const int totalLevels = 20;
 
   // Card reveal time for power-ups (milliseconds)
   static const int peekDuration = 2000;

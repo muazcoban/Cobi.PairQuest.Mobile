@@ -68,7 +68,7 @@ class LevelSelectScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${progress.totalStars}/30',
+                            '${progress.totalStars}/${GameConfig.totalLevels * 3}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -165,6 +165,10 @@ class _LevelCard extends StatelessWidget {
         return l10n.veryHard;
       case 'expert':
         return l10n.expert;
+      case 'legendary':
+        return l10n.legendary;
+      case 'master':
+        return l10n.master;
       default:
         return difficulty;
     }
@@ -186,6 +190,10 @@ class _LevelCard extends StatelessWidget {
         return Colors.red;
       case 'expert':
         return Colors.purple;
+      case 'legendary':
+        return Colors.amber.shade700;
+      case 'master':
+        return Colors.teal.shade700;
       default:
         return AppColors.primary;
     }

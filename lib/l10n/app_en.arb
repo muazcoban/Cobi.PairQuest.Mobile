@@ -53,6 +53,8 @@
   "hard": "Hard",
   "veryHard": "Very Hard",
   "expert": "Expert",
+  "legendary": "Legendary",
+  "master": "Master",
 
   "language": "Language",
   "turkish": "Türkçe",
@@ -206,5 +208,8 @@
 
   "shop": "Shop",
   "inventory": "Inventory",
-  "emptyInventory": "No power-ups yet"
+  "emptyInventory": "No power-ups yet",
+
+  "timeFrozen": "TIME FROZEN",
+  "tapAnyCard": "TAP ANY CARD"
 }

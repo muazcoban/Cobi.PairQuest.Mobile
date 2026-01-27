@@ -84,7 +84,7 @@ class DailyRewardDialog extends ConsumerWidget {
                 crossAxisCount: 7,
                 mainAxisSpacing: 4,
                 crossAxisSpacing: 4,
-                childAspectRatio: 0.85,
+                childAspectRatio: 0.7,
               ),
               itemCount: weeklyRewards.length,
               itemBuilder: (context, index) {
@@ -281,15 +281,15 @@ class _RewardDay extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisSize: MainAxisSize.max,
           children: [
             Text(
               'D${status.reward.day}',
               style: TextStyle(
-                fontSize: 8,
+                fontSize: 9,
                 fontWeight: FontWeight.w600,
                 color: _iconColor,
               ),
@@ -298,15 +298,15 @@ class _RewardDay extends StatelessWidget {
               Icon(
                 Icons.check_circle_rounded,
                 color: AppColors.success,
-                size: 12,
+                size: 14,
               )
             else
               Icon(
                 status.reward.icon,
                 color: _iconColor,
-                size: 12,
+                size: 14,
               ),
-            _buildRewardLabel(),
+            Flexible(child: _buildRewardLabel()),
           ],
         ),
       ),
@@ -317,46 +317,64 @@ class _RewardDay extends StatelessWidget {
     final reward = status.reward;
 
     if (reward.gems > 0) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.monetization_on_rounded, color: _iconColor, size: 6),
-          Text(
-            '+${reward.coins}',
-            style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: _iconColor),
-          ),
-          const SizedBox(width: 2),
-          Icon(Icons.diamond_rounded, color: _iconColor, size: 6),
-          Text(
-            '+${reward.gems}',
-            style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: _iconColor),
-          ),
-        ],
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.monetization_on_rounded, color: _iconColor, size: 8),
+                Text(
+                  '+${reward.coins}',
+                  style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: _iconColor),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.diamond_rounded, color: _iconColor, size: 8),
+                Text(
+                  '+${reward.gems}',
+                  style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: _iconColor),
+                ),
+              ],
+            ),
+          ],
+        ),
       );
     }
 
     if (reward.powerUpId != null) {
-      return Column(
-        children: [
-          Text(
-            '+${reward.coins}',
-            style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: _iconColor),
-          ),
-          Text(
-            '💡',
-            style: TextStyle(fontSize: 6),
-          ),
-        ],
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '+${reward.coins}',
+              style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: _iconColor),
+            ),
+            const Text(
+              '💡',
+              style: TextStyle(fontSize: 8),
+            ),
+          ],
+        ),
       );
     }
 
-    return Text(
-      '+${reward.coins}',
-      style: TextStyle(
-        fontSize: 7,
-        fontWeight: FontWeight.bold,
-        color: _iconColor,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        '+${reward.coins}',
+        style: TextStyle(
+          fontSize: 8,
+          fontWeight: FontWeight.bold,
+          color: _iconColor,
+        ),
       ),
     );
   }

@@ -344,6 +344,18 @@ abstract class AppLocalizations {
   /// **'Uzman'**
   String get expert;
 
+  /// Efsanevi zorluk
+  ///
+  /// In tr, this message translates to:
+  /// **'Efsanevi'**
+  String get legendary;
+
+  /// Usta zorluk
+  ///
+  /// In tr, this message translates to:
+  /// **'Usta'**
+  String get master;
+
   /// Dil ayarı
   ///
   /// In tr, this message translates to:
@@ -1141,6 +1153,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Henüz güç-up yok'**
   String get emptyInventory;
+
+  /// No description provided for @timeFrozen.
+  ///
+  /// In tr, this message translates to:
+  /// **'SÜRE DONDURULDU'**
+  String get timeFrozen;
+
+  /// No description provided for @tapAnyCard.
+  ///
+  /// In tr, this message translates to:
+  /// **'HERHANGİ BİR KARTA DOKUN'**
+  String get tapAnyCard;
 }
 
 class _AppLocalizationsDelegate

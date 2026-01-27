@@ -136,6 +136,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expert => 'Expert';
 
   @override
+  String get legendary => 'Legendary';
+
+  @override
+  String get master => 'Master';
+
+  @override
   String get language => 'Language';
 
   @override
@@ -548,4 +554,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyInventory => 'No power-ups yet';
+
+  @override
+  String get timeFrozen => 'TIME FROZEN';
+
+  @override
+  String get tapAnyCard => 'TAP ANY CARD';
 }
