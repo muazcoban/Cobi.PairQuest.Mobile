@@ -94,8 +94,18 @@ class SettingsScreen extends ConsumerWidget {
           // Sound Section
           _buildSectionHeader(l10n.sound),
           SwitchListTile(
-            title: Text(l10n.sound),
-            secondary: const Icon(Icons.volume_up),
+            title: Text(l10n.music),
+            subtitle: Text(l10n.musicDesc),
+            secondary: const Icon(Icons.music_note_rounded),
+            value: settings.musicEnabled,
+            onChanged: (value) {
+              ref.read(settingsProvider.notifier).toggleMusic();
+            },
+          ),
+          SwitchListTile(
+            title: Text(l10n.soundEffects),
+            subtitle: Text(l10n.soundEffectsDesc),
+            secondary: const Icon(Icons.volume_up_rounded),
             value: settings.soundEnabled,
             onChanged: (value) {
               ref.read(settingsProvider.notifier).toggleSound();

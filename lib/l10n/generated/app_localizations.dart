@@ -386,6 +386,24 @@ abstract class AppLocalizations {
   /// **'Müzik'**
   String get music;
 
+  /// Müzik açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Arka plan müziği'**
+  String get musicDesc;
+
+  /// Ses efektleri ayarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Ses Efektleri'**
+  String get soundEffects;
+
+  /// Ses efektleri açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun sesleri ve geri bildirim'**
+  String get soundEffectsDesc;
+
   /// Titreşim ayarı
   ///
   /// In tr, this message translates to:
@@ -1165,6 +1183,510 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'HERHANGİ BİR KARTA DOKUN'**
   String get tapAnyCard;
+
+  /// No description provided for @onlineMultiplayer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Online 1v1'**
+  String get onlineMultiplayer;
+
+  /// No description provided for @onlineMultiplayerDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gerçek oyunculara karşı oyna'**
+  String get onlineMultiplayerDesc;
+
+  /// No description provided for @loginRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş Gerekli'**
+  String get loginRequired;
+
+  /// No description provided for @loginToPlayOnline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Online maçlara katılmak için giriş yapın'**
+  String get loginToPlayOnline;
+
+  /// No description provided for @login.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş'**
+  String get login;
+
+  /// No description provided for @errorOccurred.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir hata oluştu'**
+  String get errorOccurred;
+
+  /// No description provided for @retry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar Dene'**
+  String get retry;
+
+  /// No description provided for @quickPlay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hızlı Oyun'**
+  String get quickPlay;
+
+  /// No description provided for @quickPlayDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rahat bir maç bul'**
+  String get quickPlayDesc;
+
+  /// No description provided for @rankedPlay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli'**
+  String get rankedPlay;
+
+  /// No description provided for @rankedPlayDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rating için yarış'**
+  String get rankedPlayDesc;
+
+  /// No description provided for @ranked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli'**
+  String get ranked;
+
+  /// No description provided for @casual.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rahat'**
+  String get casual;
+
+  /// No description provided for @moreOptions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer Seçenekler'**
+  String get moreOptions;
+
+  /// No description provided for @playWithFriend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşla Oyna'**
+  String get playWithFriend;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yakında'**
+  String get comingSoon;
+
+  /// No description provided for @findingMatch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç Aranıyor'**
+  String get findingMatch;
+
+  /// No description provided for @searchingForOpponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip aranıyor...'**
+  String get searchingForOpponent;
+
+  /// No description provided for @matchFound.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip Bulundu!'**
+  String get matchFound;
+
+  /// No description provided for @searchTimeout.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama Zaman Aşımı'**
+  String get searchTimeout;
+
+  /// No description provided for @noOpponentFound.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip bulunamadı. Tekrar deneyelim mi?'**
+  String get noOpponentFound;
+
+  /// No description provided for @preparingMatch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç hazırlanıyor...'**
+  String get preparingMatch;
+
+  /// No description provided for @searchTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süre'**
+  String get searchTime;
+
+  /// No description provided for @ratingRange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rating'**
+  String get ratingRange;
+
+  /// No description provided for @ok.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamam'**
+  String get ok;
+
+  /// No description provided for @gameNotFound.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun bulunamadı'**
+  String get gameNotFound;
+
+  /// No description provided for @goBack.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri Dön'**
+  String get goBack;
+
+  /// No description provided for @opponentTurn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakibin Sırası'**
+  String get opponentTurn;
+
+  /// No description provided for @pairsRemaining.
+  ///
+  /// In tr, this message translates to:
+  /// **'çift kaldı'**
+  String get pairsRemaining;
+
+  /// No description provided for @draw.
+  ///
+  /// In tr, this message translates to:
+  /// **'Berabere!'**
+  String get draw;
+
+  /// No description provided for @youWin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazandın!'**
+  String get youWin;
+
+  /// No description provided for @youLose.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaybettin'**
+  String get youLose;
+
+  /// No description provided for @opponentLeft.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip Ayrıldı'**
+  String get opponentLeft;
+
+  /// No description provided for @youLeftGame.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyundan ayrıldın'**
+  String get youLeftGame;
+
+  /// No description provided for @leaveGame.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyundan Çık?'**
+  String get leaveGame;
+
+  /// No description provided for @leaveGameConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayrılmak yenilgi sayılacak. Emin misin?'**
+  String get leaveGameConfirm;
+
+  /// No description provided for @leave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayrıl'**
+  String get leave;
+
+  /// No description provided for @losses.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mağlubiyet'**
+  String get losses;
+
+  /// No description provided for @friends.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlar'**
+  String get friends;
+
+  /// No description provided for @friendsList.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş Listesi'**
+  String get friendsList;
+
+  /// No description provided for @friendRequests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlık İstekleri'**
+  String get friendRequests;
+
+  /// No description provided for @noFriendsYet.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz Arkadaş Yok'**
+  String get noFriendsYet;
+
+  /// No description provided for @addFriendsToPlay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birlikte oynamak için arkadaş ekle!'**
+  String get addFriendsToPlay;
+
+  /// No description provided for @addFriend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş Ekle'**
+  String get addFriend;
+
+  /// No description provided for @noFriendRequests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlık isteği yok'**
+  String get noFriendRequests;
+
+  /// No description provided for @offline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimdışı'**
+  String get offline;
+
+  /// No description provided for @online.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimiçi'**
+  String get online;
+
+  /// No description provided for @inviteToGame.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuna Davet Et'**
+  String get inviteToGame;
+
+  /// No description provided for @removeFriend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşı Kaldır'**
+  String get removeFriend;
+
+  /// No description provided for @invitationSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Davet gönderildi!'**
+  String get invitationSent;
+
+  /// No description provided for @invitationFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Davet gönderilemedi'**
+  String get invitationFailed;
+
+  /// No description provided for @removeFriendConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu arkadaşı kaldırmak istediğinizden emin misiniz?'**
+  String get removeFriendConfirm;
+
+  /// No description provided for @remove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get remove;
+
+  /// No description provided for @friendRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş kaldırıldı'**
+  String get friendRemoved;
+
+  /// No description provided for @wantsToBeYourFriend.
+  ///
+  /// In tr, this message translates to:
+  /// **'arkadaşın olmak istiyor'**
+  String get wantsToBeYourFriend;
+
+  /// No description provided for @accept.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul Et'**
+  String get accept;
+
+  /// No description provided for @decline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddet'**
+  String get decline;
+
+  /// No description provided for @friendRequestAccepted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlık isteği kabul edildi!'**
+  String get friendRequestAccepted;
+
+  /// No description provided for @friendRequestDeclined.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlık isteği reddedildi'**
+  String get friendRequestDeclined;
+
+  /// No description provided for @searchByName.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsme göre ara...'**
+  String get searchByName;
+
+  /// No description provided for @noUsersFound.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı bulunamadı'**
+  String get noUsersFound;
+
+  /// No description provided for @searchForFriends.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş ara'**
+  String get searchForFriends;
+
+  /// No description provided for @enterAtLeast3Chars.
+  ///
+  /// In tr, this message translates to:
+  /// **'En az 3 karakter girin'**
+  String get enterAtLeast3Chars;
+
+  /// No description provided for @pending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beklemede'**
+  String get pending;
+
+  /// No description provided for @friendRequestSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlık isteği gönderildi!'**
+  String get friendRequestSent;
+
+  /// No description provided for @gameInvitation.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun Daveti'**
+  String get gameInvitation;
+
+  /// No description provided for @wantsToPlayWithYou.
+  ///
+  /// In tr, this message translates to:
+  /// **'seninle oynamak istiyor'**
+  String get wantsToPlayWithYou;
+
+  /// No description provided for @waitingForResponse.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıt Bekleniyor'**
+  String get waitingForResponse;
+
+  /// No description provided for @invitationSentTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Davet gönderildi:'**
+  String get invitationSentTo;
+
+  /// No description provided for @invitationDeclined.
+  ///
+  /// In tr, this message translates to:
+  /// **'Davet reddedildi'**
+  String get invitationDeclined;
+
+  /// No description provided for @invitationExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Davet süresi doldu'**
+  String get invitationExpired;
+
+  /// No description provided for @onlineLeaderboard.
+  ///
+  /// In tr, this message translates to:
+  /// **'Online Skor Tablosu'**
+  String get onlineLeaderboard;
+
+  /// No description provided for @global.
+  ///
+  /// In tr, this message translates to:
+  /// **'Global'**
+  String get global;
+
+  /// No description provided for @pointsToNext.
+  ///
+  /// In tr, this message translates to:
+  /// **'puan sonraki lige'**
+  String get pointsToNext;
+
+  /// No description provided for @onlineNow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimiçi'**
+  String get onlineNow;
+
+  /// No description provided for @noFriendsOnLeaderboard.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz skor tablosunda arkadaş yok'**
+  String get noFriendsOnLeaderboard;
+
+  /// No description provided for @noPlayersYet.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz oyuncu yok'**
+  String get noPlayersYet;
+
+  /// No description provided for @tierBronze.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bronz'**
+  String get tierBronze;
+
+  /// No description provided for @tierSilver.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gümüş'**
+  String get tierSilver;
+
+  /// No description provided for @tierGold.
+  ///
+  /// In tr, this message translates to:
+  /// **'Altın'**
+  String get tierGold;
+
+  /// No description provided for @tierPlatinum.
+  ///
+  /// In tr, this message translates to:
+  /// **'Platin'**
+  String get tierPlatinum;
+
+  /// No description provided for @tierDiamond.
+  ///
+  /// In tr, this message translates to:
+  /// **'Elmas'**
+  String get tierDiamond;
+
+  /// No description provided for @tierMaster.
+  ///
+  /// In tr, this message translates to:
+  /// **'Usta'**
+  String get tierMaster;
+
+  /// No description provided for @rating.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rating'**
+  String get rating;
 }
 
 class _AppLocalizationsDelegate

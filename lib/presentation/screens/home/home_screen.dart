@@ -15,6 +15,7 @@ import '../game/game_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../levels/level_select_screen.dart';
 import '../multiplayer/multiplayer_lobby_screen.dart';
+import '../online/online_lobby_screen.dart';
 import '../quests/daily_quests_screen.dart';
 import '../settings/settings_screen.dart';
 import '../shop/shop_screen.dart';
@@ -154,7 +155,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Multiplayer Mode Button
+                    // Online Multiplayer Mode Button
+                    _MenuButton(
+                      icon: Icons.public,
+                      label: l10n.onlineMultiplayer,
+                      sublabel: l10n.onlineMultiplayerDesc,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const OnlineLobbyScreen(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Local Multiplayer Mode Button
                     _MenuButton(
                       icon: Icons.people,
                       label: l10n.localMultiplayer,

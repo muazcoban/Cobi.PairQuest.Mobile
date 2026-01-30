@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
+import '../../main.dart' show navigatorKey;
+import '../../presentation/screens/online/friends_screen.dart';
 
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -394,9 +396,37 @@ class NotificationService {
   }
 
   /// Navigate to a route based on payload
-  void _navigateToRoute(String route) {
-    // Navigation will be handled via a callback or global navigator key
-    // For now, just log it
-    debugPrint('Should navigate to: $route');
+  void _navigateToRoute(String payload) {
+    debugPrint('Notification tap - navigating with payload: $payload');
+
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      debugPrint('Navigator context not available');
+      return;
+    }
+
+    // Handle invitation payload: "invitation:{invitationId}"
+    if (payload.startsWith('invitation:')) {
+      debugPrint('Opening Friends screen for invitation');
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const FriendsScreen()),
+      );
+      return;
+    }
+
+    // Handle other payloads
+    switch (payload) {
+      case 'friends':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const FriendsScreen()),
+        );
+        break;
+      case 'achievements':
+        // Could navigate to achievements screen
+        debugPrint('Should navigate to achievements');
+        break;
+      default:
+        debugPrint('Unknown payload: $payload');
+    }
   }
 }

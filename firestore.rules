@@ -1,0 +1,145 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ========== HELPER FUNCTIONS ==========
+
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user is the document owner
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Check if user is a player in the game
+    function isGamePlayer(gameData) {
+      return request.auth.uid in gameData.players.map(p => p.oddserId);
+    }
+
+    // ========== USER PROFILES ==========
+
+    match /users/{userId} {
+      // Users can read any profile (for friends list, game opponents)
+      allow read: if isAuthenticated();
+
+      // Users can only write their own profile
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    // ========== ONLINE GAMES ==========
+
+    match /games/{gameId} {
+      // Players can read games they're in
+      allow read: if isAuthenticated() &&
+        (resource == null || isGamePlayer(resource.data));
+
+      // Only allow create if user is in players list
+      allow create: if isAuthenticated() &&
+        request.auth.uid in request.resource.data.players.map(p => p.oddserId);
+
+      // Players can update game state (moves, scores)
+      // In production, this should be server-side only via Cloud Functions
+      allow update: if isAuthenticated() &&
+        isGamePlayer(resource.data) &&
+        // Prevent changing critical fields
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.createdAt == resource.data.createdAt;
+
+      // Don't allow delete (games are historical records)
+      allow delete: if false;
+    }
+
+    // ========== MATCHMAKING QUEUE ==========
+
+    match /matchmaking/{queueId} {
+      // Anyone authenticated can read queue (for finding matches)
+      allow read: if isAuthenticated();
+
+      // Users can create their own queue entry
+      allow create: if isAuthenticated() &&
+        request.resource.data.oddserId == request.auth.uid;
+
+      // Users can update/delete their own queue entry
+      allow update: if isAuthenticated() &&
+        resource.data.oddserId == request.auth.uid;
+
+      allow delete: if isAuthenticated() &&
+        resource.data.oddserId == request.auth.uid;
+    }
+
+    // ========== GAME INVITATIONS ==========
+
+    match /invitations/{invitationId} {
+      // Sender and recipient can read
+      allow read: if isAuthenticated() &&
+        (resource.data.fromUserId == request.auth.uid ||
+         resource.data.toUserId == request.auth.uid);
+
+      // Anyone can create invitation (to send to others)
+      allow create: if isAuthenticated() &&
+        request.resource.data.fromUserId == request.auth.uid;
+
+      // Both parties can update (accept/decline)
+      allow update: if isAuthenticated() &&
+        (resource.data.fromUserId == request.auth.uid ||
+         resource.data.toUserId == request.auth.uid);
+
+      // Sender can delete
+      allow delete: if isAuthenticated() &&
+        resource.data.fromUserId == request.auth.uid;
+    }
+
+    // ========== FRIENDSHIPS ==========
+
+    match /friendships/{friendshipId} {
+      // Both users can read
+      allow read: if isAuthenticated() &&
+        (resource.data.user1Id == request.auth.uid ||
+         resource.data.user2Id == request.auth.uid);
+
+      // Anyone can create (send friend request)
+      allow create: if isAuthenticated() &&
+        request.resource.data.requestedBy == request.auth.uid;
+
+      // Both users can update (accept/decline/block)
+      allow update: if isAuthenticated() &&
+        (resource.data.user1Id == request.auth.uid ||
+         resource.data.user2Id == request.auth.uid);
+
+      // Both users can delete (unfriend)
+      allow delete: if isAuthenticated() &&
+        (resource.data.user1Id == request.auth.uid ||
+         resource.data.user2Id == request.auth.uid);
+    }
+
+    // ========== LEADERBOARDS (Existing) ==========
+
+    match /leaderboards/{leaderboardId} {
+      allow read: if isAuthenticated();
+
+      match /entries/{entryId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update: if isAuthenticated() &&
+          resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // ========== RANKINGS ==========
+
+    match /rankings/{period} {
+      allow read: if isAuthenticated();
+
+      match /entries/{userId} {
+        allow read: if isAuthenticated();
+        // Only server (Cloud Functions) can write rankings
+        allow write: if false;
+      }
+    }
+  }
+}

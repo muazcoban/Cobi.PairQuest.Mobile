@@ -157,6 +157,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get music => 'Müzik';
 
   @override
+  String get musicDesc => 'Arka plan müziği';
+
+  @override
+  String get soundEffects => 'Ses Efektleri';
+
+  @override
+  String get soundEffectsDesc => 'Oyun sesleri ve geri bildirim';
+
+  @override
   String get vibration => 'Titreşim';
 
   @override
@@ -561,4 +570,257 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get tapAnyCard => 'HERHANGİ BİR KARTA DOKUN';
+
+  @override
+  String get onlineMultiplayer => 'Online 1v1';
+
+  @override
+  String get onlineMultiplayerDesc => 'Gerçek oyunculara karşı oyna';
+
+  @override
+  String get loginRequired => 'Giriş Gerekli';
+
+  @override
+  String get loginToPlayOnline => 'Online maçlara katılmak için giriş yapın';
+
+  @override
+  String get login => 'Giriş';
+
+  @override
+  String get errorOccurred => 'Bir hata oluştu';
+
+  @override
+  String get retry => 'Tekrar Dene';
+
+  @override
+  String get quickPlay => 'Hızlı Oyun';
+
+  @override
+  String get quickPlayDesc => 'Rahat bir maç bul';
+
+  @override
+  String get rankedPlay => 'Dereceli';
+
+  @override
+  String get rankedPlayDesc => 'Rating için yarış';
+
+  @override
+  String get ranked => 'Dereceli';
+
+  @override
+  String get casual => 'Rahat';
+
+  @override
+  String get moreOptions => 'Diğer Seçenekler';
+
+  @override
+  String get playWithFriend => 'Arkadaşla Oyna';
+
+  @override
+  String get comingSoon => 'Yakında';
+
+  @override
+  String get findingMatch => 'Maç Aranıyor';
+
+  @override
+  String get searchingForOpponent => 'Rakip aranıyor...';
+
+  @override
+  String get matchFound => 'Rakip Bulundu!';
+
+  @override
+  String get searchTimeout => 'Arama Zaman Aşımı';
+
+  @override
+  String get noOpponentFound => 'Rakip bulunamadı. Tekrar deneyelim mi?';
+
+  @override
+  String get preparingMatch => 'Maç hazırlanıyor...';
+
+  @override
+  String get searchTime => 'Süre';
+
+  @override
+  String get ratingRange => 'Rating';
+
+  @override
+  String get ok => 'Tamam';
+
+  @override
+  String get gameNotFound => 'Oyun bulunamadı';
+
+  @override
+  String get goBack => 'Geri Dön';
+
+  @override
+  String get opponentTurn => 'Rakibin Sırası';
+
+  @override
+  String get pairsRemaining => 'çift kaldı';
+
+  @override
+  String get draw => 'Berabere!';
+
+  @override
+  String get youWin => 'Kazandın!';
+
+  @override
+  String get youLose => 'Kaybettin';
+
+  @override
+  String get opponentLeft => 'Rakip Ayrıldı';
+
+  @override
+  String get youLeftGame => 'Oyundan ayrıldın';
+
+  @override
+  String get leaveGame => 'Oyundan Çık?';
+
+  @override
+  String get leaveGameConfirm => 'Ayrılmak yenilgi sayılacak. Emin misin?';
+
+  @override
+  String get leave => 'Ayrıl';
+
+  @override
+  String get losses => 'Mağlubiyet';
+
+  @override
+  String get friends => 'Arkadaşlar';
+
+  @override
+  String get friendsList => 'Arkadaş Listesi';
+
+  @override
+  String get friendRequests => 'Arkadaşlık İstekleri';
+
+  @override
+  String get noFriendsYet => 'Henüz Arkadaş Yok';
+
+  @override
+  String get addFriendsToPlay => 'Birlikte oynamak için arkadaş ekle!';
+
+  @override
+  String get addFriend => 'Arkadaş Ekle';
+
+  @override
+  String get noFriendRequests => 'Arkadaşlık isteği yok';
+
+  @override
+  String get offline => 'Çevrimdışı';
+
+  @override
+  String get online => 'Çevrimiçi';
+
+  @override
+  String get inviteToGame => 'Oyuna Davet Et';
+
+  @override
+  String get removeFriend => 'Arkadaşı Kaldır';
+
+  @override
+  String get invitationSent => 'Davet gönderildi!';
+
+  @override
+  String get invitationFailed => 'Davet gönderilemedi';
+
+  @override
+  String get removeFriendConfirm =>
+      'Bu arkadaşı kaldırmak istediğinizden emin misiniz?';
+
+  @override
+  String get remove => 'Kaldır';
+
+  @override
+  String get friendRemoved => 'Arkadaş kaldırıldı';
+
+  @override
+  String get wantsToBeYourFriend => 'arkadaşın olmak istiyor';
+
+  @override
+  String get accept => 'Kabul Et';
+
+  @override
+  String get decline => 'Reddet';
+
+  @override
+  String get friendRequestAccepted => 'Arkadaşlık isteği kabul edildi!';
+
+  @override
+  String get friendRequestDeclined => 'Arkadaşlık isteği reddedildi';
+
+  @override
+  String get searchByName => 'İsme göre ara...';
+
+  @override
+  String get noUsersFound => 'Kullanıcı bulunamadı';
+
+  @override
+  String get searchForFriends => 'Arkadaş ara';
+
+  @override
+  String get enterAtLeast3Chars => 'En az 3 karakter girin';
+
+  @override
+  String get pending => 'Beklemede';
+
+  @override
+  String get friendRequestSent => 'Arkadaşlık isteği gönderildi!';
+
+  @override
+  String get gameInvitation => 'Oyun Daveti';
+
+  @override
+  String get wantsToPlayWithYou => 'seninle oynamak istiyor';
+
+  @override
+  String get waitingForResponse => 'Yanıt Bekleniyor';
+
+  @override
+  String get invitationSentTo => 'Davet gönderildi:';
+
+  @override
+  String get invitationDeclined => 'Davet reddedildi';
+
+  @override
+  String get invitationExpired => 'Davet süresi doldu';
+
+  @override
+  String get onlineLeaderboard => 'Online Skor Tablosu';
+
+  @override
+  String get global => 'Global';
+
+  @override
+  String get pointsToNext => 'puan sonraki lige';
+
+  @override
+  String get onlineNow => 'Çevrimiçi';
+
+  @override
+  String get noFriendsOnLeaderboard => 'Henüz skor tablosunda arkadaş yok';
+
+  @override
+  String get noPlayersYet => 'Henüz oyuncu yok';
+
+  @override
+  String get tierBronze => 'Bronz';
+
+  @override
+  String get tierSilver => 'Gümüş';
+
+  @override
+  String get tierGold => 'Altın';
+
+  @override
+  String get tierPlatinum => 'Platin';
+
+  @override
+  String get tierDiamond => 'Elmas';
+
+  @override
+  String get tierMaster => 'Usta';
+
+  @override
+  String get rating => 'Rating';
 }

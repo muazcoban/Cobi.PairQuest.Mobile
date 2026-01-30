@@ -8,6 +8,14 @@ import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
+import 'presentation/widgets/common/global_invitation_listener.dart';
+
+/// Global navigator key for navigation from anywhere (e.g., notification taps)
+///
+/// Used by:
+/// - [NotificationService._navigateToRoute] - notification tap handling
+/// - [GlobalInvitationListener._showInvitation] - showing dialogs from any screen
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +40,7 @@ class PairQuestApp extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'PairQuest',
       debugShowCheckedModeBanner: false,
 
@@ -51,6 +60,10 @@ class PairQuestApp extends ConsumerWidget {
       ],
 
       home: const HomeScreen(),
+      builder: (context, child) {
+        // Wrap with global invitation listener
+        return GlobalInvitationListener(child: child ?? const SizedBox());
+      },
     );
   }
 }

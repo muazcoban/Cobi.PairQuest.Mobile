@@ -157,6 +157,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get music => 'Music';
 
   @override
+  String get musicDesc => 'Background music';
+
+  @override
+  String get soundEffects => 'Sound Effects';
+
+  @override
+  String get soundEffectsDesc => 'Game sounds and UI feedback';
+
+  @override
   String get vibration => 'Vibration';
 
   @override
@@ -560,4 +569,257 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tapAnyCard => 'TAP ANY CARD';
+
+  @override
+  String get onlineMultiplayer => 'Online 1v1';
+
+  @override
+  String get onlineMultiplayerDesc => 'Play against real players';
+
+  @override
+  String get loginRequired => 'Login Required';
+
+  @override
+  String get loginToPlayOnline => 'Sign in to play online matches';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get errorOccurred => 'An error occurred';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get quickPlay => 'Quick Play';
+
+  @override
+  String get quickPlayDesc => 'Find a casual match';
+
+  @override
+  String get rankedPlay => 'Ranked';
+
+  @override
+  String get rankedPlayDesc => 'Compete for rating';
+
+  @override
+  String get ranked => 'Ranked';
+
+  @override
+  String get casual => 'Casual';
+
+  @override
+  String get moreOptions => 'More Options';
+
+  @override
+  String get playWithFriend => 'Play with Friend';
+
+  @override
+  String get comingSoon => 'Coming Soon';
+
+  @override
+  String get findingMatch => 'Finding Match';
+
+  @override
+  String get searchingForOpponent => 'Searching for opponent...';
+
+  @override
+  String get matchFound => 'Match Found!';
+
+  @override
+  String get searchTimeout => 'Search Timeout';
+
+  @override
+  String get noOpponentFound => 'No opponent found. Try again?';
+
+  @override
+  String get preparingMatch => 'Preparing match...';
+
+  @override
+  String get searchTime => 'Time';
+
+  @override
+  String get ratingRange => 'Rating';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get gameNotFound => 'Game not found';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get opponentTurn => 'Opponent\'s Turn';
+
+  @override
+  String get pairsRemaining => 'pairs left';
+
+  @override
+  String get draw => 'Draw!';
+
+  @override
+  String get youWin => 'You Win!';
+
+  @override
+  String get youLose => 'You Lose';
+
+  @override
+  String get opponentLeft => 'Opponent Left';
+
+  @override
+  String get youLeftGame => 'You forfeited the game';
+
+  @override
+  String get leaveGame => 'Leave Game?';
+
+  @override
+  String get leaveGameConfirm => 'Leaving will count as a loss. Are you sure?';
+
+  @override
+  String get leave => 'Leave';
+
+  @override
+  String get losses => 'Losses';
+
+  @override
+  String get friends => 'Friends';
+
+  @override
+  String get friendsList => 'Friends List';
+
+  @override
+  String get friendRequests => 'Friend Requests';
+
+  @override
+  String get noFriendsYet => 'No Friends Yet';
+
+  @override
+  String get addFriendsToPlay => 'Add friends to play together!';
+
+  @override
+  String get addFriend => 'Add Friend';
+
+  @override
+  String get noFriendRequests => 'No friend requests';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get inviteToGame => 'Invite to Game';
+
+  @override
+  String get removeFriend => 'Remove Friend';
+
+  @override
+  String get invitationSent => 'Invitation sent!';
+
+  @override
+  String get invitationFailed => 'Failed to send invitation';
+
+  @override
+  String get removeFriendConfirm =>
+      'Are you sure you want to remove this friend?';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get friendRemoved => 'Friend removed';
+
+  @override
+  String get wantsToBeYourFriend => 'wants to be your friend';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get decline => 'Decline';
+
+  @override
+  String get friendRequestAccepted => 'Friend request accepted!';
+
+  @override
+  String get friendRequestDeclined => 'Friend request declined';
+
+  @override
+  String get searchByName => 'Search by name...';
+
+  @override
+  String get noUsersFound => 'No users found';
+
+  @override
+  String get searchForFriends => 'Search for friends';
+
+  @override
+  String get enterAtLeast3Chars => 'Enter at least 3 characters';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get friendRequestSent => 'Friend request sent!';
+
+  @override
+  String get gameInvitation => 'Game Invitation';
+
+  @override
+  String get wantsToPlayWithYou => 'wants to play with you';
+
+  @override
+  String get waitingForResponse => 'Waiting for Response';
+
+  @override
+  String get invitationSentTo => 'Invitation sent to';
+
+  @override
+  String get invitationDeclined => 'Invitation was declined';
+
+  @override
+  String get invitationExpired => 'Invitation expired';
+
+  @override
+  String get onlineLeaderboard => 'Online Leaderboard';
+
+  @override
+  String get global => 'Global';
+
+  @override
+  String get pointsToNext => 'points to next tier';
+
+  @override
+  String get onlineNow => 'Online';
+
+  @override
+  String get noFriendsOnLeaderboard => 'No friends on leaderboard yet';
+
+  @override
+  String get noPlayersYet => 'No players yet';
+
+  @override
+  String get tierBronze => 'Bronze';
+
+  @override
+  String get tierSilver => 'Silver';
+
+  @override
+  String get tierGold => 'Gold';
+
+  @override
+  String get tierPlatinum => 'Platinum';
+
+  @override
+  String get tierDiamond => 'Diamond';
+
+  @override
+  String get tierMaster => 'Master';
+
+  @override
+  String get rating => 'Rating';
 }
