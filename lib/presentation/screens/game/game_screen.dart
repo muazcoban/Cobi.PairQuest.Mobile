@@ -41,7 +41,7 @@ class GameScreen extends ConsumerStatefulWidget {
   ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends ConsumerState<GameScreen> {
+class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObserver {
   late ConfettiController _confettiController;
   int? _currentCombo;
   bool _showTimeBonusAnimation = false;
@@ -56,6 +56,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // the notifier would mark the new unlocks as already known while loading
     // and show no notification for them.
     ref.read(achievementProvider.notifier);
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startGame();
     });
@@ -63,8 +64,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _confettiController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Leaving the app pauses the game; on Android the countdown and music
+    // kept running in the background and a timed game could be lost there
+    if (state != AppLifecycleState.hidden && state != AppLifecycleState.paused) return;
+    if (ref.read(gameProvider).currentGame?.state != GameState.inProgress) return;
+
+    ref.read(gameProvider.notifier).pauseGame();
+    _showPauseDialog();
   }
 
   void _startGame() {
