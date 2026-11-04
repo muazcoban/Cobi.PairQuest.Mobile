@@ -215,7 +215,8 @@ final totalOnlinePlayersProvider = StreamProvider<int>((ref) {
 
   return firestore
       .collection('users')
-      .where('connectionStatus', isEqualTo: 'online')
+      // Profiles store the connection state as 'status' (OnlineUserProfile).
+      .where('status', isEqualTo: 'online')
       .snapshots()
       .map((snapshot) => snapshot.size);
 });

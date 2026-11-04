@@ -157,7 +157,7 @@ describe('users', () => {
   it('allows the profile queries (friend search, rating leaderboard, friends leaderboard, online list)', async () => {
     await seed({
       'users/alice': { displayName: 'Alice', rating: 1300 },
-      'users/bob': { displayName: 'Bob', rating: 1200, connectionStatus: 'online' },
+      'users/bob': { displayName: 'Bob', rating: 1200, status: 'online' },
     });
     const users = collection(db(ALICE), 'users');
     await assertSucceeds(getDocs(query(users, where('displayName', '>=', 'B'), where('displayName', '<=', 'B'), limit(20))));
@@ -165,7 +165,7 @@ describe('users', () => {
     await assertSucceeds(getDocs(query(users, where('rating', '>', 1200))));
     await assertSucceeds(getDocs(query(users, where('rating', '>=', 1000), where('rating', '<=', 1499))));
     await assertSucceeds(getDocs(query(users, where(documentId(), 'in', [ALICE, BOB]))));
-    await assertSucceeds(getDocs(query(users, where('connectionStatus', '==', 'online'))));
+    await assertSucceeds(getDocs(query(users, where('status', '==', 'online'))));
   });
 
   it('wallet and inventory are private to the owner (WalletSyncService)', async () => {
