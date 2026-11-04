@@ -307,22 +307,26 @@ class MatchmakingRepository {
     return gridSizes[level.clamp(1, 10)] ?? (4, 4);
   }
 
-  /// Clean up expired queue entries
+  /// Deletes entries left by players who closed the app while searching.
+  /// They filled the 20 candidates findMatch reads, so real players stopped
+  /// finding each other.
+  ///
+  /// Only entries expired for [_staleAfter] go: the margin covers a device
+  /// clock that runs ahead (the rules compare with server time) and a match
+  /// that completes just after expiry.
   Future<void> cleanupExpiredEntries() async {
     try {
-      final now = Timestamp.now();
+      final cutoff = Timestamp.fromDate(DateTime.now().subtract(_staleAfter));
+      // One range filter only: adding the status filter needs a composite
+      // index, and the query failed without it.
       final expired = await _firestore
           .collection(_matchmakingCollection)
-          .where('expiresAt', isLessThan: now)
-          .where('status', isEqualTo: 'waiting')
+          .where('expiresAt', isLessThan: cutoff)
+          .limit(100)
           .get();
 
-      // Delete expired entries to keep collection small (performance optimization)
-      final batch = _firestore.batch();
-      for (final doc in expired.docs) {
-        batch.delete(doc.reference);
-      }
-      await batch.commit();
+      // One by one: in a batch, a single refused delete would stop the rest.
+      await Future.wait(expired.docs.map((doc) => doc.reference.delete().catchError((_) {})));
 
       if (expired.docs.isNotEmpty) {
         debugPrint('Cleaned up ${expired.docs.length} expired queue entries');
@@ -331,6 +335,8 @@ class MatchmakingRepository {
       debugPrint('Error cleaning up expired entries: $e');
     }
   }
+
+  static const Duration _staleAfter = Duration(minutes: 5);
 
   // ========== GAME INVITATIONS ==========
 

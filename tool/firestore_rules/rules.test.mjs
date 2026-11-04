@@ -267,14 +267,12 @@ describe('matchmaking', () => {
     await assertSucceeds(deleteDoc(doc(db(ALICE), 'matchmaking/qa')));
   });
 
-  it('anyone removes expired entries, nobody removes live ones (cleanupExpiredEntries)', async () => {
-    await seed({ 'matchmaking/old': queueEntry(BOB, inMinutes(-5)), 'matchmaking/live': queueEntry(BOB) });
+  it('anyone removes stale entries, nobody removes live ones (cleanupExpiredEntries)', async () => {
+    await seed({ 'matchmaking/old': queueEntry(BOB, inMinutes(-10)), 'matchmaking/live': queueEntry(BOB) });
     const carol = db(CAROL);
-    const expired = await assertSucceeds(getDocs(query(collection(carol, 'matchmaking'), where('expiresAt', '<', Timestamp.now()), where('status', '==', 'waiting'))));
-    if (expired.size !== 1) throw new Error(`expected 1 expired entry, got ${expired.size}`);
-    const batch = writeBatch(carol);
-    expired.docs.forEach((d) => batch.delete(d.ref));
-    await assertSucceeds(batch.commit());
+    const expired = await assertSucceeds(getDocs(query(collection(carol, 'matchmaking'), where('expiresAt', '<', inMinutes(-5)), limit(100))));
+    if (expired.size !== 1) throw new Error(`expected 1 stale entry, got ${expired.size}`);
+    for (const d of expired.docs) await assertSucceeds(deleteDoc(d.ref));
     await assertFails(deleteDoc(doc(carol, 'matchmaking/live')));
   });
 });

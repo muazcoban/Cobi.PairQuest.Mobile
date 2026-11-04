@@ -23,6 +23,9 @@ final gamePowerUpUsageProvider =
 /// Notifier for managing player's power-up inventory
 class PowerUpInventoryNotifier extends StateNotifier<PowerUpInventory> {
   static const String _storageKey = 'power_up_inventory';
+
+  /// The account whose inventory is on the device; missing for a guest.
+  static const String _ownerKey = 'power_up_inventory_owner';
   final Ref _ref;
   final WalletSyncService _syncService;
   StreamSubscription? _authSubscription;
@@ -38,8 +41,20 @@ class PowerUpInventoryNotifier extends StateNotifier<PowerUpInventory> {
     _authSubscription = _syncService.authStateChanges.listen((user) async {
       if (user != null && !user.isAnonymous) {
         await syncWithCloud();
+      } else {
+        await _forgetAccountInventory();
       }
     });
+  }
+
+  /// After sign-out the account's power-ups stay in the cloud, not on the
+  /// device (see WalletNotifier).
+  Future<void> _forgetAccountInventory() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getString(_ownerKey) == null) return;
+    await prefs.remove(_ownerKey);
+    state = const PowerUpInventory();
+    await _saveInventory();
   }
 
   /// Load inventory from local storage
@@ -77,27 +92,26 @@ class PowerUpInventoryNotifier extends StateNotifier<PowerUpInventory> {
     _syncService.saveInventoryToCloudAsync(state);
   }
 
-  /// Sync inventory with cloud (merge strategy: MAX values)
+  /// Load the account's cloud inventory; see [WalletSyncService.syncInventory]
   Future<void> syncWithCloud() async {
-    if (_isSyncing || !_syncService.isLoggedIn) return;
+    final uid = _syncService.userId;
+    if (_isSyncing || uid == null) return;
 
     _isSyncing = true;
     try {
-      final mergedInventory = await _syncService.syncInventory(state);
+      final prefs = await SharedPreferences.getInstance();
+      final owner = prefs.getString(_ownerKey);
+      // Another account's power-ups never go to this account's cloud.
+      final local = owner == null || owner == uid ? state : const PowerUpInventory();
+      final synced = await _syncService.syncInventory(local);
 
-      // Update state if merged is different
-      bool isDifferent = false;
-      for (final type in PowerUpType.values) {
-        if (mergedInventory.getQuantity(type) != state.getQuantity(type)) {
-          isDifferent = true;
-          break;
-        }
-      }
-
+      final isDifferent = PowerUpType.values
+          .any((type) => synced.getQuantity(type) != state.getQuantity(type));
       if (isDifferent) {
-        state = mergedInventory;
+        state = synced;
         await _saveInventory();
       }
+      await prefs.setString(_ownerKey, uid);
     } catch (e) {
       debugPrint('PowerUpInventoryNotifier: Sync error: $e');
     } finally {

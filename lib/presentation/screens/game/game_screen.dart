@@ -8,6 +8,7 @@ import '../../../core/constants/game_config.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/entities/game.dart';
+import '../../../l10n/achievement_l10n.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/achievement_provider.dart';
 import '../../providers/daily_quest_provider.dart';
@@ -163,8 +164,9 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     final newAchievements = await ref.read(achievementProvider.notifier).checkAchievements();
     if (newAchievements.isNotEmpty && mounted) {
       // Show achievement unlocked notification (respects user settings)
+      final language = Localizations.localeOf(context).languageCode;
       for (final achievement in newAchievements) {
-        final achievementTitle = _getAchievementTitle(achievement.id);
+        final achievementTitle = AchievementTexts.title(achievement.id, language);
 
         // Show in-app SnackBar (always shown when in app)
         ScaffoldMessenger.of(context).showSnackBar(
@@ -200,36 +202,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
         // Show local notification only if user has enabled achievement notifications
         ref.read(notificationSettingsProvider.notifier).showAchievementUnlocked(
           title: achievementTitle,
-          description: achievement.descriptionKey,
+          description: AchievementTexts.description(achievement.id, language),
         );
       }
     }
-  }
-
-  String _getAchievementTitle(String id) {
-    const titles = {
-      'first_game': 'First Steps',
-      'games_10': 'Getting Started',
-      'games_50': 'Dedicated Player',
-      'games_100': 'Memory Master',
-      'matches_100': 'Match Maker',
-      'matches_500': 'Pattern Expert',
-      'matches_1000': 'Memory Genius',
-      'combo_3': 'Combo Starter',
-      'combo_5': 'Combo King',
-      'combo_8': 'On Fire',
-      'combo_10': 'Unstoppable',
-      'perfect_1': 'Perfectionist',
-      'perfect_5': 'Flawless',
-      'perfect_10': 'Legendary Mind',
-      'streak_3': 'Hot Streak',
-      'streak_7': 'Week Warrior',
-      'streak_10': 'Champion',
-      'level_5': 'Halfway There',
-      'level_10': 'Grand Master',
-      'stars_30': 'Star Collector',
-    };
-    return titles[id] ?? id;
   }
 
   void _saveGameLoss(Game game) {

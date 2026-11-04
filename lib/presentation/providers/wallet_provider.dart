@@ -21,6 +21,9 @@ final walletProvider = StateNotifierProvider<WalletNotifier, PlayerWallet>((ref)
 class WalletNotifier extends StateNotifier<PlayerWallet> {
   static const String _storageKey = 'player_wallet';
 
+  /// The account whose wallet is on the device; missing for a guest wallet.
+  static const String _ownerKey = 'player_wallet_owner';
+
   // ignore: unused_field - kept for potential future use
   final Ref _ref;
   final WalletSyncService _syncService;
@@ -38,8 +41,20 @@ class WalletNotifier extends StateNotifier<PlayerWallet> {
       // When user logs in (non-anonymous), trigger sync
       if (user != null && !user.isAnonymous) {
         await syncWithCloud();
+      } else {
+        await _forgetAccountWallet();
       }
     });
+  }
+
+  /// After sign-out the account's coins stay in its cloud wallet, not on the
+  /// device, so a guest or the next account does not start with them.
+  Future<void> _forgetAccountWallet() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getString(_ownerKey) == null) return;
+    await prefs.remove(_ownerKey);
+    state = const PlayerWallet();
+    await _saveWallet();
   }
 
   /// Load wallet from local storage
@@ -78,19 +93,24 @@ class WalletNotifier extends StateNotifier<PlayerWallet> {
     _syncService.saveToCloudAsync(state);
   }
 
-  /// Sync wallet with cloud (merge strategy: MAX values)
+  /// Load the account's cloud wallet; see [WalletSyncService.syncWallet]
   Future<void> syncWithCloud() async {
-    if (_isSyncing || !_syncService.isLoggedIn) return;
+    final uid = _syncService.userId;
+    if (_isSyncing || uid == null) return;
 
     _isSyncing = true;
     try {
-      final mergedWallet = await _syncService.syncWallet(state);
+      final prefs = await SharedPreferences.getInstance();
+      final owner = prefs.getString(_ownerKey);
+      // Another account's coins never go to this account's cloud wallet.
+      final local = owner == null || owner == uid ? state : const PlayerWallet();
+      final synced = await _syncService.syncWallet(local);
 
-      // Update state if merged is different
-      if (mergedWallet.coins != state.coins || mergedWallet.gems != state.gems) {
-        state = mergedWallet;
-        await _saveWallet(); // Save merged to local
+      if (synced.coins != state.coins || synced.gems != state.gems) {
+        state = synced;
+        await _saveWallet();
       }
+      await prefs.setString(_ownerKey, uid);
     } catch (e) {
       debugPrint('WalletNotifier: Sync error: $e');
     } finally {

@@ -81,6 +81,9 @@ class MatchmakingNotifier extends StateNotifier<MatchmakingSearchStatus> {
     if (state.state == MatchmakingUIState.searching) return;
 
     try {
+      // Each new search clears entries players left behind
+      unawaited(_repository.cleanupExpiredEntries());
+
       // Join the matchmaking queue
       final queueId = await _repository.joinQueue(
         oddserId: oddserId,
