@@ -832,4 +832,23 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get claimWin => 'Galibiyeti al';
+
+  @override
+  String get deleteAccountDetails =>
+      'Profiliniz, puanınız ve sıralamanız, arkadaşlarınız, davetleriniz, buluttaki cüzdanınız ve global skorlarınız kalıcı olarak silinir. Bu cihazdaki tek oyunculu ilerleme silinmez.';
+
+  @override
+  String get deleteAccountReauth =>
+      'Devam etmek için Google hesabınızla yeniden giriş yapmanız istenecek.';
+
+  @override
+  String get accountDeleted => 'Hesabınız silindi';
+
+  @override
+  String get accountDeletionFailed =>
+      'Hesap silinemedi. Bağlantınızı kontrol edip tekrar deneyin.';
+
+  @override
+  String get accountDeletionWrongAccount =>
+      'Silmek istediğiniz hesapla giriş yapın';
 }

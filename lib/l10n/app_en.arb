@@ -304,5 +304,10 @@
   "rating": "Rating",
   "turnTimedOut": "Time's up, the turn passed to your opponent",
   "opponentNotResponding": "Opponent is not responding",
-  "claimWin": "Claim the win"
+  "claimWin": "Claim the win",
+  "deleteAccountDetails": "Your profile, rating, friends, invitations, cloud wallet and global scores are deleted permanently. Single-player progress on this device stays.",
+  "deleteAccountReauth": "You will be asked to sign in with Google again to continue.",
+  "accountDeleted": "Your account was deleted",
+  "accountDeletionFailed": "The account could not be deleted. Check your connection and try again.",
+  "accountDeletionWrongAccount": "Sign in with the account you want to delete"
 }

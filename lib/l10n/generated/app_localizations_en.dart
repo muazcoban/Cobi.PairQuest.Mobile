@@ -831,4 +831,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get claimWin => 'Claim the win';
+
+  @override
+  String get deleteAccountDetails =>
+      'Your profile, rating, friends, invitations, cloud wallet and global scores are deleted permanently. Single-player progress on this device stays.';
+
+  @override
+  String get deleteAccountReauth =>
+      'You will be asked to sign in with Google again to continue.';
+
+  @override
+  String get accountDeleted => 'Your account was deleted';
+
+  @override
+  String get accountDeletionFailed =>
+      'The account could not be deleted. Check your connection and try again.';
+
+  @override
+  String get accountDeletionWrongAccount =>
+      'Sign in with the account you want to delete';
 }

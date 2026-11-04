@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_links.dart';
 import '../../../core/utils/card_shuffle.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
@@ -31,6 +32,24 @@ class SettingsScreen extends ConsumerWidget {
           // Account Section
           _buildSectionHeader(l10n.account),
           _buildAccountTile(context, ref, authState, l10n),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(l10n.privacyPolicy),
+            trailing: const Icon(Icons.open_in_new_rounded),
+            onTap: () => AppLinks.open(AppLinks.privacyPolicy),
+          ),
+          if (authState.isAuthenticated)
+            ListTile(
+              leading: Icon(
+                Icons.delete_forever_rounded,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                l10n.deleteAccount,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              onTap: () => _confirmDeleteAccount(context, ref, authState, l10n),
+            ),
           const SizedBox(height: 24),
 
           // Player Name Section
@@ -432,6 +451,61 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteAccount(
+    BuildContext context,
+    WidgetRef ref,
+    AuthState authState,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteAccount),
+        content: Text([
+          l10n.deleteAccountConfirm,
+          l10n.deleteAccountDetails,
+          if (authState.isGoogleLinked) l10n.deleteAccountReauth,
+        ].join('\n\n')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          // Not in the destructive style: the user already chose to delete
+          // (HIG, Alerts).
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.deleteAccount),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context, rootNavigator: true);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+    final result = await ref.read(authProvider.notifier).deleteAccount();
+    navigator.pop();
+
+    final message = switch (result) {
+      AccountDeletionResult.deleted => l10n.accountDeleted,
+      AccountDeletionResult.cancelled => null,
+      AccountDeletionResult.wrongAccount => l10n.accountDeletionWrongAccount,
+      AccountDeletionResult.failed => l10n.accountDeletionFailed,
+    };
+    if (message != null) {
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   Future<void> _showTimePicker(

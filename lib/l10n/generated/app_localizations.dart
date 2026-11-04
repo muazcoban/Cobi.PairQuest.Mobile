@@ -1705,6 +1705,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Galibiyeti al'**
   String get claimWin;
+
+  /// No description provided for @deleteAccountDetails.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profiliniz, puanınız ve sıralamanız, arkadaşlarınız, davetleriniz, buluttaki cüzdanınız ve global skorlarınız kalıcı olarak silinir. Bu cihazdaki tek oyunculu ilerleme silinmez.'**
+  String get deleteAccountDetails;
+
+  /// No description provided for @deleteAccountReauth.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam etmek için Google hesabınızla yeniden giriş yapmanız istenecek.'**
+  String get deleteAccountReauth;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabınız silindi'**
+  String get accountDeleted;
+
+  /// No description provided for @accountDeletionFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap silinemedi. Bağlantınızı kontrol edip tekrar deneyin.'**
+  String get accountDeletionFailed;
+
+  /// No description provided for @accountDeletionWrongAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Silmek istediğiniz hesapla giriş yapın'**
+  String get accountDeletionWrongAccount;
 }
 
 class _AppLocalizationsDelegate

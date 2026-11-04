@@ -595,5 +595,10 @@
   "rating": "Rating",
   "turnTimedOut": "Süren doldu, sıra rakibe geçti",
   "opponentNotResponding": "Rakip yanıt vermiyor",
-  "claimWin": "Galibiyeti al"
+  "claimWin": "Galibiyeti al",
+  "deleteAccountDetails": "Profiliniz, puanınız ve sıralamanız, arkadaşlarınız, davetleriniz, buluttaki cüzdanınız ve global skorlarınız kalıcı olarak silinir. Bu cihazdaki tek oyunculu ilerleme silinmez.",
+  "deleteAccountReauth": "Devam etmek için Google hesabınızla yeniden giriş yapmanız istenecek.",
+  "accountDeleted": "Hesabınız silindi",
+  "accountDeletionFailed": "Hesap silinemedi. Bağlantınızı kontrol edip tekrar deneyin.",
+  "accountDeletionWrongAccount": "Silmek istediğiniz hesapla giriş yapın"
 }

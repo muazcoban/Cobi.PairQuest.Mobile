@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../data/repositories/account_repository.dart';
 
 /// Auth state
 class AuthState {
@@ -25,9 +26,7 @@ class AuthState {
     if (user?.displayName != null && user!.displayName!.isNotEmpty) {
       return user!.displayName!;
     }
-    if (user?.email != null) {
-      return user!.email!.split('@').first;
-    }
+    // Not the e-mail address: this name is public on the online profile.
     return 'Guest';
   }
 
@@ -52,9 +51,13 @@ class AuthState {
   }
 }
 
+/// Outcome of [AuthNotifier.deleteAccount].
+enum AccountDeletionResult { deleted, cancelled, wrongAccount, failed }
+
 /// Auth notifier
 class AuthNotifier extends StateNotifier<AuthState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final AccountRepository _accountRepository = AccountRepository();
   late final GoogleSignIn _googleSignIn;
 
   static GoogleSignIn _createGoogleSignIn() {
@@ -221,23 +224,67 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Delete account
-  Future<bool> deleteAccount() async {
-    if (state.user == null) return false;
+  /// Delete the account and the data stored for it in Firestore.
+  ///
+  /// Firebase deletes only a user who signed in recently, so a Google user
+  /// signs in again first. If that or a Firestore delete fails, the account
+  /// stays and the user can try again.
+  Future<AccountDeletionResult> deleteAccount() async {
+    final user = state.user;
+    if (user == null) return AccountDeletionResult.failed;
+    final isGoogle = state.isGoogleLinked;
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await state.user!.delete();
-      await _googleSignIn.signOut();
+      if (isGoogle && !await _reauthenticateWithGoogle(user)) {
+        state = state.copyWith(isLoading: false);
+        return AccountDeletionResult.cancelled;
+      }
+
+      await _accountRepository.deleteUserData(user.uid);
+
+      try {
+        await user.delete();
+      } on FirebaseAuthException catch (e) {
+        // A guest cannot sign in again. Its data is gone, so signing out
+        // leaves only an empty anonymous user behind.
+        if (e.code != 'requires-recent-login' || !user.isAnonymous) rethrow;
+        await _auth.signOut();
+      }
+
+      if (isGoogle) {
+        // Also revoke the app's access to the Google account.
+        try {
+          await _googleSignIn.disconnect();
+        } catch (_) {
+          await _googleSignIn.signOut();
+        }
+      }
+
       state = state.copyWith(isLoading: false, clearUser: true);
-      return true;
+      return AccountDeletionResult.deleted;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
-      return false;
+      return e.code == 'user-mismatch'
+          ? AccountDeletionResult.wrongAccount
+          : AccountDeletionResult.failed;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
-      return false;
+      return AccountDeletionResult.failed;
     }
+  }
+
+  /// Returns false when the user closes the Google sign-in sheet.
+  Future<bool> _reauthenticateWithGoogle(User user) async {
+    final googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) return false;
+
+    final googleAuth = await googleUser.authentication;
+    await user.reauthenticateWithCredential(GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    ));
+    return true;
   }
 
   /// Clear error

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_links.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -142,9 +143,7 @@ class AuthScreen extends ConsumerWidget {
 
                       // Privacy policy link
                       TextButton(
-                        onPressed: () {
-                          // TODO: Open privacy policy
-                        },
+                        onPressed: () => AppLinks.open(AppLinks.privacyPolicy),
                         child: Text(
                           l10n.privacyPolicy,
                           style: const TextStyle(
