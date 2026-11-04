@@ -44,3 +44,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 lib/firebase_options.dart*
+
+# Firestore rules tests (tool/firestore_rules)
+node_modules/
+firebase-debug.log
+firestore-debug.log
