@@ -15,10 +15,6 @@ dependencies:
 
   # State Management
   flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
-
-  # Navigation
-  go_router: ^14.8.1
 
   # Local Storage
   shared_preferences: ^2.3.5
@@ -53,11 +49,10 @@ dependencies:
   # Audio
   audioplayers: ^6.1.0
 
-  # Haptic Feedback
-  vibration: ^2.0.0
-
   # Confetti Animation
   confetti: ^0.8.0
+  url_launcher: ^6.3.2
+  sign_in_with_apple: ^7.0.1
 
 dev_dependencies:
   flutter_test:
@@ -68,10 +63,10 @@ dev_dependencies:
   build_runner: ^2.4.15
   freezed: ^3.0.6
   json_serializable: ^6.9.5
-  riverpod_generator: ^2.6.5
 
   # App Icon Generator
   flutter_launcher_icons: ^0.14.3
+  fake_cloud_firestore: ^3.1.0
 
 flutter_launcher_icons:
   android: true

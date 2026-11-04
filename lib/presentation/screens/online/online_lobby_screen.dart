@@ -7,8 +7,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/friends_provider.dart';
 import '../../providers/matchmaking_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../widgets/auth/apple_sign_in_button.dart';
 import '../../widgets/common/wallet_display.dart';
-import '../../widgets/dialogs/game_invitation_dialog.dart';
 import 'friends_screen.dart';
 import 'matchmaking_screen.dart';
 import 'online_leaderboard_screen.dart';
@@ -45,7 +45,6 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
             oddserId: user.uid,
             displayName: authState.displayName,
             photoUrl: user.photoURL,
-            email: user.email,
           );
     }
   }
@@ -81,14 +80,8 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
             ),
     );
 
-    // Wrap with invitation listener if user is logged in (not anonymous)
-    if (user != null && !isAnonymous) {
-      return InvitationListener(
-        userId: user.uid,
-        child: scaffold,
-      );
-    }
-
+    // Game invitations are shown by GlobalInvitationListener (main.dart);
+    // a second listener here opened every invitation dialog twice
     return scaffold;
   }
 
@@ -124,6 +117,25 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
+            // Sign in with Apple comes first on iOS (App Review 4.8)
+            if (AppleSignInButton.isAvailable) ...[
+              SizedBox(
+                width: 280,
+                child: AppleSignInButton(
+                  onDarkBackground:
+                      Theme.of(context).brightness == Brightness.dark,
+                  onPressed: () async {
+                    final success =
+                        await ref.read(authProvider.notifier).signInWithApple();
+                    if (success && mounted) {
+                      _initialized = false;
+                      _initializeProfile();
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
             ElevatedButton.icon(
               onPressed: () async {
                 // Sign in with Google
@@ -139,6 +151,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
+                minimumSize: const Size(280, 56),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
             ),

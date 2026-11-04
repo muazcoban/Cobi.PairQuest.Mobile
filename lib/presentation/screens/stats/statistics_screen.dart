@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/stats_provider.dart';
 
@@ -19,6 +20,8 @@ class StatisticsScreen extends ConsumerWidget {
         title: Text(l10n.statistics),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        titleTextStyle: AppTheme.onPrimaryTitleStyle,
+        iconTheme: AppTheme.onPrimaryIconTheme,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -237,7 +240,7 @@ class StatisticsScreen extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: AppColors.primaryText(context),
                 ),
               ),
             ],

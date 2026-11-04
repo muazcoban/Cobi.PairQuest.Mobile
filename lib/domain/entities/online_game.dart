@@ -188,6 +188,8 @@ abstract class OnlineGame with _$OnlineGame {
     json['players'] = players.map((p) => p.toJson()).toList();
     // Moves listesini manuel olarak serialize et
     json['moves'] = moves.map((m) => m.toJson()).toList();
+    // Lets account deletion find a player's games with one query
+    json['playerIds'] = players.map((p) => p.oddserId).toList();
     return json;
   }
 }

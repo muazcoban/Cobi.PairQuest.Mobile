@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,47 +22,89 @@ class GameBoard extends ConsumerWidget {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardSize = _calculateCardSize(
-          constraints: constraints,
-          gridSize: game.gridSize,
-        );
+    // The board is the bottom of the screen: keep cards above the home
+    // indicator (HIG Layout, safe areas).
+    return SafeArea(
+      top: false,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final layout = BoardLayout.fit(constraints.biggest, game.gridSize);
+          final gridSize = layout.gridSizeFor(game.gridSize);
 
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: _CardGrid(
-              cards: game.cards,
-              gridSize: game.gridSize,
-              cardSize: cardSize,
-              isProcessing: gameState.isProcessing,
+          Widget board = Padding(
+            padding: const EdgeInsets.all(BoardLayout.padding),
+            child: SizedBox.fromSize(
+              size: gridSize,
+              child: _CardGrid(
+                cards: game.cards,
+                gridSize: game.gridSize,
+                spacing: layout.spacing,
+                isProcessing: gameState.isProcessing,
+              ),
             ),
-          ),
-        );
-      },
+          );
+
+          // Only in very small windows (Stage Manager, Split View) do cards
+          // reach the minimum size; scroll rather than shrink them further.
+          if (!layout.fitsIn(constraints.biggest, game.gridSize)) {
+            board = SingleChildScrollView(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: board,
+              ),
+            );
+          }
+
+          return Center(child: board);
+        },
+      ),
     );
   }
+}
 
-  double _calculateCardSize({
-    required BoxConstraints constraints,
-    required GridSize gridSize,
-  }) {
-    const horizontalPadding = 32.0;
-    const verticalPadding = 32.0;
-    const spacing = 8.0;
+/// Card size and spacing that fit the whole grid into the board area.
+class BoardLayout {
+  const BoardLayout({required this.cardWidth, required this.spacing});
 
-    final availableWidth =
-        constraints.maxWidth - horizontalPadding - (gridSize.cols - 1) * spacing;
-    final availableHeight =
-        constraints.maxHeight - verticalPadding - (gridSize.rows - 1) * spacing;
+  final double cardWidth;
+  final double spacing;
 
-    final cardWidth = availableWidth / gridSize.cols;
-    final cardHeight = availableHeight / gridSize.rows / 1.2;
+  static const double padding = 16;
 
-    final cardSize = cardWidth < cardHeight ? cardWidth : cardHeight;
+  /// Card height divided by card width.
+  static const double cardAspectRatio = 1.2;
 
-    return cardSize.clamp(50.0, 120.0);
+  /// HIG Accessibility: 28 pt is the minimum control size (44 pt default).
+  static const double minCardWidth = 28;
+  static const double maxCardWidth = 160;
+
+  factory BoardLayout.fit(Size board, GridSize grid) {
+    // Dense grids use tighter gaps so the cards themselves stay larger.
+    final spacing = math.max(grid.rows, grid.cols) >= 7 ? 4.0 : 8.0;
+    final byWidth =
+        (board.width - 2 * padding - (grid.cols - 1) * spacing) / grid.cols;
+    final byHeight =
+        (board.height - 2 * padding - (grid.rows - 1) * spacing) /
+            grid.rows /
+            cardAspectRatio;
+    final cardWidth =
+        math.min(byWidth, byHeight).clamp(minCardWidth, maxCardWidth).toDouble();
+    return BoardLayout(cardWidth: cardWidth, spacing: spacing);
+  }
+
+  double get cardHeight => cardWidth * cardAspectRatio;
+
+  Size gridSizeFor(GridSize grid) => Size(
+        grid.cols * cardWidth + (grid.cols - 1) * spacing,
+        grid.rows * cardHeight + (grid.rows - 1) * spacing,
+      );
+
+  bool fitsIn(Size board, GridSize grid) {
+    final size = gridSizeFor(grid);
+    // Rounding in the division can leave a fraction of a point over.
+    const tolerance = 0.5;
+    return size.width + 2 * padding <= board.width + tolerance &&
+        size.height + 2 * padding <= board.height + tolerance;
   }
 }
 
@@ -69,13 +112,13 @@ class GameBoard extends ConsumerWidget {
 class _CardGrid extends ConsumerWidget {
   final List<GameCard> cards;
   final GridSize gridSize;
-  final double cardSize;
+  final double spacing;
   final bool isProcessing;
 
   const _CardGrid({
     required this.cards,
     required this.gridSize,
-    required this.cardSize,
+    required this.spacing,
     required this.isProcessing,
   });
 
@@ -84,13 +127,13 @@ class _CardGrid extends ConsumerWidget {
     final hintedCardIds = ref.watch(gameProvider.select((s) => s.hintedCardIds));
 
     return GridView.builder(
-      shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: gridSize.cols,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1 / 1.2,
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
+        childAspectRatio: 1 / BoardLayout.cardAspectRatio,
       ),
       itemCount: cards.length,
       itemBuilder: (context, index) {
@@ -99,6 +142,8 @@ class _CardGrid extends ConsumerWidget {
         return _CardItem(
           key: ValueKey(card.id),
           card: card,
+          row: index ~/ gridSize.cols + 1,
+          column: index % gridSize.cols + 1,
           isProcessing: isProcessing,
           isHinted: isHinted,
         );
@@ -110,12 +155,16 @@ class _CardGrid extends ConsumerWidget {
 /// Individual card item - extracted for better rebuild optimization
 class _CardItem extends ConsumerWidget {
   final GameCard card;
+  final int row;
+  final int column;
   final bool isProcessing;
   final bool isHinted;
 
   const _CardItem({
     super.key,
     required this.card,
+    required this.row,
+    required this.column,
     required this.isProcessing,
     this.isHinted = false,
   });
@@ -127,6 +176,8 @@ class _CardItem extends ConsumerWidget {
 
     Widget cardWidget = MemoryCard(
       card: card,
+      row: row,
+      column: column,
       isDisabled: isProcessing || isShuffling,
       isHinted: isHinted,
       onTap: () {
@@ -134,8 +185,10 @@ class _CardItem extends ConsumerWidget {
       },
     );
 
-    // Apply shuffle animation to hidden cards only
-    if (isShuffling && isHiddenCard) {
+    // Apply shuffle animation to hidden cards only; skipped with Reduce Motion
+    if (isShuffling &&
+        isHiddenCard &&
+        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false)) {
       cardWidget = cardWidget
           .animate()
           .scale(

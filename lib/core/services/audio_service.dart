@@ -34,6 +34,15 @@ class AudioService {
   };
 
   AudioService() {
+    // Game sound is not essential: follow the Ring/Silent switch and keep
+    // music from other apps playing (HIG Playing audio, "Ambient"). The
+    // audioplayers default is playback, which ignores the switch.
+    AudioPlayer.global
+        .setAudioContext(AudioContext(
+          iOS: AudioContextIOS(category: AVAudioSessionCategory.ambient),
+          android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.none),
+        ))
+        .catchError((_) {});
     _musicPlayer.setReleaseMode(ReleaseMode.loop);
     _sfxPlayer.setReleaseMode(ReleaseMode.release);
   }

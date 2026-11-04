@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/game_provider.dart';
 
@@ -74,7 +73,10 @@ class _TurnIndicatorState extends ConsumerState<TurnIndicator>
                 color: Colors.black.withOpacity(0.3),
                 child: Center(
                   child: Transform.scale(
-                    scale: _scaleAnimation.value,
+                    // Reduce Motion: fade in without the zoom
+                    scale: (MediaQuery.maybeDisableAnimationsOf(context) ?? false)
+                        ? 1.0
+                        : _scaleAnimation.value,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,

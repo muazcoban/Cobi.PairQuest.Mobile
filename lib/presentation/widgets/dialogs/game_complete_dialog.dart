@@ -284,7 +284,7 @@ class GameCompleteDialog extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: onNextLevel,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.success,
+                          backgroundColor: AppColors.successStrong,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -347,7 +347,7 @@ class GameCompleteDialog extends StatelessWidget {
                           child: Text(
                             l10n.playAgain,
                             style: TextStyle(
-                              color: AppColors.primary,
+                              color: AppColors.primaryText(context),
                               fontWeight: FontWeight.w500,
                             ),
                           ),

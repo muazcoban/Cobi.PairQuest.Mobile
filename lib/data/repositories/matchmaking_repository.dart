@@ -96,7 +96,12 @@ class MatchmakingRepository {
 
   /// Find a match for the user (client-side matching)
   /// In production, this should be a Cloud Function
-  Future<String?> findMatch(String queueId) async {
+  ///
+  /// Players in [excludeUserIds] (the ones the user blocked) are skipped.
+  Future<String?> findMatch(
+    String queueId, {
+    Set<String> excludeUserIds = const {},
+  }) async {
     try {
       final myDoc = await _firestore
           .collection(_matchmakingCollection)
@@ -120,6 +125,7 @@ class MatchmakingRepository {
         final candidate = MatchmakingEntry.fromFirestore(candidateDoc);
         // Skip self (client-side filter instead of isNotEqualTo query)
         if (candidate.oddserId == myEntry.oddserId) continue;
+        if (excludeUserIds.contains(candidate.oddserId)) continue;
         if (!candidate.isActive) continue;
 
         if (myEntry.isCompatibleWith(candidate)) {
@@ -301,22 +307,26 @@ class MatchmakingRepository {
     return gridSizes[level.clamp(1, 10)] ?? (4, 4);
   }
 
-  /// Clean up expired queue entries
+  /// Deletes entries left by players who closed the app while searching.
+  /// They filled the 20 candidates findMatch reads, so real players stopped
+  /// finding each other.
+  ///
+  /// Only entries expired for [_staleAfter] go: the margin covers a device
+  /// clock that runs ahead (the rules compare with server time) and a match
+  /// that completes just after expiry.
   Future<void> cleanupExpiredEntries() async {
     try {
-      final now = Timestamp.now();
+      final cutoff = Timestamp.fromDate(DateTime.now().subtract(_staleAfter));
+      // One range filter only: adding the status filter needs a composite
+      // index, and the query failed without it.
       final expired = await _firestore
           .collection(_matchmakingCollection)
-          .where('expiresAt', isLessThan: now)
-          .where('status', isEqualTo: 'waiting')
+          .where('expiresAt', isLessThan: cutoff)
+          .limit(100)
           .get();
 
-      // Delete expired entries to keep collection small (performance optimization)
-      final batch = _firestore.batch();
-      for (final doc in expired.docs) {
-        batch.delete(doc.reference);
-      }
-      await batch.commit();
+      // One by one: in a batch, a single refused delete would stop the rest.
+      await Future.wait(expired.docs.map((doc) => doc.reference.delete().catchError((_) {})));
 
       if (expired.docs.isNotEmpty) {
         debugPrint('Cleaned up ${expired.docs.length} expired queue entries');
@@ -325,6 +335,8 @@ class MatchmakingRepository {
       debugPrint('Error cleaning up expired entries: $e');
     }
   }
+
+  static const Duration _staleAfter = Duration(minutes: 5);
 
   // ========== GAME INVITATIONS ==========
 
@@ -423,6 +435,23 @@ class MatchmakingRepository {
           .update({'status': InvitationStatus.declined.name});
     } catch (e) {
       debugPrint('Error declining invitation: $e');
+    }
+  }
+
+  /// Cancel an invitation the sender no longer waits for.
+  /// Only a pending invitation changes, so one the friend accepted at the
+  /// same moment stays accepted, and a cancelled one can no longer be accepted.
+  Future<void> cancelInvitation(String invitationId) async {
+    try {
+      final invRef = _firestore.collection(_invitationsCollection).doc(invitationId);
+      await _firestore.runTransaction((transaction) async {
+        final invDoc = await transaction.get(invRef);
+        if (!invDoc.exists) return;
+        if (!GameInvitation.fromFirestore(invDoc).isPending) return;
+        transaction.update(invRef, {'status': InvitationStatus.cancelled.name});
+      });
+    } catch (e) {
+      debugPrint('📨 Error cancelling invitation: $e');
     }
   }
 

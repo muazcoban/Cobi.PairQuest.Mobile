@@ -161,10 +161,13 @@ abstract class Game with _$Game {
   /// Check if this was a perfect game (no errors)
   bool get isPerfectGame => errors == 0 && isCompleted;
 
-  /// Get winner player (for multiplayer) - player with highest score
+  /// Get winner player (for multiplayer) - player with highest score,
+  /// or null when the highest score is shared (draw)
   Player? get winner {
     if (!isMultiplayer || players == null || players!.isEmpty) return null;
-    return players!.reduce((a, b) => a.score >= b.score ? a : b);
+    final ranked = rankedPlayers;
+    if (ranked.length > 1 && ranked[0].score == ranked[1].score) return null;
+    return ranked.first;
   }
 
   /// Get players sorted by score (descending)

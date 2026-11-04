@@ -13,6 +13,9 @@ class LeaderboardEntry extends Equatable {
   final bool isSynced;
   final DateTime? syncedAt;
 
+  /// Who submitted the score; set on global leaderboard entries only.
+  final String? userId;
+
   const LeaderboardEntry({
     required this.id,
     required this.playerName,
@@ -24,6 +27,7 @@ class LeaderboardEntry extends Equatable {
     required this.playedAt,
     this.isSynced = false,
     this.syncedAt,
+    this.userId,
   });
 
   LeaderboardEntry copyWith({
@@ -37,6 +41,7 @@ class LeaderboardEntry extends Equatable {
     DateTime? playedAt,
     bool? isSynced,
     DateTime? syncedAt,
+    String? userId,
   }) {
     return LeaderboardEntry(
       id: id ?? this.id,
@@ -49,6 +54,7 @@ class LeaderboardEntry extends Equatable {
       playedAt: playedAt ?? this.playedAt,
       isSynced: isSynced ?? this.isSynced,
       syncedAt: syncedAt ?? this.syncedAt,
+      userId: userId ?? this.userId,
     );
   }
 
@@ -83,6 +89,7 @@ class LeaderboardEntry extends Equatable {
       syncedAt: json['syncedAt'] != null
           ? DateTime.parse(json['syncedAt'])
           : null,
+      userId: json['userId'] as String?,
     );
   }
 
@@ -105,5 +112,6 @@ class LeaderboardEntry extends Equatable {
         playedAt,
         isSynced,
         syncedAt,
+        userId,
       ];
 }

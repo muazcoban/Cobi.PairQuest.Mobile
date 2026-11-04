@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/matchmaking.dart';
 import '../../../domain/entities/online_player.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -9,7 +10,7 @@ import '../../providers/friends_provider.dart';
 import '../../providers/matchmaking_provider.dart';
 import '../../providers/online_game_provider.dart';
 import '../../providers/online_profile_provider.dart';
-import '../../widgets/dialogs/game_invitation_dialog.dart';
+import '../../widgets/moderation/player_safety.dart';
 import 'friend_search_screen.dart';
 import 'online_game_screen.dart';
 
@@ -30,10 +31,9 @@ class FriendsScreen extends ConsumerWidget {
       );
     }
 
-    // Wrap with InvitationListener to receive game invitations
-    return InvitationListener(
-      userId: userId,
-      child: DefaultTabController(
+    // Game invitations are shown by GlobalInvitationListener (main.dart);
+    // a second listener here opened every invitation dialog twice
+    return DefaultTabController(
       length: 2,
       child: Scaffold(
         backgroundColor: AppColors.background(context),
@@ -43,6 +43,7 @@ class FriendsScreen extends ConsumerWidget {
           elevation: 0,
           actions: [
             IconButton(
+              tooltip: AppLocalizations.of(context)!.addFriend,
               icon: const Icon(Icons.person_add),
               onPressed: () {
                 Navigator.of(context).push(
@@ -70,7 +71,6 @@ class FriendsScreen extends ConsumerWidget {
           ],
         ),
       ),
-    ),
     );
   }
 }
@@ -262,7 +262,7 @@ class _FriendTile extends ConsumerWidget {
               ? Text(
                   displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.primaryText(context),
                     fontWeight: FontWeight.bold,
                   ),
                 )
@@ -305,6 +305,11 @@ class _FriendTile extends ConsumerWidget {
               _inviteToGame(context, ref, l10n);
             } else if (value == 'remove') {
               _removeFriend(context, ref, l10n);
+            } else {
+              handlePlayerSafetyAction(value, context, ref,
+                  userId: friendId,
+                  displayName: displayName,
+                  source: ReportSource.friends);
             }
           },
           itemBuilder: (context) => [
@@ -328,6 +333,8 @@ class _FriendTile extends ConsumerWidget {
                 ],
               ),
             ),
+            const PopupMenuDivider(),
+            ...playerSafetyMenuItems(l10n),
           ],
         ),
       ),
@@ -444,7 +451,7 @@ class _FriendRequestTile extends ConsumerWidget {
                 ? Text(
                     displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                     style: TextStyle(
-                      color: AppColors.primary,
+                      color: AppColors.primaryText(context),
                       fontWeight: FontWeight.bold,
                     ),
                   )
@@ -484,6 +491,12 @@ class _FriendRequestTile extends ConsumerWidget {
                 onPressed: () => _declineRequest(context, ref, l10n),
                 icon: Icon(Icons.cancel, color: Colors.red.shade400),
                 tooltip: l10n.decline,
+              ),
+              PlayerSafetyButton(
+                userId: senderId,
+                displayName: displayName,
+                source: ReportSource.friendRequest,
+                color: AppColors.textSecondary(context),
               ),
             ],
           ),
@@ -633,6 +646,9 @@ class _InvitationWaitingDialog extends ConsumerWidget {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {
+                  // Cancel the invitation too, otherwise the friend could still
+                  // accept it and wait alone in a game nobody joins
+                  ref.read(invitationNotifierProvider.notifier).cancelInvitation(invitationId);
                   Navigator.of(context).pop();
                 },
                 style: OutlinedButton.styleFrom(

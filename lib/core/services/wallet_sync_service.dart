@@ -5,32 +5,49 @@ import '../../domain/entities/currency.dart';
 import '../../domain/entities/power_up.dart';
 
 /// Service for syncing wallet and inventory data between local storage and Firestore
+///
+/// The cloud copy is the account's wallet and inventory. Every change is
+/// written to it, and Firestore's offline cache returns this device's
+/// pending writes, so a sync takes the cloud copy as it is. Only an account
+/// with no cloud copy yet receives the local one: a guest's progress the
+/// first time they sign in. Taking the larger of local and cloud, as before,
+/// undid spending made on another device and passed coins from one account
+/// to the next on a shared device.
 class WalletSyncService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  WalletSyncService({
+    FirebaseFirestore? firestore,
+    String? Function()? signedInUserId,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _signedInUserId = signedInUserId ?? _firebaseSignedInUserId;
+
+  final FirebaseFirestore _firestore;
+  final String? Function() _signedInUserId;
+
+  /// The Google or Apple user; guests keep their wallet on the device only.
+  static String? _firebaseSignedInUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user == null || user.isAnonymous ? null : user.uid;
+  }
 
   /// Get the current user's wallet document reference
   DocumentReference<Map<String, dynamic>>? get _walletRef {
-    final user = _auth.currentUser;
-    if (user == null || user.isAnonymous) return null;
-    return _firestore.collection('users').doc(user.uid).collection('data').doc('wallet');
+    final uid = _signedInUserId();
+    if (uid == null) return null;
+    return _firestore.collection('users').doc(uid).collection('data').doc('wallet');
   }
 
   /// Get the current user's inventory document reference
   DocumentReference<Map<String, dynamic>>? get _inventoryRef {
-    final user = _auth.currentUser;
-    if (user == null || user.isAnonymous) return null;
-    return _firestore.collection('users').doc(user.uid).collection('data').doc('inventory');
+    final uid = _signedInUserId();
+    if (uid == null) return null;
+    return _firestore.collection('users').doc(uid).collection('data').doc('inventory');
   }
 
   /// Check if user is logged in (non-anonymous)
-  bool get isLoggedIn {
-    final user = _auth.currentUser;
-    return user != null && !user.isAnonymous;
-  }
+  bool get isLoggedIn => _signedInUserId() != null;
 
-  /// Get current user ID (null if not logged in)
-  String? get userId => _auth.currentUser?.uid;
+  /// The signed-in (non-anonymous) user's ID, null for guests
+  String? get userId => _signedInUserId();
 
   /// Fetch wallet from Firestore
   /// Returns null if user is not logged in or no cloud data exists
@@ -72,41 +89,26 @@ class WalletSyncService {
     }
   }
 
-  /// Merge local and cloud wallets (takes MAX of each currency - user-friendly)
-  /// This ensures players never lose currency when syncing
-  PlayerWallet mergeWallets(PlayerWallet local, PlayerWallet cloud) {
-    return PlayerWallet(
-      coins: local.coins > cloud.coins ? local.coins : cloud.coins,
-      gems: local.gems > cloud.gems ? local.gems : cloud.gems,
-    );
-  }
-
-  /// Full sync operation: fetch cloud, merge with local, save merged to cloud
-  /// Returns the merged wallet or local wallet if offline/not logged in
+  /// Returns the account's cloud wallet, or uploads [localWallet] when the
+  /// account has none yet. Offline or on error the local wallet stays.
   Future<PlayerWallet> syncWallet(PlayerWallet localWallet) async {
-    if (!isLoggedIn) {
-      return localWallet; // Return local as-is for anonymous users
-    }
+    final ref = _walletRef;
+    if (ref == null) return localWallet;
 
     try {
-      final cloudWallet = await fetchCloudWallet();
-
-      if (cloudWallet == null) {
-        // First time sync - just upload local to cloud
+      final doc = await ref.get();
+      if (!doc.exists) {
+        // From the offline cache "missing" means "not cached", not "no
+        // wallet"; uploading then would overwrite the real one.
+        if (doc.metadata.isFromCache) return localWallet;
         await saveToCloud(localWallet);
         return localWallet;
       }
-
-      // Merge wallets (take MAX values)
-      final mergedWallet = mergeWallets(localWallet, cloudWallet);
-
-      // Save merged to cloud
-      await saveToCloud(mergedWallet);
-
-      return mergedWallet;
+      final data = doc.data()!;
+      return PlayerWallet(coins: data['coins'] ?? 0, gems: data['gems'] ?? 0);
     } catch (e) {
       debugPrint('WalletSyncService: Sync failed, using local: $e');
-      return localWallet; // Fallback to local on error
+      return localWallet;
     }
   }
 
@@ -125,7 +127,7 @@ class WalletSyncService {
   }
 
   /// Listen to auth state changes for triggering sync
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get authStateChanges => FirebaseAuth.instance.authStateChanges();
 
   // ========== INVENTORY SYNC METHODS ==========
 
@@ -146,7 +148,9 @@ class WalletSyncService {
       if (rawQuantities != null) {
         for (final entry in rawQuantities.entries) {
           final type = _stringToPowerUpType(entry.key);
-          if (type != null) {
+          // Zero counts are stored on purpose (see cloudQuantities); locally a
+          // used-up power-up has no entry
+          if (type != null && (entry.value as int) > 0) {
             quantities[type] = entry.value as int;
           }
         }
@@ -159,19 +163,24 @@ class WalletSyncService {
     }
   }
 
+  /// Firestore map for an inventory, keyed by power-up name.
+  /// Every type is written, zero included: the document is saved with merge,
+  /// which keeps keys missing from the new map. A used-up power-up (no local
+  /// entry) would otherwise keep its old cloud count and come back on the
+  /// next sync.
+  static Map<String, int> cloudQuantities(PowerUpInventory inventory) {
+    return {
+      for (final type in PowerUpType.values) type.name: inventory.getQuantity(type),
+    };
+  }
+
   /// Save inventory to Firestore
   Future<bool> saveInventoryToCloud(PowerUpInventory inventory) async {
     if (!isLoggedIn) return false;
 
     try {
-      // Convert PowerUpType keys to strings for Firestore
-      final stringQuantities = <String, int>{};
-      for (final entry in inventory.quantities.entries) {
-        stringQuantities[entry.key.name] = entry.value;
-      }
-
       await _inventoryRef?.set({
-        'quantities': stringQuantities,
+        'quantities': cloudQuantities(inventory),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       return true;
@@ -181,40 +190,20 @@ class WalletSyncService {
     }
   }
 
-  /// Merge local and cloud inventories (takes MAX of each power-up)
-  PowerUpInventory mergeInventories(PowerUpInventory local, PowerUpInventory cloud) {
-    final mergedQuantities = <PowerUpType, int>{};
-
-    // Get all power-up types
-    for (final type in PowerUpType.values) {
-      final localQty = local.getQuantity(type);
-      final cloudQty = cloud.getQuantity(type);
-      final maxQty = localQty > cloudQty ? localQty : cloudQty;
-      if (maxQty > 0) {
-        mergedQuantities[type] = maxQty;
-      }
-    }
-
-    return PowerUpInventory(quantities: mergedQuantities);
-  }
-
-  /// Full inventory sync operation
+  /// Returns the account's cloud inventory, or uploads [localInventory] when
+  /// the account has none yet. Offline or on error the local one stays.
   Future<PowerUpInventory> syncInventory(PowerUpInventory localInventory) async {
-    if (!isLoggedIn) {
-      return localInventory;
-    }
+    final ref = _inventoryRef;
+    if (ref == null) return localInventory;
 
     try {
-      final cloudInventory = await fetchCloudInventory();
-
-      if (cloudInventory == null) {
+      final doc = await ref.get();
+      if (!doc.exists) {
+        if (doc.metadata.isFromCache) return localInventory;
         await saveInventoryToCloud(localInventory);
         return localInventory;
       }
-
-      final mergedInventory = mergeInventories(localInventory, cloudInventory);
-      await saveInventoryToCloud(mergedInventory);
-      return mergedInventory;
+      return await fetchCloudInventory() ?? localInventory;
     } catch (e) {
       debugPrint('WalletSyncService: Inventory sync failed, using local: $e');
       return localInventory;
@@ -225,13 +214,8 @@ class WalletSyncService {
   void saveInventoryToCloudAsync(PowerUpInventory inventory) {
     if (!isLoggedIn) return;
 
-    final stringQuantities = <String, int>{};
-    for (final entry in inventory.quantities.entries) {
-      stringQuantities[entry.key.name] = entry.value;
-    }
-
     _inventoryRef?.set({
-      'quantities': stringQuantities,
+      'quantities': cloudQuantities(inventory),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true)).catchError((e) {
       debugPrint('WalletSyncService: Async inventory save failed: $e');

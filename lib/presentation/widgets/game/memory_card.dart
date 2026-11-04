@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/game_config.dart';
 import '../../../domain/entities/card.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 /// A single memory card widget with flip animation
 class MemoryCard extends StatefulWidget {
@@ -11,9 +12,15 @@ class MemoryCard extends StatefulWidget {
   final bool isDisabled;
   final bool isHinted;
 
+  /// Place on the board, starting at 1; VoiceOver reads it instead of the ID.
+  final int row;
+  final int column;
+
   const MemoryCard({
     super.key,
     required this.card,
+    required this.row,
+    required this.column,
     this.onTap,
     this.isDisabled = false,
     this.isHinted = false,
@@ -35,6 +42,9 @@ class _MemoryCardState extends State<MemoryCard>
   late Animation<double> _hintGlowAnimation;
   bool _showFront = false;
   bool _wasMatched = false;
+
+  /// Reduce Motion is on: no 3D flip, bounce, shake or pulsing glow.
+  bool _reduceMotion = false;
 
   @override
   void initState() {
@@ -79,11 +89,6 @@ class _MemoryCardState extends State<MemoryCard>
       CurvedAnimation(parent: _hintGlowController, curve: Curves.easeInOut),
     );
 
-    // Start hint glow animation if already hinted
-    if (widget.isHinted) {
-      _hintGlowController.repeat(reverse: true);
-    }
-
     _controller.addListener(() {
       if (_controller.value >= 0.5 && !_showFront) {
         setState(() => _showFront = true);
@@ -97,6 +102,13 @@ class _MemoryCardState extends State<MemoryCard>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    _syncHintGlow();
+  }
+
+  @override
   void didUpdateWidget(MemoryCard oldWidget) {
     super.didUpdateWidget(oldWidget);
 
@@ -104,12 +116,21 @@ class _MemoryCardState extends State<MemoryCard>
       _updateAnimationState();
     }
 
-    // Handle hint glow animation
-    if (widget.isHinted && !oldWidget.isHinted) {
-      _hintGlowController.repeat(reverse: true);
-    } else if (!widget.isHinted && oldWidget.isHinted) {
-      _hintGlowController.stop();
-      _hintGlowController.reset();
+    if (widget.isHinted != oldWidget.isHinted) {
+      _syncHintGlow();
+    }
+  }
+
+  /// A hinted card pulses; with Reduce Motion it keeps a still highlight.
+  void _syncHintGlow() {
+    if (widget.isHinted && !_reduceMotion) {
+      if (!_hintGlowController.isAnimating) {
+        _hintGlowController.repeat(reverse: true);
+      }
+    } else {
+      _hintGlowController
+        ..stop()
+        ..reset();
     }
   }
 
@@ -121,11 +142,11 @@ class _MemoryCardState extends State<MemoryCard>
       // Play match animation when card becomes matched
       if (widget.card.state == CardState.matched && !_wasMatched) {
         _wasMatched = true;
-        _matchController.forward(from: 0);
+        if (!_reduceMotion) _matchController.forward(from: 0);
       }
     } else if (widget.card.state == CardState.hidden) {
       // Play shake animation when card is hidden again (mismatch)
-      if (_showFront) {
+      if (_showFront && !_reduceMotion) {
         _shakeController.forward(from: 0);
       }
       _controller.reverse();
@@ -143,106 +164,139 @@ class _MemoryCardState extends State<MemoryCard>
 
   @override
   Widget build(BuildContext context) {
-    final isMatched = widget.card.state == CardState.matched;
     final canTap =
         widget.card.state == CardState.hidden && !widget.isDisabled;
 
     return Semantics(
-      label: _getSemanticLabel(),
+      label: _getSemanticLabel(AppLocalizations.of(context)!),
       button: canTap,
       enabled: canTap,
+      onTap: canTap ? widget.onTap : null,
+      // The label already says what the card shows.
+      excludeSemantics: true,
       child: RepaintBoundary(
         child: GestureDetector(
           onTap: canTap ? widget.onTap : null,
-          child: AnimatedBuilder(
-        animation: Listenable.merge([_flipAnimation, _matchScaleAnimation, _shakeAnimation]),
-        builder: (context, child) {
-          final angle = _flipAnimation.value * math.pi;
-          final scale = _matchScaleAnimation.value;
-          final shakeOffset = _shakeAnimation.value;
-          final transform = Matrix4.identity()
-            ..setEntry(3, 2, 0.001)
-            ..translate(shakeOffset, 0, 0)
-            ..rotateY(angle);
+          child: _reduceMotion ? _buildStill() : _buildAnimated(),
+        ),
+      ),
+    );
+  }
 
-          return Transform(
-            alignment: Alignment.center,
-            transform: transform,
-            child: Transform.scale(
-              scale: scale,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    if (isMatched)
-                      BoxShadow(
-                        color: AppColors.cardMatched.withOpacity(0.5),
-                        blurRadius: 15,
-                        spreadRadius: 2,
-                      )
-                    else
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: _showFront ? _buildFront() : _buildBack(),
-                ),
-              ),
+  /// Reduce Motion: a short cross-fade replaces the flip (HIG Accessibility:
+  /// "Replacing transitions in x-, y-, and z-axes with fades").
+  Widget _buildStill() {
+    final faceUp = widget.card.state != CardState.hidden;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 150),
+      child: KeyedSubtree(
+        key: ValueKey(faceUp),
+        child: _buildSurface(faceUp, mirrored: false),
+      ),
+    );
+  }
+
+  Widget _buildAnimated() {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_flipAnimation, _matchScaleAnimation, _shakeAnimation]),
+      builder: (context, child) {
+        final angle = _flipAnimation.value * math.pi;
+        final scale = _matchScaleAnimation.value;
+        final shakeOffset = _shakeAnimation.value;
+        final transform = Matrix4.identity()
+          ..setEntry(3, 2, 0.001)
+          ..translate(shakeOffset, 0, 0)
+          ..rotateY(angle);
+
+        return Transform(
+          alignment: Alignment.center,
+          transform: transform,
+          child: Transform.scale(
+            scale: scale,
+            child: _buildSurface(_showFront, mirrored: true),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSurface(bool showFront, {required bool mirrored}) {
+    final isMatched = widget.card.state == CardState.matched;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          if (isMatched)
+            BoxShadow(
+              color: AppColors.cardMatched.withOpacity(0.5),
+              blurRadius: 15,
+              spreadRadius: 2,
+            )
+          else
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: showFront ? _buildFront(mirrored: mirrored) : _buildBack(),
+      ),
+    );
+  }
+
+  String _getSemanticLabel(AppLocalizations l10n) {
+    final position = l10n.cardPosition(widget.row, widget.column);
+    final image = widget.card.imageAsset;
+    switch (widget.card.state) {
+      case CardState.hidden:
+        return '$position, ${l10n.cardFaceDown}';
+      case CardState.revealed:
+        return '$position, ${l10n.cardFaceUp(image)}';
+      case CardState.matched:
+        return '$position, ${l10n.cardMatchedState(image)}';
+    }
+  }
+
+  Widget _buildFront({required bool mirrored}) {
+    final isMatched = widget.card.state == CardState.matched;
+
+    final face = Container(
+      decoration: BoxDecoration(
+        color: isMatched
+            ? AppColors.cardMatched.withOpacity(0.1)
+            : Colors.white,
+        border: Border.all(
+          color: isMatched ? AppColors.cardMatched : Colors.grey.shade300,
+          width: isMatched ? 3 : 1,
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // The emoji is the card's picture: sized to the card, not to the
+          // Dynamic Type setting, so it never spills over the edges.
+          final size = math.min(constraints.maxWidth, constraints.maxHeight) * 0.6;
+          return Center(
+            child: Text(
+              widget.card.imageAsset,
+              textScaler: TextScaler.noScaling,
+              style: TextStyle(fontSize: size),
             ),
           );
         },
       ),
-      ),
-    ),
     );
-  }
 
-  String _getSemanticLabel() {
-    switch (widget.card.state) {
-      case CardState.hidden:
-        return 'Card ${widget.card.id}, face down. Tap to reveal.';
-      case CardState.revealed:
-        return 'Card ${widget.card.id}, showing ${widget.card.imageAsset}';
-      case CardState.matched:
-        return 'Card ${widget.card.id}, matched';
-    }
-  }
-
-  Widget _buildFront() {
-    final isMatched = widget.card.state == CardState.matched;
-
+    // The flip turns the card by 180 degrees, so the face is drawn mirrored.
+    if (!mirrored) return face;
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()..rotateY(math.pi),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isMatched
-              ? AppColors.cardMatched.withOpacity(0.1)
-              : Colors.white,
-          border: Border.all(
-            color: isMatched ? AppColors.cardMatched : Colors.grey.shade300,
-            width: isMatched ? 3 : 1,
-          ),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Make emoji fill most of the card
-            final size = constraints.maxWidth * 0.6;
-            return Center(
-              child: Text(
-                widget.card.imageAsset,
-                style: TextStyle(fontSize: size.clamp(24.0, 60.0)),
-              ),
-            );
-          },
-        ),
-      ),
+      child: face,
     );
   }
 
@@ -260,7 +314,7 @@ class _MemoryCardState extends State<MemoryCard>
               child: Icon(
                 Icons.psychology_rounded,
                 color: Colors.white.withValues(alpha: 0.9),
-                size: iconSize.clamp(20.0, 40.0),
+                size: iconSize.clamp(12.0, 48.0),
               ),
             );
           },
@@ -307,7 +361,7 @@ class _MemoryCardState extends State<MemoryCard>
                   child: Icon(
                     Icons.lightbulb_rounded,
                     color: Colors.white.withValues(alpha: 0.9 + glowIntensity * 0.1),
-                    size: iconSize.clamp(20.0, 40.0),
+                    size: iconSize.clamp(12.0, 48.0),
                   ),
                 ),
               );

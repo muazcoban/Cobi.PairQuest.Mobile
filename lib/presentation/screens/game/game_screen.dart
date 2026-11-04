@@ -1,17 +1,20 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/game_config.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/entities/game.dart';
+import '../../../l10n/achievement_l10n.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/achievement_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/notification_provider.dart';
-import '../../providers/power_up_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/stats_provider.dart';
@@ -41,7 +44,7 @@ class GameScreen extends ConsumerStatefulWidget {
   ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends ConsumerState<GameScreen> {
+class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObserver {
   late ConfettiController _confettiController;
   int? _currentCombo;
   bool _showTimeBonusAnimation = false;
@@ -52,6 +55,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void initState() {
     super.initState();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    // Load saved achievements before the game ends. Created only at the end,
+    // the notifier would mark the new unlocks as already known while loading
+    // and show no notification for them.
+    ref.read(achievementProvider.notifier);
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startGame();
     });
@@ -59,19 +67,28 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _confettiController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Leaving the app pauses the game; on Android the countdown and music
+    // kept running in the background and a timed game could be lost there
+    if (state != AppLifecycleState.hidden && state != AppLifecycleState.paused) return;
+    if (ref.read(gameProvider).currentGame?.state != GameState.inProgress) return;
+
+    ref.read(gameProvider.notifier).pauseGame();
+    _showPauseDialog();
   }
 
   void _startGame() {
     // Skip if multiplayer - game is started from lobby
     if (widget.mode == 'multiplayer') return;
 
-    // End any existing game first
+    // End any existing game first (startGame also resets per-game power-up usage)
     ref.read(gameProvider.notifier).endGame();
-
-    // Reset power-up usage for new game
-    ref.read(gamePowerUpUsageProvider.notifier).resetForNewGame();
 
     final gameMode = widget.mode == 'timed' ? GameMode.timed : GameMode.classic;
     final cardTheme = ref.read(settingsProvider).cardTheme;
@@ -144,11 +161,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
 
     // Check achievements
-    final newAchievements = ref.read(achievementProvider.notifier).checkAchievements();
+    final newAchievements = await ref.read(achievementProvider.notifier).checkAchievements();
     if (newAchievements.isNotEmpty && mounted) {
       // Show achievement unlocked notification (respects user settings)
+      final language = Localizations.localeOf(context).languageCode;
       for (final achievement in newAchievements) {
-        final achievementTitle = _getAchievementTitle(achievement.id);
+        final achievementTitle = AchievementTexts.title(achievement.id, language);
 
         // Show in-app SnackBar (always shown when in app)
         ScaffoldMessenger.of(context).showSnackBar(
@@ -172,7 +190,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 ),
               ],
             ),
-            backgroundColor: AppColors.accent,
+            backgroundColor: AppColors.accentStrong,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -184,36 +202,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         // Show local notification only if user has enabled achievement notifications
         ref.read(notificationSettingsProvider.notifier).showAchievementUnlocked(
           title: achievementTitle,
-          description: achievement.descriptionKey,
+          description: AchievementTexts.description(achievement.id, language),
         );
       }
     }
-  }
-
-  String _getAchievementTitle(String id) {
-    const titles = {
-      'first_game': 'First Steps',
-      'games_10': 'Getting Started',
-      'games_50': 'Dedicated Player',
-      'games_100': 'Memory Master',
-      'matches_100': 'Match Maker',
-      'matches_500': 'Pattern Expert',
-      'matches_1000': 'Memory Genius',
-      'combo_3': 'Combo Starter',
-      'combo_5': 'Combo King',
-      'combo_8': 'On Fire',
-      'combo_10': 'Unstoppable',
-      'perfect_1': 'Perfectionist',
-      'perfect_5': 'Flawless',
-      'perfect_10': 'Legendary Mind',
-      'streak_3': 'Hot Streak',
-      'streak_7': 'Week Warrior',
-      'streak_10': 'Champion',
-      'level_5': 'Halfway There',
-      'level_10': 'Grand Master',
-      'stars_30': 'Star Collector',
-    };
-    return titles[id] ?? id;
   }
 
   void _saveGameLoss(Game game) {
@@ -249,7 +241,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final isPreview = game?.state == GameState.preview;
     final isMultiplayer = game?.isMultiplayer ?? false;
 
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
     ref.listen<GameStateData>(gameProvider, (previous, next) {
+      _announceCardChanges(previous?.currentGame, next.currentGame);
+
       // Check for combo changes (single player only)
       if (!isMultiplayer) {
         final prevCombo = previous?.currentGame?.combo ?? 0;
@@ -275,7 +271,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         final allRevealed = next.currentGame?.cards
             .where((c) => c.state != CardState.matched)
             .every((c) => c.state == CardState.revealed) ?? false;
-        if (allRevealed && next.currentGame?.cards.isNotEmpty == true) {
+        // The full-screen flash is skipped with Reduce Motion.
+        if (allRevealed &&
+            next.currentGame?.cards.isNotEmpty == true &&
+            !reduceMotion) {
           setState(() => _showPeekFlash = true);
           Future.delayed(const Duration(milliseconds: 400), () {
             if (mounted) setState(() => _showPeekFlash = false);
@@ -285,7 +284,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
       if (next.currentGame?.state == GameState.completed &&
           previous?.currentGame?.state != GameState.completed) {
-        _confettiController.play();
+        if (!reduceMotion) _confettiController.play();
         if (next.currentGame?.isMultiplayer ?? false) {
           _showMultiplayerResultDialog();
         } else {
@@ -298,83 +297,165 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       }
     });
 
-    return Scaffold(
-      backgroundColor: AppColors.background(context),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              // Use different header for multiplayer
-              if (isMultiplayer)
-                const MultiplayerHeader()
-              else
-                const GameHeader(),
-              _buildControls(game),
+    return PopScope(
+      // The back swipe and the Android back button skip the in-game buttons
+      // that call endGame(), which left the timer and music running on the
+      // home screen. Ending the game here covers every way of leaving.
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) ref.read(gameProvider.notifier).endGame();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background(context),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                // Use different header for multiplayer
+                if (isMultiplayer)
+                  const MultiplayerHeader()
+                else
+                  const GameHeader(),
+                _buildControls(game),
 
-              // Power-up bar (single player only)
-              if (!isMultiplayer && game?.state == GameState.inProgress)
-                PowerUpBar(
-                  isTimedMode: game?.mode == GameMode.timed,
+                // Power-up bar (single player only)
+                if (!isMultiplayer && game?.state == GameState.inProgress)
+                  PowerUpBar(
+                    isTimedMode: game?.mode == GameMode.timed,
+                  ),
+
+                Expanded(
+                  child: gameState.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : game == null && gameState.error != null
+                          ? _buildStartError()
+                          : const GameBoard(),
                 ),
-
-              Expanded(
-                child: gameState.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : const GameBoard(),
-              ),
-            ],
-          ),
-
-          // Preview overlay with countdown
-          if (isPreview)
-            _PreviewOverlay(progress: gameState.previewProgress),
-
-          // Freeze power-up overlay
-          if (ref.watch(isTimerFrozenProvider))
-            const _FreezeOverlay(),
-
-          // Time Bonus +15 floating text
-          if (_showTimeBonusAnimation)
-            const _TimeBonusFloatingText(),
-
-          // Peek flash effect
-          if (_showPeekFlash)
-            const _PeekFlashOverlay(),
-
-          // Magnet active indicator
-          if (ref.watch(isMagnetActiveProvider))
-            const _MagnetActiveOverlay(),
-
-          // Turn transition indicator (multiplayer only)
-          if (isMultiplayer && gameState.showTurnTransition)
-            const TurnIndicator(),
-
-          // Combo popup (single player only)
-          if (!isMultiplayer && _currentCombo != null && _currentCombo! >= 2)
-            ComboPopup(
-              combo: _currentCombo!,
-              onComplete: () => setState(() => _currentCombo = null),
-            ),
-
-          // Confetti
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              shouldLoop: false,
-              colors: const [
-                AppColors.primary,
-                AppColors.accent,
-                AppColors.success,
-                AppColors.primaryLight,
-                AppColors.accentLight,
               ],
-              numberOfParticles: 30,
-              gravity: 0.2,
             ),
-          ),
-        ],
+
+            // Preview overlay with countdown
+            if (isPreview)
+              _PreviewOverlay(progress: gameState.previewProgress),
+
+            // Freeze power-up overlay
+            if (ref.watch(isTimerFrozenProvider))
+              const _FreezeOverlay(),
+
+            // Time Bonus +15 floating text
+            if (_showTimeBonusAnimation)
+              const _TimeBonusFloatingText(),
+
+            // Peek flash effect
+            if (_showPeekFlash)
+              const _PeekFlashOverlay(),
+
+            // Magnet active indicator
+            if (ref.watch(isMagnetActiveProvider))
+              const _MagnetActiveOverlay(),
+
+            // Turn transition indicator (multiplayer only)
+            if (isMultiplayer && gameState.showTurnTransition)
+              const TurnIndicator(),
+
+            // Combo popup (single player only)
+            if (!isMultiplayer && _currentCombo != null && _currentCombo! >= 2)
+              ComboPopup(
+                combo: _currentCombo!,
+                onComplete: () => setState(() => _currentCombo = null),
+              ),
+
+            // Confetti
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+                colors: const [
+                  AppColors.primary,
+                  AppColors.accent,
+                  AppColors.success,
+                  AppColors.primaryLight,
+                  AppColors.accentLight,
+                ],
+                numberOfParticles: 30,
+                gravity: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// VoiceOver does not read a changed label by itself, so the revealed
+  /// picture and the result of each pair are announced (HIG VoiceOver:
+  /// "Inform VoiceOver when visible content or layout changes occur").
+  void _announceCardChanges(Game? previous, Game? next) {
+    if (previous == null || next == null) return;
+    if (!MediaQuery.accessibleNavigationOf(context)) return;
+
+    final before = {for (final card in previous.cards) card.id: card.state};
+    final revealed = next.cards
+        .where((c) => c.state == CardState.revealed && before[c.id] == CardState.hidden)
+        .toList();
+    final matched = next.cards
+        .where((c) => c.state == CardState.matched && before[c.id] != CardState.matched)
+        .length;
+    final missed = next.cards
+        .where((c) => c.state == CardState.hidden && before[c.id] == CardState.revealed)
+        .length;
+
+    final l10n = AppLocalizations.of(context)!;
+    String? message;
+    if (matched > 0) {
+      message = l10n.pairFoundAnnouncement;
+    } else if (missed >= 2) {
+      message = l10n.pairMissedAnnouncement;
+    } else if (revealed.length == 1) {
+      // Peek reveals every card at once; announcing all of them is noise.
+      message = revealed.first.imageAsset;
+    }
+    if (message == null) return;
+
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
+  }
+
+  /// Shown when the game could not be created, instead of an endless spinner
+  Widget _buildStartError() {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.errorOccurred,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary(context),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (widget.mode != 'multiplayer')
+              ElevatedButton(
+                onPressed: _startGame,
+                child: Text(l10n.retry),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.goBack),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -386,6 +467,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
               ref.read(gameProvider.notifier).endGame();
@@ -402,7 +484,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               child: Text(
                 '${AppLocalizations.of(context)!.level} ${game.level} • ${game.gridSize.rows}x${game.gridSize.cols}',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: AppColors.primaryText(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -411,6 +493,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             children: [
               if (game?.state == GameState.inProgress)
                 IconButton(
+                  tooltip: AppLocalizations.of(context)!.pause,
                   icon: const Icon(Icons.pause),
                   onPressed: () {
                     ref.read(gameProvider.notifier).pauseGame();
@@ -418,6 +501,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   },
                 ),
               IconButton(
+                tooltip: AppLocalizations.of(context)!.restart,
                 icon: const Icon(Icons.refresh),
                 onPressed: () {
                   ref.read(gameProvider.notifier).resetGame();
@@ -480,6 +564,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Save progress with stars and get coins earned (awaited to ensure coins are calculated)
     await _saveProgress(game, stars);
 
+    // The first win is when the daily reminder starts to matter, so the
+    // permission alert comes here instead of at launch.
+    await NotificationService().requestPermissionAfterFirstWin();
+
     if (!mounted) return;
 
     showDialog(
@@ -492,7 +580,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         moves: game.moves,
         maxCombo: game.maxCombo,
         isPerfectGame: game.isPerfectGame,
-        hasNextLevel: game.level < 10,
+        hasNextLevel: game.level < GameConfig.totalLevels,
         coinsEarned: _lastCoinsEarned,
         onMainMenu: () {
           Navigator.of(dialogContext).pop();
@@ -503,7 +591,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           Navigator.of(dialogContext).pop();
           ref.read(gameProvider.notifier).resetGame();
         },
-        onNextLevel: game.level < 10
+        onNextLevel: game.level < GameConfig.totalLevels
             ? () {
                 Navigator.of(dialogContext).pop();
                 final cardTheme = ref.read(settingsProvider).cardTheme;
@@ -581,6 +669,8 @@ class _PreviewOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // With Reduce Motion the tweens start at their end value: no zoom.
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
     return Positioned.fill(
       child: IgnorePointer(
@@ -591,7 +681,7 @@ class _PreviewOverlay extends StatelessWidget {
             children: [
               // Animated "Memorize!" text
               TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.8, end: 1.2),
+                tween: Tween(begin: reduceMotion ? 1.2 : 0.8, end: 1.2),
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeInOut,
                 builder: (context, scale, child) {
@@ -662,7 +752,7 @@ class _PreviewOverlay extends StatelessWidget {
                     ),
                     // Pulsing eye icon
                     TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.9, end: 1.1),
+                      tween: Tween(begin: reduceMotion ? 1.1 : 0.9, end: 1.1),
                       duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOut,
                       builder: (context, scale, child) {
@@ -693,6 +783,37 @@ class _FreezeOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final label = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.cyan.shade800,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.cyan.withOpacity(0.5),
+            blurRadius: 15,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.ac_unit, color: Colors.white, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            AppLocalizations.of(context)!.timeFrozen,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+
     return Positioned.fill(
       child: IgnorePointer(
         child: Container(
@@ -720,8 +841,8 @@ class _FreezeOverlay extends StatelessWidget {
                   ),
                 ),
               ),
-              // Snowflake particles
-              ...List.generate(6, (index) {
+              // Snowflake particles (falling and blinking: off with Reduce Motion)
+              if (!reduceMotion) ...List.generate(6, (index) {
                 final positions = [
                   const Offset(30, 100),
                   const Offset(80, 200),
@@ -750,41 +871,15 @@ class _FreezeOverlay extends StatelessWidget {
                 alignment: Alignment.topCenter,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 100),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.cyan.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.cyan.withOpacity(0.5),
-                          blurRadius: 15,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.ac_unit, color: Colors.white, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'TIME FROZEN',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                  child: reduceMotion
+                      ? label
+                      : label
+                          .animate(onPlay: (c) => c.repeat(reverse: true))
+                          .scale(
+                            begin: const Offset(1.0, 1.0),
+                            end: const Offset(1.05, 1.05),
+                            duration: 800.ms,
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                      .animate(onPlay: (c) => c.repeat(reverse: true))
-                      .scale(
-                        begin: const Offset(1.0, 1.0),
-                        end: const Offset(1.05, 1.05),
-                        duration: 800.ms,
-                      ),
                 ),
               ),
             ],
@@ -801,12 +896,8 @@ class _TimeBonusFloatingText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 120,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final badge = Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -836,23 +927,36 @@ class _TimeBonusFloatingText extends StatelessWidget {
               ),
             ],
           ),
-        )
-            .animate()
-            .scale(
-              begin: const Offset(0.5, 0.5),
-              end: const Offset(1.1, 1.1),
-              duration: 300.ms,
-              curve: Curves.elasticOut,
-            )
-            .then()
-            .scale(
-              begin: const Offset(1.1, 1.1),
-              end: const Offset(1.0, 1.0),
-              duration: 200.ms,
-            )
-            .then(delay: 600.ms)
-            .fadeOut(duration: 400.ms)
-            .slideY(begin: 0, end: -0.5, duration: 400.ms),
+        );
+
+    return Positioned(
+      top: 120,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: reduceMotion
+            ? badge
+                .animate()
+                .fadeIn(duration: 200.ms)
+                .then(delay: 900.ms)
+                .fadeOut(duration: 400.ms)
+            : badge
+                .animate()
+                .scale(
+                  begin: const Offset(0.5, 0.5),
+                  end: const Offset(1.1, 1.1),
+                  duration: 300.ms,
+                  curve: Curves.elasticOut,
+                )
+                .then()
+                .scale(
+                  begin: const Offset(1.1, 1.1),
+                  end: const Offset(1.0, 1.0),
+                  duration: 200.ms,
+                )
+                .then(delay: 600.ms)
+                .fadeOut(duration: 400.ms)
+                .slideY(begin: 0, end: -0.5, duration: 400.ms),
       ),
     );
   }
@@ -907,15 +1011,11 @@ class _MagnetActiveOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 150,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final badge = Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.9),
+            color: Colors.red.shade700,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -925,14 +1025,14 @@ class _MagnetActiveOverlay extends StatelessWidget {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('🧲', style: TextStyle(fontSize: 20)),
-              SizedBox(width: 8),
+              const Text('🧲', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
               Text(
-                'TAP ANY CARD',
-                style: TextStyle(
+                AppLocalizations.of(context)!.tapAnyCard,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
@@ -940,14 +1040,23 @@ class _MagnetActiveOverlay extends StatelessWidget {
               ),
             ],
           ),
-        )
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .scale(
-              begin: const Offset(1.0, 1.0),
-              end: const Offset(1.05, 1.05),
-              duration: 600.ms,
-            )
-            .shimmer(duration: 1500.ms, color: Colors.white.withOpacity(0.3)),
+        );
+
+    return Positioned(
+      bottom: 150,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: reduceMotion
+            ? badge
+            : badge
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .scale(
+                  begin: const Offset(1.0, 1.0),
+                  end: const Offset(1.05, 1.05),
+                  duration: 600.ms,
+                )
+                .shimmer(duration: 1500.ms, color: Colors.white.withOpacity(0.3)),
       ),
     );
   }

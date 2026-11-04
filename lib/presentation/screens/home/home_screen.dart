@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../domain/entities/daily_reward.dart';
@@ -67,7 +68,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(message),
-                backgroundColor: AppColors.success,
+                backgroundColor: AppColors.successStrong,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -86,216 +87,216 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final settings = ref.watch(settingsProvider);
     final musicEnabled = settings.musicEnabled;
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primaryLight,
-              AppColors.primary,
-              AppColors.primaryDark,
-            ],
+    // White status bar icons on the teal gradient
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              // White text needs 4.5:1 on every part of the gradient;
+              // primaryLight gives only 3.74:1.
+              colors: [
+                AppColors.primary,
+                AppColors.primaryDark,
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // Main content with scroll
-              SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    // Logo / Title
-                    const Icon(
-                      Icons.psychology,
-                      size: 64,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.appTitle,
-                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.appSubtitle,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white70,
-                          ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Play Button - Classic Mode
-                    _MenuButton(
-                      icon: Icons.play_arrow_rounded,
-                      label: l10n.classicMode,
-                      sublabel: l10n.classicModeDesc,
-                      onTap: () => _startGame(
-                        context,
-                        GameMode.classic,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Timed Mode Button
-                    _MenuButton(
-                      icon: Icons.timer,
-                      label: l10n.timedMode,
-                      sublabel: l10n.timedModeDesc,
-                      onTap: () => _startGame(
-                        context,
-                        GameMode.timed,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Online Multiplayer Mode Button
-                    _MenuButton(
-                      icon: Icons.public,
-                      label: l10n.onlineMultiplayer,
-                      sublabel: l10n.onlineMultiplayerDesc,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const OnlineLobbyScreen(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Local Multiplayer Mode Button
-                    _MenuButton(
-                      icon: Icons.people,
-                      label: l10n.localMultiplayer,
-                      sublabel: l10n.localMultiplayerDesc,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const MultiplayerLobbyScreen(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Level Selection
-                    _MenuButton(
-                      icon: Icons.grid_view_rounded,
-                      label: l10n.selectLevel,
-                      sublabel: l10n.selectLevelDesc,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const LevelSelectScreen(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Settings Button
-                    _MenuButton(
-                      icon: Icons.settings,
-                      label: l10n.settings,
-                      sublabel: l10n.language,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Quick access row for gamification features
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _QuickAccessButton(
-                          icon: Icons.bar_chart_rounded,
-                          label: l10n.statistics,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const StatisticsScreen(),
-                            ),
-                          ),
-                        ),
-                        _QuickAccessButton(
-                          icon: Icons.emoji_events_rounded,
-                          label: l10n.achievements,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const AchievementsScreen(),
-                            ),
-                          ),
-                        ),
-                        _QuickAccessButton(
-                          icon: Icons.today_rounded,
-                          label: l10n.dailyQuests,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const DailyQuestsScreen(),
-                            ),
-                          ),
-                        ),
-                        _QuickAccessButton(
-                          icon: Icons.leaderboard_rounded,
-                          label: l10n.leaderboard,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const LeaderboardScreen(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Version info
-                    Text(
-                      'v1.0.0',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white38,
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-
-              // Top bar - wallet and music toggle
-              Positioned(
-                top: 8,
-                left: 8,
-                right: 8,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Wallet display
-                    _WalletButton(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const ShopScreen(),
-                        ),
-                      ),
-                    ),
-                    // Music toggle
-                    IconButton(
-                      onPressed: () {
-                        ref.read(settingsProvider.notifier).toggleMusic();
-                      },
-                      icon: Icon(
-                        musicEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+          child: SafeArea(
+            child: Stack(
+              children: [
+                // Main content with scroll
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      // Logo / Title
+                      const Icon(
+                        Icons.psychology,
+                        size: 64,
                         color: Colors.white,
-                        size: 28,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.appTitle,
+                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.appSubtitle,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: AppColors.textLightSecondary,
+                            ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Play Button - Classic Mode
+                      _MenuButton(
+                        icon: Icons.play_arrow_rounded,
+                        label: l10n.classicMode,
+                        sublabel: l10n.classicModeDesc,
+                        onTap: () => _startGame(
+                          context,
+                          GameMode.classic,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Timed Mode Button
+                      _MenuButton(
+                        icon: Icons.timer,
+                        label: l10n.timedMode,
+                        sublabel: l10n.timedModeDesc,
+                        onTap: () => _startGame(
+                          context,
+                          GameMode.timed,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Online Multiplayer Mode Button
+                      _MenuButton(
+                        icon: Icons.public,
+                        label: l10n.onlineMultiplayer,
+                        sublabel: l10n.onlineMultiplayerDesc,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const OnlineLobbyScreen(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Local Multiplayer Mode Button
+                      _MenuButton(
+                        icon: Icons.people,
+                        label: l10n.localMultiplayer,
+                        sublabel: l10n.localMultiplayerDesc,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const MultiplayerLobbyScreen(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Level Selection
+                      _MenuButton(
+                        icon: Icons.grid_view_rounded,
+                        label: l10n.selectLevel,
+                        sublabel: l10n.selectLevelDesc,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const LevelSelectScreen(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Settings Button
+                      _MenuButton(
+                        icon: Icons.settings,
+                        label: l10n.settings,
+                        sublabel: l10n.language,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsScreen(),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Quick access row for gamification features
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _QuickAccessButton(
+                            icon: Icons.bar_chart_rounded,
+                            label: l10n.statistics,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const StatisticsScreen(),
+                              ),
+                            ),
+                          ),
+                          _QuickAccessButton(
+                            icon: Icons.emoji_events_rounded,
+                            label: l10n.achievements,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const AchievementsScreen(),
+                              ),
+                            ),
+                          ),
+                          _QuickAccessButton(
+                            icon: Icons.today_rounded,
+                            label: l10n.dailyQuests,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const DailyQuestsScreen(),
+                              ),
+                            ),
+                          ),
+                          _QuickAccessButton(
+                            icon: Icons.leaderboard_rounded,
+                            label: l10n.leaderboard,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const LeaderboardScreen(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+
+                // Top bar - wallet and music toggle
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  right: 8,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Wallet display
+                      _WalletButton(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ShopScreen(),
+                          ),
+                        ),
+                      ),
+                      // Music toggle; VoiceOver reads the on/off state too
+                      Semantics(
+                        toggled: musicEnabled,
+                        child: IconButton(
+                          tooltip: AppLocalizations.of(context)!.music,
+                          onPressed: () {
+                            ref.read(settingsProvider.notifier).toggleMusic();
+                          },
+                          icon: Icon(
+                            musicEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -391,8 +392,8 @@ class _QuickAccessButton extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 10,
-              color: Colors.white70,
+              fontSize: 11,
+              color: AppColors.textLightSecondary,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -452,7 +453,7 @@ class _MenuButton extends StatelessWidget {
                   Text(
                     sublabel,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white60,
+                          color: AppColors.textLightSecondary,
                         ),
                   ),
                 ],
@@ -460,7 +461,7 @@ class _MenuButton extends StatelessWidget {
               const Spacer(),
               const Icon(
                 Icons.arrow_forward_ios,
-                color: Colors.white54,
+                color: AppColors.textLightSecondary,
                 size: 20,
               ),
             ],

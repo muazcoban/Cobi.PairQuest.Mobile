@@ -149,7 +149,7 @@ class GameOverDialog extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(l10n.score, style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 12)),
-                            Text(score.toString(), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                            Text(score.toString(), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
                           ],
                         ),
                       ],

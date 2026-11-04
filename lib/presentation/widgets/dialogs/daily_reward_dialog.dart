@@ -68,6 +68,7 @@ class DailyRewardDialog extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.close_rounded),
                 ),
@@ -80,11 +81,13 @@ class DailyRewardDialog extends ConsumerWidget {
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
+              // Four per row leaves room for 11 pt labels, the HIG minimum;
+              // seven per row needed 7 pt.
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                mainAxisSpacing: 4,
-                crossAxisSpacing: 4,
-                childAspectRatio: 0.7,
+                crossAxisCount: 4,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 0.8,
               ),
               itemCount: weeklyRewards.length,
               itemBuilder: (context, index) {
@@ -159,7 +162,7 @@ class DailyRewardDialog extends ConsumerWidget {
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: AppColors.accentStrong,
                   foregroundColor: Colors.white,
                   disabledBackgroundColor: Colors.grey.shade300,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -286,25 +289,28 @@ class _RewardDay extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           mainAxisSize: MainAxisSize.max,
           children: [
-            Text(
-              'D${status.reward.day}',
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                color: _iconColor,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'D${status.reward.day}',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: _iconColor,
+                ),
               ),
             ),
             if (status.isClaimed)
               Icon(
                 Icons.check_circle_rounded,
                 color: AppColors.success,
-                size: 14,
+                size: 18,
               )
             else
               Icon(
                 status.reward.icon,
                 color: _iconColor,
-                size: 14,
+                size: 18,
               ),
             Flexible(child: _buildRewardLabel()),
           ],
@@ -325,20 +331,20 @@ class _RewardDay extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.monetization_on_rounded, color: _iconColor, size: 8),
+                Icon(Icons.monetization_on_rounded, color: _iconColor, size: 11),
                 Text(
                   '+${reward.coins}',
-                  style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: _iconColor),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _iconColor),
                 ),
               ],
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.diamond_rounded, color: _iconColor, size: 8),
+                Icon(Icons.diamond_rounded, color: _iconColor, size: 11),
                 Text(
                   '+${reward.gems}',
-                  style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: _iconColor),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _iconColor),
                 ),
               ],
             ),
@@ -355,11 +361,11 @@ class _RewardDay extends StatelessWidget {
           children: [
             Text(
               '+${reward.coins}',
-              style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: _iconColor),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _iconColor),
             ),
             const Text(
               '💡',
-              style: TextStyle(fontSize: 8),
+              style: TextStyle(fontSize: 11),
             ),
           ],
         ),
@@ -371,7 +377,7 @@ class _RewardDay extends StatelessWidget {
       child: Text(
         '+${reward.coins}',
         style: TextStyle(
-          fontSize: 8,
+          fontSize: 11,
           fontWeight: FontWeight.bold,
           color: _iconColor,
         ),

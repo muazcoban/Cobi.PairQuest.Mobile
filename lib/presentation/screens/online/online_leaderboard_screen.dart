@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/repositories/moderation_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/online_leaderboard_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../widgets/moderation/player_safety.dart';
 
 /// Online multiplayer leaderboard screen
 class OnlineLeaderboardScreen extends ConsumerWidget {
@@ -228,7 +230,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                           Text(
                             l10n.yourRank,
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 11,
                               color: Colors.white.withValues(alpha: 0.8),
                             ),
                           ),
@@ -326,7 +328,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 11,
             color: Colors.white.withValues(alpha: 0.7),
           ),
         ),
@@ -534,19 +536,31 @@ class _LeaderboardTile extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: _getTierColor(tier).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            '${entry.profile.rating}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: _getTierColor(tier),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: _getTierColor(tier).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${entry.profile.rating}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: _getTierColor(tier),
+                ),
+              ),
             ),
-          ),
+            if (!isCurrentUser)
+              PlayerSafetyButton(
+                userId: entry.profile.oddserId,
+                displayName: entry.profile.displayName,
+                source: ReportSource.leaderboard,
+                color: AppColors.textSecondary(context),
+              ),
+          ],
         ),
       ),
     );

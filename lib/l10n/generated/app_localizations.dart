@@ -1687,6 +1687,276 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Rating'**
   String get rating;
+
+  /// No description provided for @turnTimedOut.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süren doldu, sıra rakibe geçti'**
+  String get turnTimedOut;
+
+  /// No description provided for @opponentNotResponding.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip yanıt vermiyor'**
+  String get opponentNotResponding;
+
+  /// No description provided for @claimWin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galibiyeti al'**
+  String get claimWin;
+
+  /// No description provided for @deleteAccountDetails.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profiliniz, puanınız ve sıralamanız, arkadaşlarınız, davetleriniz, buluttaki cüzdanınız ve global skorlarınız kalıcı olarak silinir. Bu cihazdaki tek oyunculu ilerleme silinmez.'**
+  String get deleteAccountDetails;
+
+  /// No description provided for @deleteAccountReauth.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam etmek için Google hesabınızla yeniden giriş yapmanız istenecek.'**
+  String get deleteAccountReauth;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabınız silindi'**
+  String get accountDeleted;
+
+  /// No description provided for @accountDeletionFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap silinemedi. Bağlantınızı kontrol edip tekrar deneyin.'**
+  String get accountDeletionFailed;
+
+  /// No description provided for @accountDeletionWrongAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Silmek istediğiniz hesapla giriş yapın'**
+  String get accountDeletionWrongAccount;
+
+  /// VoiceOver label of a card's place on the board
+  ///
+  /// In tr, this message translates to:
+  /// **'Satır {row}, sütun {column}'**
+  String cardPosition(int row, int column);
+
+  /// No description provided for @cardFaceDown.
+  ///
+  /// In tr, this message translates to:
+  /// **'kapalı'**
+  String get cardFaceDown;
+
+  /// No description provided for @cardFaceUp.
+  ///
+  /// In tr, this message translates to:
+  /// **'açık, {image}'**
+  String cardFaceUp(String image);
+
+  /// No description provided for @cardMatchedState.
+  ///
+  /// In tr, this message translates to:
+  /// **'eşleşti, {image}'**
+  String cardMatchedState(String image);
+
+  /// No description provided for @pairFoundAnnouncement.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşti'**
+  String get pairFoundAnnouncement;
+
+  /// No description provided for @pairMissedAnnouncement.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşmedi'**
+  String get pairMissedAnnouncement;
+
+  /// VoiceOver label of a power-up button
+  ///
+  /// In tr, this message translates to:
+  /// **'{name}, {count} adet'**
+  String powerUpButtonLabel(String name, int count);
+
+  /// No description provided for @timerFrozen.
+  ///
+  /// In tr, this message translates to:
+  /// **'DONDU'**
+  String get timerFrozen;
+
+  /// No description provided for @comboAmazing.
+  ///
+  /// In tr, this message translates to:
+  /// **'MUHTEŞEM!'**
+  String get comboAmazing;
+
+  /// No description provided for @comboFantastic.
+  ///
+  /// In tr, this message translates to:
+  /// **'FANTASTİK!'**
+  String get comboFantastic;
+
+  /// No description provided for @comboGreat.
+  ///
+  /// In tr, this message translates to:
+  /// **'HARİKA!'**
+  String get comboGreat;
+
+  /// No description provided for @comboTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'COMBO!'**
+  String get comboTitle;
+
+  /// No description provided for @signInWithApple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Apple ile Giriş Yap'**
+  String get signInWithApple;
+
+  /// No description provided for @signedInWithApple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Apple ile giriş yapıldı'**
+  String get signedInWithApple;
+
+  /// No description provided for @deleteAccountReauthApple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam etmek için Apple ile yeniden giriş yapmanız istenecek.'**
+  String get deleteAccountReauthApple;
+
+  /// No description provided for @reportPlayer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildir'**
+  String get reportPlayer;
+
+  /// No description provided for @blockPlayer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engelle'**
+  String get blockPlayer;
+
+  /// No description provided for @reportPlayerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} adlı oyuncuyu bildir'**
+  String reportPlayerTitle(String name);
+
+  /// No description provided for @reportReasonOffensiveName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygunsuz ad'**
+  String get reportReasonOffensiveName;
+
+  /// No description provided for @reportReasonOffensivePhoto.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygunsuz profil fotoğrafı'**
+  String get reportReasonOffensivePhoto;
+
+  /// No description provided for @reportReasonHarassment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Taciz ya da istenmeyen davet'**
+  String get reportReasonHarassment;
+
+  /// No description provided for @reportReasonCheating.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hile'**
+  String get reportReasonCheating;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportAlsoBlock.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu oyuncuyu engelle'**
+  String get reportAlsoBlock;
+
+  /// No description provided for @reportSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get reportSend;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildiriminiz bize ulaştı. İnceleyip gerekirse oyuncunun adını ya da hesabını kaldıracağız.'**
+  String get reportSent;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.'**
+  String get reportFailed;
+
+  /// No description provided for @blockPlayerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} engellensin mi?'**
+  String blockPlayerTitle(String name);
+
+  /// No description provided for @blockPlayerDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu oyuncu size arkadaşlık isteği ve oyun daveti gönderemez, rastgele eşleşmede karşınıza çıkmaz. Arkadaşsanız arkadaşlığınız sona erer. Engeli Ayarlar\'dan kaldırabilirsiniz.'**
+  String get blockPlayerDesc;
+
+  /// No description provided for @playerBlocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} engellendi'**
+  String playerBlocked(String name);
+
+  /// No description provided for @blockFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu engellenemedi. Tekrar deneyin.'**
+  String get blockFailed;
+
+  /// No description provided for @playerOptions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu seçenekleri'**
+  String get playerOptions;
+
+  /// No description provided for @blockedPlayers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engellenen oyuncular'**
+  String get blockedPlayers;
+
+  /// No description provided for @noBlockedPlayers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engellediğiniz oyuncu yok'**
+  String get noBlockedPlayers;
+
+  /// No description provided for @unblock.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engeli kaldır'**
+  String get unblock;
+
+  /// No description provided for @contactUs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bize ulaşın'**
+  String get contactUs;
+
+  /// No description provided for @nameNotAllowed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ad kullanılamaz. Başka bir ad seçin.'**
+  String get nameNotAllowed;
 }
 
 class _AppLocalizationsDelegate

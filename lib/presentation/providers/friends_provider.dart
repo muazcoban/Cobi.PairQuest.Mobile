@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/matchmaking_repository.dart';
 import '../../domain/entities/matchmaking.dart';
 import 'matchmaking_provider.dart';
+import 'moderation_provider.dart';
 
 /// Watch user's accepted friends
 final friendsListProvider =
@@ -10,11 +11,15 @@ final friendsListProvider =
   return repository.watchFriends(oddserId);
 });
 
-/// Watch pending friend requests (incoming)
+/// Watch pending friend requests (incoming); blocked players are hidden
 final pendingFriendRequestsProvider =
     StreamProvider.family<List<Friendship>, String>((ref, oddserId) {
   final repository = ref.watch(matchmakingRepositoryProvider);
-  return repository.watchPendingFriendRequests(oddserId);
+  final blocked = ref.watch(blockedUserIdsProvider(oddserId));
+  return repository.watchPendingFriendRequests(oddserId).map((requests) => [
+        for (final request in requests)
+          if (!blocked.contains(request.requestedBy)) request,
+      ]);
 });
 
 /// Friends actions notifier

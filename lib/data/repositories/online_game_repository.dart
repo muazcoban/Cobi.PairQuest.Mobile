@@ -205,36 +205,117 @@ class OnlineGameRepository {
   }
 
   /// Leave a game (forfeit)
-  /// The leaving player loses, the remaining player wins
+  /// The leaving player loses, the remaining player wins.
+  /// A game that has already ended keeps its result: leaving the result
+  /// screen must not turn a win into a forfeit.
   Future<void> leaveGame(String gameId, String oddserId) async {
     try {
-      // Get the game to find the opponent (winner)
-      final game = await getGame(gameId);
-      if (game == null) {
-        debugPrint('🎮 leaveGame: Game not found');
-        return;
-      }
+      await _firestore.runTransaction((transaction) async {
+        final gameDoc = await transaction.get(_gamesRef.doc(gameId));
+        if (!gameDoc.exists) {
+          debugPrint('🎮 leaveGame: Game not found');
+          return;
+        }
 
-      // Find the opponent (they win by forfeit)
-      final opponent = game.players.firstWhere(
-        (p) => p.oddserId != oddserId,
-        orElse: () => game.players.first,
-      );
+        final game = OnlineGame.fromFirestore(gameDoc);
+        if (game.status != OnlineGameStatus.inProgress &&
+            game.status != OnlineGameStatus.waiting) {
+          debugPrint('🎮 leaveGame: Game already ended (${game.status.name})');
+          return;
+        }
 
-      debugPrint('🎮 Player $oddserId leaving game. Winner by forfeit: ${opponent.oddserId}');
+        // Find the opponent (they win by forfeit)
+        final opponent = game.players.firstWhere(
+          (p) => p.oddserId != oddserId,
+          orElse: () => game.players.first,
+        );
 
-      // Update game status with winner
-      await _gamesRef.doc(gameId).update({
-        'status': OnlineGameStatus.abandoned.name,
-        'winnerId': opponent.oddserId,  // Opponent wins by forfeit
-        'completedAt': FieldValue.serverTimestamp(),
-        'lastActivityAt': FieldValue.serverTimestamp(),
+        debugPrint('🎮 Player $oddserId leaving game. Winner by forfeit: ${opponent.oddserId}');
+
+        transaction.update(gameDoc.reference, {
+          'status': OnlineGameStatus.abandoned.name,
+          'winnerId': opponent.oddserId, // Opponent wins by forfeit
+          'completedAt': FieldValue.serverTimestamp(),
+          'lastActivityAt': FieldValue.serverTimestamp(),
+        });
       });
-
-      debugPrint('🎮 Game marked as abandoned. Winner: ${opponent.oddserId}');
     } catch (e) {
       debugPrint('Error leaving game: $e');
       rethrow;
+    }
+  }
+
+  /// Pass the turn to the opponent when [oddserId]'s turn timer runs out.
+  /// Does nothing if the turn already moved on (a move or another skip got
+  /// there first), which [expectedMoveCount] detects.
+  Future<void> skipTurn(
+    String gameId,
+    String oddserId, {
+    required int expectedMoveCount,
+  }) async {
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final gameDoc = await transaction.get(_gamesRef.doc(gameId));
+        if (!gameDoc.exists) return;
+
+        final game = OnlineGame.fromFirestore(gameDoc);
+        final playerIndex = game.players.indexWhere((p) => p.oddserId == oddserId);
+        if (game.status != OnlineGameStatus.inProgress ||
+            playerIndex == -1 ||
+            game.currentPlayerIndex != playerIndex ||
+            game.moves.length != expectedMoveCount) {
+          return;
+        }
+
+        debugPrint('🎮 Turn timed out for $oddserId, passing the turn');
+        transaction.update(gameDoc.reference, {
+          'currentPlayerIndex': (playerIndex + 1) % game.players.length,
+          'extraTurnAwarded': false,
+          'lastActivityAt': FieldValue.serverTimestamp(),
+        });
+      });
+    } catch (e) {
+      debugPrint('Error skipping turn: $e');
+    }
+  }
+
+  /// End the game in [claimerId]'s favour because the opponent stopped
+  /// playing on their own turn (app closed, connection lost).
+  /// Only succeeds if the game is still exactly where the claimer saw it
+  /// stall: same move count and same player to move.
+  Future<bool> claimForfeitWin(
+    String gameId,
+    String claimerId, {
+    required int expectedMoveCount,
+    required int expectedPlayerIndex,
+  }) async {
+    try {
+      return await _firestore.runTransaction((transaction) async {
+        final gameDoc = await transaction.get(_gamesRef.doc(gameId));
+        if (!gameDoc.exists) return false;
+
+        final game = OnlineGame.fromFirestore(gameDoc);
+        final claimerIndex = game.players.indexWhere((p) => p.oddserId == claimerId);
+        if (game.status != OnlineGameStatus.inProgress ||
+            claimerIndex == -1 ||
+            game.currentPlayerIndex == claimerIndex ||
+            game.currentPlayerIndex != expectedPlayerIndex ||
+            game.moves.length != expectedMoveCount) {
+          return false;
+        }
+
+        debugPrint('🎮 $claimerId wins by forfeit: opponent stopped responding');
+        transaction.update(gameDoc.reference, {
+          'status': OnlineGameStatus.abandoned.name,
+          'winnerId': claimerId,
+          'completedAt': FieldValue.serverTimestamp(),
+          'lastActivityAt': FieldValue.serverTimestamp(),
+        });
+        return true;
+      });
+    } catch (e) {
+      debugPrint('Error claiming forfeit win: $e');
+      return false;
     }
   }
 
@@ -272,7 +353,6 @@ class OnlineGameRepository {
   Future<OnlineUserProfile> getOrCreateProfile(String oddserId, {
     required String displayName,
     String? photoUrl,
-    String? email,
   }) async {
     try {
       final doc = await _usersRef.doc(oddserId).get();
@@ -280,10 +360,12 @@ class OnlineGameRepository {
       if (doc.exists) {
         final existingProfile = OnlineUserProfile.fromFirestore(doc);
 
-        // Update profile if displayName changed (e.g., Guest -> Gmail name)
+        // Update profile if displayName changed (e.g., Guest -> Gmail name).
+        // Profiles are readable by every signed-in user, so an e-mail address
+        // that older versions stored here is removed.
         final needsUpdate = existingProfile.displayName != displayName ||
             (photoUrl != null && existingProfile.photoUrl != photoUrl) ||
-            (email != null && existingProfile.email != email);
+            existingProfile.email != null;
 
         if (needsUpdate) {
           final updates = <String, dynamic>{
@@ -291,15 +373,15 @@ class OnlineGameRepository {
             'lastSeenAt': FieldValue.serverTimestamp(),
           };
           if (photoUrl != null) updates['photoUrl'] = photoUrl;
-          if (email != null) updates['email'] = email;
+          if (existingProfile.email != null) updates['email'] = FieldValue.delete();
 
           await _usersRef.doc(oddserId).update(updates);
-          debugPrint('🔄 Updated profile: displayName=$displayName, email=$email');
+          debugPrint('🔄 Updated profile: displayName=$displayName');
 
           return existingProfile.copyWith(
             displayName: displayName,
             photoUrl: photoUrl ?? existingProfile.photoUrl,
-            email: email ?? existingProfile.email,
+            email: null,
           );
         }
 
@@ -311,7 +393,6 @@ class OnlineGameRepository {
         oddserId: oddserId,
         displayName: displayName,
         photoUrl: photoUrl,
-        email: email,
         createdAt: DateTime.now(),
         lastSeenAt: DateTime.now(),
       );

@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/repositories/moderation_repository.dart';
+import '../../../domain/entities/game.dart';
 import '../../../domain/entities/online_game.dart';
 import '../../../domain/entities/online_player.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -10,6 +12,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/friends_provider.dart';
 import '../../providers/online_game_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../widgets/game/game_board.dart';
+import '../../widgets/moderation/player_safety.dart';
 
 /// Online multiplayer game screen
 ///
@@ -31,40 +35,111 @@ class OnlineGameScreen extends ConsumerStatefulWidget {
 
 class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
     with TickerProviderStateMixin {
+  static const int _turnSeconds = 30;
+
+  /// The opponent's client passes the turn after [_turnSeconds]. If nothing
+  /// happens for this long, their app is gone and the player may claim the win.
+  static const int _forfeitAfterSeconds = 60;
+
   int? _firstCardIndex;
   int? _secondCardIndex;
   bool _isProcessing = false;
   Timer? _turnTimer;
-  int _turnTimeRemaining = 30;
+  int _turnTimeRemaining = _turnSeconds;
   bool _ratingUpdated = false;
+
+  /// Last move count and player to move seen on this device; a change of
+  /// either starts a new turn.
+  int? _seenMoveCount;
+  int? _seenPlayerIndex;
+  int _opponentIdleSeconds = 0;
+  bool _skipRequested = false;
+  bool _claimingWin = false;
+
+  /// Cards of the opponent's last unmatched move, shown face up for a moment
+  /// so they can be memorised.
+  Set<int> _opponentRevealed = {};
+  Timer? _opponentRevealTimer;
 
   @override
   void initState() {
     super.initState();
-    _startTurnTimer();
+    _turnTimer = Timer.periodic(const Duration(seconds: 1), (_) => _onTurnTick());
   }
 
   @override
   void dispose() {
     _turnTimer?.cancel();
+    _opponentRevealTimer?.cancel();
     super.dispose();
   }
 
-  void _startTurnTimer() {
-    _turnTimer?.cancel();
-    _turnTimeRemaining = 30;
-    _turnTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (_turnTimeRemaining > 0) {
-        setState(() => _turnTimeRemaining--);
-      } else {
-        // Turn timeout - auto-skip
-        timer.cancel();
-      }
+  /// Starts a new turn on this device when the move count or the player to
+  /// move changed, and reveals the opponent's last unmatched pair.
+  void _observeGame(OnlineGame game, String? myId) {
+    final moveCount = game.moves.length;
+    if (moveCount == _seenMoveCount && game.currentPlayerIndex == _seenPlayerIndex) {
+      return;
+    }
+
+    final hasNewMove = _seenMoveCount != null && moveCount > _seenMoveCount!;
+    _seenMoveCount = moveCount;
+    _seenPlayerIndex = game.currentPlayerIndex;
+    _turnTimeRemaining = _turnSeconds;
+    _opponentIdleSeconds = 0;
+    _skipRequested = false;
+
+    if (!hasNewMove) return;
+    final move = game.moves.last;
+    if (move.oddserId == myId || move.matched) return;
+
+    _opponentRevealed = {move.card1Position, move.card2Position};
+    _opponentRevealTimer?.cancel();
+    _opponentRevealTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => _opponentRevealed = {});
     });
+  }
+
+  void _onTurnTick() {
+    if (!mounted) return;
+    final game = ref.read(onlineGameProvider(widget.gameId)).valueOrNull;
+    final myId = ref.read(currentPlayerIdProvider);
+    if (game == null || myId == null || game.status != OnlineGameStatus.inProgress) {
+      return;
+    }
+
+    final isMyTurn = game.isPlayerTurn(myId);
+    setState(() {
+      _observeGame(game, myId);
+      if (_turnTimeRemaining > 0) _turnTimeRemaining--;
+      if (!isMyTurn) _opponentIdleSeconds++;
+    });
+
+    // My time is up: pass the turn instead of leaving the game stuck
+    if (isMyTurn && _turnTimeRemaining == 0 && !_isProcessing && !_skipRequested) {
+      _skipRequested = true;
+      setState(() => _firstCardIndex = null);
+      ref.read(onlineGameRepositoryProvider).skipTurn(
+            widget.gameId,
+            myId,
+            expectedMoveCount: game.moves.length,
+          );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.turnTimedOut)),
+      );
+    }
+  }
+
+  Future<void> _claimWin(OnlineGame game, String myId) async {
+    setState(() => _claimingWin = true);
+    await ref.read(onlineGameRepositoryProvider).claimForfeitWin(
+          widget.gameId,
+          myId,
+          expectedMoveCount: game.moves.length,
+          expectedPlayerIndex: game.currentPlayerIndex,
+        );
+    // On success the game stream switches to the abandoned (won) view
+    if (mounted) setState(() => _claimingWin = false);
   }
 
   @override
@@ -73,10 +148,24 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
     final gameAsync = ref.watch(onlineGameProvider(widget.gameId));
     final myId = ref.watch(currentPlayerIdProvider);
 
-    return WillPopScope(
-      onWillPop: () async {
+    ref.listen<AsyncValue<OnlineGame?>>(onlineGameProvider(widget.gameId), (_, next) {
+      final game = next.valueOrNull;
+      if (game != null) {
+        setState(() => _observeGame(game, ref.read(currentPlayerIdProvider)));
+      }
+    });
+
+    // Only a running game asks for confirmation; a result screen just closes
+    final status = gameAsync.valueOrNull?.status;
+    final isInPlay = status == OnlineGameStatus.inProgress ||
+        status == OnlineGameStatus.waiting;
+
+    return PopScope(
+      canPop: !isInPlay,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
         final shouldLeave = await _showLeaveConfirmation(l10n);
-        return shouldLeave;
+        if (shouldLeave && context.mounted) Navigator.of(context).pop();
       },
       child: Scaffold(
         backgroundColor: AppColors.background(context),
@@ -175,6 +264,9 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
         // Game info bar
         _buildGameInfoBar(l10n, game, isMyTurn),
         const SizedBox(height: 8),
+
+        if (!isMyTurn && myId != null && _opponentIdleSeconds >= _forfeitAfterSeconds)
+          _buildOpponentIdleBanner(l10n, game, myId),
 
         // Game board
         Expanded(
@@ -313,13 +405,20 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
                 Text(
                   '${player.matches} pairs',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11,
                     color: AppColors.textSecondary(context),
                   ),
                 ),
               ],
             ),
           ),
+          if (isOpponent)
+            PlayerSafetyButton(
+              userId: player.oddserId,
+              displayName: player.displayName,
+              source: ReportSource.game,
+              color: AppColors.textSecondary(context),
+            ),
         ],
       ),
     );
@@ -427,43 +526,112 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
     );
   }
 
+  Widget _buildOpponentIdleBanner(AppLocalizations l10n, OnlineGame game, String myId) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.wifi_off, color: Colors.orange, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              l10n.opponentNotResponding,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary(context),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: _claimingWin ? null : () => _claimWin(game, myId),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(l10n.claimWin),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGameBoard(OnlineGame game, bool isMyTurn) {
     final matchedPairIds = Set<String>.from(game.matchedPairIds);
+    // Wait until the opponent's pair has been shown before allowing taps
+    final canTap = isMyTurn && !_isProcessing && _opponentRevealed.isEmpty;
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: game.cols,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.8,
-        ),
-        itemCount: game.totalCards,
-        itemBuilder: (context, index) {
-          final pairId = game.cardPairIds[index];
-          final isMatched = matchedPairIds.contains(pairId);
-          final isRevealed = _firstCardIndex == index ||
-              _secondCardIndex == index ||
-              isMatched;
+    final l10n = AppLocalizations.of(context)!;
+    final grid = GridSize(rows: game.rows, cols: game.cols);
 
-          return GestureDetector(
-            key: ValueKey('card_${game.id}_$index'),  // Performance: add key for efficient rebuilds
-            onTap: isMyTurn && !_isProcessing && !isMatched && !isRevealed
-                ? () => _onCardTap(index, game)
-                : null,
-            child: _buildCard(
-              index: index,
-              pairId: pairId,
-              isRevealed: isRevealed,
-              isMatched: isMatched,
-              isEnabled: isMyTurn && !_isProcessing,
+    // Same fitting as the single-player board: the whole grid stays on
+    // screen on iPad and in short windows.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final layout = BoardLayout.fit(constraints.biggest, grid);
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(BoardLayout.padding),
+            child: SizedBox.fromSize(
+              size: layout.gridSizeFor(grid),
+              child: GridView.builder(
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: game.cols,
+                  crossAxisSpacing: layout.spacing,
+                  mainAxisSpacing: layout.spacing,
+                  childAspectRatio: 1 / BoardLayout.cardAspectRatio,
+                ),
+                itemCount: game.totalCards,
+                itemBuilder: (context, index) {
+                  final pairId = game.cardPairIds[index];
+                  final isMatched = matchedPairIds.contains(pairId);
+                  final isRevealed = _firstCardIndex == index ||
+                      _secondCardIndex == index ||
+                      _opponentRevealed.contains(index) ||
+                      isMatched;
+                  final onTap = canTap && !isMatched && !isRevealed
+                      ? () => _onCardTap(index, game)
+                      : null;
+
+                  final position =
+                      l10n.cardPosition(index ~/ game.cols + 1, index % game.cols + 1);
+                  final state = isMatched
+                      ? l10n.cardMatchedState(pairId)
+                      : isRevealed
+                          ? l10n.cardFaceUp(pairId)
+                          : l10n.cardFaceDown;
+
+                  return Semantics(
+                    key: ValueKey('card_${game.id}_$index'),  // Performance: add key for efficient rebuilds
+                    label: '$position, $state',
+                    button: onTap != null,
+                    enabled: onTap != null,
+                    onTap: onTap,
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      onTap: onTap,
+                      child: _buildCard(
+                        index: index,
+                        pairId: pairId,
+                        isRevealed: isRevealed,
+                        isMatched: isMatched,
+                        isEnabled: canTap,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -509,12 +677,18 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
       ),
       child: Center(
         child: isRevealed || isMatched
-            ? Text(
-                displayContent,
-                style: TextStyle(
-                  fontSize: isEmoji ? 32 : 24,
-                  fontWeight: FontWeight.bold,
-                  color: isMatched ? Colors.green : (isEmoji ? null : Colors.white),
+            // The emoji is the card's picture: it fits the card and ignores
+            // the Dynamic Type setting.
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  displayContent,
+                  textScaler: TextScaler.noScaling,
+                  style: TextStyle(
+                    fontSize: isEmoji ? 32 : 24,
+                    fontWeight: FontWeight.bold,
+                    color: isMatched ? Colors.green : (isEmoji ? null : Colors.white),
+                  ),
                 ),
               )
             : Icon(
@@ -582,9 +756,7 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
         _secondCardIndex = null;
         _isProcessing = false;
       });
-
-      // Reset turn timer
-      _startTurnTimer();
+      // The turn clock restarts in _observeGame when the move arrives
     }
   }
 

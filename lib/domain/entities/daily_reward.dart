@@ -45,17 +45,21 @@ class DailyRewardProgress extends Equatable {
     this.totalClaimed = 0,
   });
 
-  /// Check if reward can be claimed today
+  /// True on a calendar day after the last claim. A day before it (the clock
+  /// set back) does not count: before, switching the device clock between two
+  /// days gave a reward on every switch. Setting the clock forward still
+  /// works until the real date catches up; stopping that needs server time.
   bool get canClaimToday {
     if (lastClaimedAt == null) return true;
 
     final now = DateTime.now();
-    final lastClaimed = lastClaimedAt!;
-
-    // Check if it's a new day
-    return now.year != lastClaimed.year ||
-        now.month != lastClaimed.month ||
-        now.day != lastClaimed.day;
+    final today = DateTime(now.year, now.month, now.day);
+    final lastDay = DateTime(
+      lastClaimedAt!.year,
+      lastClaimedAt!.month,
+      lastClaimedAt!.day,
+    );
+    return today.isAfter(lastDay);
   }
 
   /// Check if streak is still valid (not more than 1 day gap)

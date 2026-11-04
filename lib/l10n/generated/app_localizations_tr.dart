@@ -823,4 +823,161 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get rating => 'Rating';
+
+  @override
+  String get turnTimedOut => 'Süren doldu, sıra rakibe geçti';
+
+  @override
+  String get opponentNotResponding => 'Rakip yanıt vermiyor';
+
+  @override
+  String get claimWin => 'Galibiyeti al';
+
+  @override
+  String get deleteAccountDetails =>
+      'Profiliniz, puanınız ve sıralamanız, arkadaşlarınız, davetleriniz, buluttaki cüzdanınız ve global skorlarınız kalıcı olarak silinir. Bu cihazdaki tek oyunculu ilerleme silinmez.';
+
+  @override
+  String get deleteAccountReauth =>
+      'Devam etmek için Google hesabınızla yeniden giriş yapmanız istenecek.';
+
+  @override
+  String get accountDeleted => 'Hesabınız silindi';
+
+  @override
+  String get accountDeletionFailed =>
+      'Hesap silinemedi. Bağlantınızı kontrol edip tekrar deneyin.';
+
+  @override
+  String get accountDeletionWrongAccount =>
+      'Silmek istediğiniz hesapla giriş yapın';
+
+  @override
+  String cardPosition(int row, int column) {
+    return 'Satır $row, sütun $column';
+  }
+
+  @override
+  String get cardFaceDown => 'kapalı';
+
+  @override
+  String cardFaceUp(String image) {
+    return 'açık, $image';
+  }
+
+  @override
+  String cardMatchedState(String image) {
+    return 'eşleşti, $image';
+  }
+
+  @override
+  String get pairFoundAnnouncement => 'Eşleşti';
+
+  @override
+  String get pairMissedAnnouncement => 'Eşleşmedi';
+
+  @override
+  String powerUpButtonLabel(String name, int count) {
+    return '$name, $count adet';
+  }
+
+  @override
+  String get timerFrozen => 'DONDU';
+
+  @override
+  String get comboAmazing => 'MUHTEŞEM!';
+
+  @override
+  String get comboFantastic => 'FANTASTİK!';
+
+  @override
+  String get comboGreat => 'HARİKA!';
+
+  @override
+  String get comboTitle => 'COMBO!';
+
+  @override
+  String get signInWithApple => 'Apple ile Giriş Yap';
+
+  @override
+  String get signedInWithApple => 'Apple ile giriş yapıldı';
+
+  @override
+  String get deleteAccountReauthApple =>
+      'Devam etmek için Apple ile yeniden giriş yapmanız istenecek.';
+
+  @override
+  String get reportPlayer => 'Bildir';
+
+  @override
+  String get blockPlayer => 'Engelle';
+
+  @override
+  String reportPlayerTitle(String name) {
+    return '$name adlı oyuncuyu bildir';
+  }
+
+  @override
+  String get reportReasonOffensiveName => 'Uygunsuz ad';
+
+  @override
+  String get reportReasonOffensivePhoto => 'Uygunsuz profil fotoğrafı';
+
+  @override
+  String get reportReasonHarassment => 'Taciz ya da istenmeyen davet';
+
+  @override
+  String get reportReasonCheating => 'Hile';
+
+  @override
+  String get reportReasonOther => 'Diğer';
+
+  @override
+  String get reportAlsoBlock => 'Bu oyuncuyu engelle';
+
+  @override
+  String get reportSend => 'Gönder';
+
+  @override
+  String get reportSent =>
+      'Bildiriminiz bize ulaştı. İnceleyip gerekirse oyuncunun adını ya da hesabını kaldıracağız.';
+
+  @override
+  String get reportFailed =>
+      'Bildirim gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.';
+
+  @override
+  String blockPlayerTitle(String name) {
+    return '$name engellensin mi?';
+  }
+
+  @override
+  String get blockPlayerDesc =>
+      'Bu oyuncu size arkadaşlık isteği ve oyun daveti gönderemez, rastgele eşleşmede karşınıza çıkmaz. Arkadaşsanız arkadaşlığınız sona erer. Engeli Ayarlar\'dan kaldırabilirsiniz.';
+
+  @override
+  String playerBlocked(String name) {
+    return '$name engellendi';
+  }
+
+  @override
+  String get blockFailed => 'Oyuncu engellenemedi. Tekrar deneyin.';
+
+  @override
+  String get playerOptions => 'Oyuncu seçenekleri';
+
+  @override
+  String get blockedPlayers => 'Engellenen oyuncular';
+
+  @override
+  String get noBlockedPlayers => 'Engellediğiniz oyuncu yok';
+
+  @override
+  String get unblock => 'Engeli kaldır';
+
+  @override
+  String get contactUs => 'Bize ulaşın';
+
+  @override
+  String get nameNotAllowed => 'Bu ad kullanılamaz. Başka bir ad seçin.';
 }

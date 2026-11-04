@@ -822,4 +822,161 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rating => 'Rating';
+
+  @override
+  String get turnTimedOut => 'Time\'s up, the turn passed to your opponent';
+
+  @override
+  String get opponentNotResponding => 'Opponent is not responding';
+
+  @override
+  String get claimWin => 'Claim the win';
+
+  @override
+  String get deleteAccountDetails =>
+      'Your profile, rating, friends, invitations, cloud wallet and global scores are deleted permanently. Single-player progress on this device stays.';
+
+  @override
+  String get deleteAccountReauth =>
+      'You will be asked to sign in with Google again to continue.';
+
+  @override
+  String get accountDeleted => 'Your account was deleted';
+
+  @override
+  String get accountDeletionFailed =>
+      'The account could not be deleted. Check your connection and try again.';
+
+  @override
+  String get accountDeletionWrongAccount =>
+      'Sign in with the account you want to delete';
+
+  @override
+  String cardPosition(int row, int column) {
+    return 'Row $row, column $column';
+  }
+
+  @override
+  String get cardFaceDown => 'face down';
+
+  @override
+  String cardFaceUp(String image) {
+    return 'face up, $image';
+  }
+
+  @override
+  String cardMatchedState(String image) {
+    return 'matched, $image';
+  }
+
+  @override
+  String get pairFoundAnnouncement => 'Match';
+
+  @override
+  String get pairMissedAnnouncement => 'No match';
+
+  @override
+  String powerUpButtonLabel(String name, int count) {
+    return '$name, $count left';
+  }
+
+  @override
+  String get timerFrozen => 'FROZEN';
+
+  @override
+  String get comboAmazing => 'AMAZING!';
+
+  @override
+  String get comboFantastic => 'FANTASTIC!';
+
+  @override
+  String get comboGreat => 'GREAT!';
+
+  @override
+  String get comboTitle => 'COMBO!';
+
+  @override
+  String get signInWithApple => 'Sign in with Apple';
+
+  @override
+  String get signedInWithApple => 'Using Sign in with Apple';
+
+  @override
+  String get deleteAccountReauthApple =>
+      'You will be asked to sign in with Apple again to continue.';
+
+  @override
+  String get reportPlayer => 'Report';
+
+  @override
+  String get blockPlayer => 'Block';
+
+  @override
+  String reportPlayerTitle(String name) {
+    return 'Report $name';
+  }
+
+  @override
+  String get reportReasonOffensiveName => 'Offensive name';
+
+  @override
+  String get reportReasonOffensivePhoto => 'Offensive profile photo';
+
+  @override
+  String get reportReasonHarassment => 'Harassment or unwanted invitations';
+
+  @override
+  String get reportReasonCheating => 'Cheating';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportAlsoBlock => 'Block this player';
+
+  @override
+  String get reportSend => 'Send';
+
+  @override
+  String get reportSent =>
+      'We received your report. We will review it and remove the player\'s name or account if needed.';
+
+  @override
+  String get reportFailed =>
+      'The report could not be sent. Check your connection and try again.';
+
+  @override
+  String blockPlayerTitle(String name) {
+    return 'Block $name?';
+  }
+
+  @override
+  String get blockPlayerDesc =>
+      'This player can\'t send you friend requests or game invitations and won\'t be matched with you. If you are friends, the friendship ends. You can unblock them in Settings.';
+
+  @override
+  String playerBlocked(String name) {
+    return '$name is blocked';
+  }
+
+  @override
+  String get blockFailed => 'The player could not be blocked. Try again.';
+
+  @override
+  String get playerOptions => 'Player options';
+
+  @override
+  String get blockedPlayers => 'Blocked players';
+
+  @override
+  String get noBlockedPlayers => 'You haven\'t blocked anyone';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String get contactUs => 'Contact us';
+
+  @override
+  String get nameNotAllowed => 'This name can\'t be used. Choose another one.';
 }

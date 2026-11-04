@@ -2,9 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/repositories/moderation_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/friends_provider.dart';
+import '../../providers/moderation_provider.dart';
+import '../../widgets/moderation/player_safety.dart';
 
 /// Search and add friends screen
 class FriendSearchScreen extends ConsumerStatefulWidget {
@@ -81,11 +84,14 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
 
       final results = await Future.wait(futures);
 
-      // Combine and deduplicate results using a map
+      // Combine and deduplicate results using a map; blocked players are left out
+      final blocked = ref.read(blockedUserIdsProvider(currentUserId ?? ''));
       final userMap = <String, Map<String, dynamic>>{};
       for (final result in results) {
         for (final doc in result.docs) {
-          if (doc.id != currentUserId && !userMap.containsKey(doc.id)) {
+          if (doc.id != currentUserId &&
+              !blocked.contains(doc.id) &&
+              !userMap.containsKey(doc.id)) {
             userMap[doc.id] = {'id': doc.id, ...doc.data()};
           }
         }
@@ -126,6 +132,7 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
+                        tooltip: MaterialLocalizations.of(context).clearButtonTooltip,
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
@@ -279,7 +286,7 @@ class _UserSearchTile extends ConsumerWidget {
               ? Text(
                   displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.primaryText(context),
                     fontWeight: FontWeight.bold,
                   ),
                 )
@@ -299,13 +306,24 @@ class _UserSearchTile extends ConsumerWidget {
             color: AppColors.textSecondary(context),
           ),
         ),
-        trailing: _buildActionButton(
-          context,
-          ref,
-          l10n,
-          userId,
-          areFriends,
-          requestPending,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildActionButton(
+              context,
+              ref,
+              l10n,
+              userId,
+              areFriends,
+              requestPending,
+            ),
+            PlayerSafetyButton(
+              userId: userId,
+              displayName: displayName,
+              source: ReportSource.search,
+              color: AppColors.textSecondary(context),
+            ),
+          ],
         ),
       ),
     );

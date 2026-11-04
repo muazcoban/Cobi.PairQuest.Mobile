@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/matchmaking.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/matchmaking_provider.dart';
 import '../../providers/online_game_provider.dart';
 import '../../screens/online/online_game_screen.dart';
+import '../moderation/player_safety.dart';
 
 /// Dialog shown when receiving a game invitation
 ///
@@ -78,7 +80,7 @@ class GameInvitationDialog extends ConsumerWidget {
                               ? invitation.fromDisplayName[0].toUpperCase()
                               : '?',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: AppColors.primaryText(context),
                             fontWeight: FontWeight.bold,
                           ),
                         )
@@ -104,6 +106,27 @@ class GameInvitationDialog extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
+                PopupMenuButton<String>(
+                  tooltip: l10n.playerOptions,
+                  icon: Icon(Icons.more_horiz, color: AppColors.textSecondary(context)),
+                  itemBuilder: (_) => playerSafetyMenuItems(l10n),
+                  onSelected: (value) async {
+                    final navigator = Navigator.of(context);
+                    final Future<bool> action;
+                    if (value == reportMenuValue) {
+                      action = showReportPlayerDialog(context, ref,
+                          userId: invitation.fromUserId,
+                          displayName: invitation.fromDisplayName,
+                          source: ReportSource.invitation);
+                    } else {
+                      action = confirmBlockPlayer(context, ref,
+                          userId: invitation.fromUserId,
+                          displayName: invitation.fromDisplayName);
+                    }
+                    // Blocking declines the invitation, so the dialog closes.
+                    if (await action) navigator.pop();
+                  },
                 ),
               ],
             ),

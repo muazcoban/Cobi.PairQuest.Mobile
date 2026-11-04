@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/matchmaking_repository.dart';
 import '../../domain/entities/matchmaking.dart';
 import '../../domain/entities/online_game.dart';
+import 'moderation_provider.dart';
 import 'online_game_provider.dart';
 
 /// Repository provider
@@ -80,6 +81,9 @@ class MatchmakingNotifier extends StateNotifier<MatchmakingSearchStatus> {
     if (state.state == MatchmakingUIState.searching) return;
 
     try {
+      // Each new search clears entries players left behind
+      unawaited(_repository.cleanupExpiredEntries());
+
       // Join the matchmaking queue
       final queueId = await _repository.joinQueue(
         oddserId: oddserId,
@@ -129,7 +133,10 @@ class MatchmakingNotifier extends StateNotifier<MatchmakingSearchStatus> {
           return;
         }
 
-        final gameId = await _repository.findMatch(state.queueId!);
+        final gameId = await _repository.findMatch(
+          state.queueId!,
+          excludeUserIds: _ref.read(blockedUserIdsProvider(oddserId)),
+        );
         if (gameId != null) {
           _handleMatchFound(gameId);
         }
@@ -168,6 +175,12 @@ class MatchmakingNotifier extends StateNotifier<MatchmakingSearchStatus> {
 
   void _handleMatchFound(String gameId) {
     _cleanup();
+
+    // The game ID is read; the queue entry with name and photo is no longer needed
+    if (state.queueId != null) {
+      _repository.leaveQueue(state.queueId!);
+    }
+
     state = MatchmakingSearchStatus(
       state: MatchmakingUIState.matched,
       gameId: gameId,
@@ -215,11 +228,15 @@ final matchmakingProvider =
   return MatchmakingNotifier(repository, ref);
 });
 
-/// Game invitations provider
+/// Game invitations provider; invitations from blocked players are hidden
 final pendingInvitationsProvider =
     StreamProvider.family<List<GameInvitation>, String>((ref, oddserId) {
   final repository = ref.watch(matchmakingRepositoryProvider);
-  return repository.watchPendingInvitations(oddserId);
+  final blocked = ref.watch(blockedUserIdsProvider(oddserId));
+  return repository.watchPendingInvitations(oddserId).map((invitations) => [
+        for (final invitation in invitations)
+          if (!blocked.contains(invitation.fromUserId)) invitation,
+      ]);
 });
 
 /// Watch a specific invitation (for sender to know when accepted)
@@ -288,6 +305,11 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
+  }
+
+  /// Cancel an invitation the current user sent
+  Future<void> cancelInvitation(String invitationId) async {
+    await _repository.cancelInvitation(invitationId);
   }
 }
 

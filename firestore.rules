@@ -11,24 +11,55 @@ service cloud.firestore {
 
     // Check if user is the document owner
     function isOwner(userId) {
-      return request.auth.uid == userId;
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Check if user is a player in the game
-    function isGamePlayer(gameData) {
-      return request.auth.uid in gameData.players.map(p => p.oddserId);
+    // Rules have no lambdas, so the players list (at most four) is checked
+    // by index.
+    function isPlayerIn(players) {
+      return (players.size() > 0 && players[0].oddserId == request.auth.uid)
+          || (players.size() > 1 && players[1].oddserId == request.auth.uid)
+          || (players.size() > 2 && players[2].oddserId == request.auth.uid)
+          || (players.size() > 3 && players[3].oddserId == request.auth.uid);
+    }
+
+    // Games created since playerIds was added carry it; older games only
+    // have the players list.
+    function isGamePlayer(game) {
+      return request.auth.uid in game.get('playerIds', [])
+          || isPlayerIn(game.players);
+    }
+
+    function isInvitationParty(invitation) {
+      return invitation.fromUserId == request.auth.uid
+          || invitation.toUserId == request.auth.uid;
+    }
+
+    function isFriendshipParty(friendship) {
+      return friendship.user1Id == request.auth.uid
+          || friendship.user2Id == request.auth.uid;
     }
 
     // ========== USER PROFILES ==========
 
     match /users/{userId} {
-      // Users can read any profile (for friends list, game opponents)
+      // Any signed-in user reads profiles (friend search, opponents,
+      // leaderboard), so a profile must not hold private data such as an
+      // e-mail address.
       allow read: if isAuthenticated();
 
       // Users can only write their own profile
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow create, update, delete: if isOwner(userId);
+
+      // Cloud wallet and power-up inventory
+      match /data/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Players this user blocked; private to the user
+      match /blocked/{blockedId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // ========== ONLINE GAMES ==========
@@ -40,15 +71,13 @@ service cloud.firestore {
 
       // Only allow create if user is in players list
       allow create: if isAuthenticated() &&
-        request.auth.uid in request.resource.data.players.map(p => p.oddserId);
+        isPlayerIn(request.resource.data.players);
 
       // Players can update game state (moves, scores)
       // In production, this should be server-side only via Cloud Functions
       allow update: if isAuthenticated() &&
         isGamePlayer(resource.data) &&
-        // Prevent changing critical fields
-        request.resource.data.id == resource.data.id &&
-        request.resource.data.createdAt == resource.data.createdAt;
+        request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null);
 
       // Don't allow delete (games are historical records)
       allow delete: if false;
@@ -64,57 +93,55 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
         request.resource.data.oddserId == request.auth.uid;
 
-      // Users can update/delete their own queue entry
-      allow update: if isAuthenticated() &&
-        resource.data.oddserId == request.auth.uid;
+      // The owner, or the player who matched this entry: findMatch marks both
+      // entries in one transaction and later adds the game ID to both.
+      allow update: if isAuthenticated() && (
+        resource.data.oddserId == request.auth.uid ||
+        (request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'matchedOpponentId', 'matchedGameId']) &&
+          request.resource.data.get('matchedOpponentId', '') == request.auth.uid));
 
-      allow delete: if isAuthenticated() &&
-        resource.data.oddserId == request.auth.uid;
+      // The owner, or any player cleaning up an expired entry
+      allow delete: if isAuthenticated() && (
+        resource.data.oddserId == request.auth.uid ||
+        resource.data.expiresAt < request.time);
     }
 
     // ========== GAME INVITATIONS ==========
 
     match /invitations/{invitationId} {
-      // Sender and recipient can read
+      // Sender and recipient can read; a deleted invitation reads as missing
       allow read: if isAuthenticated() &&
-        (resource.data.fromUserId == request.auth.uid ||
-         resource.data.toUserId == request.auth.uid);
+        (resource == null || isInvitationParty(resource.data));
 
       // Anyone can create invitation (to send to others)
       allow create: if isAuthenticated() &&
         request.resource.data.fromUserId == request.auth.uid;
 
-      // Both parties can update (accept/decline)
-      allow update: if isAuthenticated() &&
-        (resource.data.fromUserId == request.auth.uid ||
-         resource.data.toUserId == request.auth.uid);
+      // Both parties can update (accept/decline/cancel)
+      allow update: if isAuthenticated() && isInvitationParty(resource.data);
 
-      // Sender can delete
-      allow delete: if isAuthenticated() &&
-        resource.data.fromUserId == request.auth.uid;
+      // Both parties can delete, so account deletion removes invitations
+      // in either direction
+      allow delete: if isAuthenticated() && isInvitationParty(resource.data);
     }
 
     // ========== FRIENDSHIPS ==========
 
     match /friendships/{friendshipId} {
       // Both users can read
-      allow read: if isAuthenticated() &&
-        (resource.data.user1Id == request.auth.uid ||
-         resource.data.user2Id == request.auth.uid);
+      allow read: if isAuthenticated() && isFriendshipParty(resource.data);
 
-      // Anyone can create (send friend request)
+      // The requester sends a friend request that includes themselves
       allow create: if isAuthenticated() &&
-        request.resource.data.requestedBy == request.auth.uid;
+        request.resource.data.requestedBy == request.auth.uid &&
+        isFriendshipParty(request.resource.data);
 
       // Both users can update (accept/decline/block)
-      allow update: if isAuthenticated() &&
-        (resource.data.user1Id == request.auth.uid ||
-         resource.data.user2Id == request.auth.uid);
+      allow update: if isAuthenticated() && isFriendshipParty(resource.data);
 
-      // Both users can delete (unfriend)
-      allow delete: if isAuthenticated() &&
-        (resource.data.user1Id == request.auth.uid ||
-         resource.data.user2Id == request.auth.uid);
+      // Both users can delete (unfriend, account deletion)
+      allow delete: if isAuthenticated() && isFriendshipParty(resource.data);
     }
 
     // ========== LEADERBOARDS (Existing) ==========
@@ -124,10 +151,37 @@ service cloud.firestore {
 
       match /entries/{entryId} {
         allow read: if isAuthenticated();
-        allow create: if isAuthenticated();
+
+        // A score belongs to the user who submits it
+        allow create: if isAuthenticated() &&
+          request.resource.data.userId == request.auth.uid;
         allow update: if isAuthenticated() &&
+          resource.data.userId == request.auth.uid &&
+          request.resource.data.userId == request.auth.uid;
+
+        // The owner can delete their scores (account deletion)
+        allow delete: if isAuthenticated() &&
           resource.data.userId == request.auth.uid;
       }
+    }
+
+    // ========== REPORTS ==========
+
+    // Reports about other players (App Review 1.2). The developer reviews
+    // them in the Firebase console; clients cannot change them.
+    match /reports/{reportId} {
+      allow create: if isAuthenticated() &&
+        request.resource.data.reporterId == request.auth.uid &&
+        request.resource.data.reportedUserId is string &&
+        request.resource.data.reportedUserId != request.auth.uid &&
+        request.resource.data.keys().hasOnly(
+          ['reporterId', 'reportedUserId', 'reportedName', 'reason', 'source', 'createdAt']);
+
+      // The reporter can find and delete their reports (account deletion)
+      allow read, delete: if isAuthenticated() &&
+        resource.data.reporterId == request.auth.uid;
+
+      allow update: if false;
     }
 
     // ========== RANKINGS ==========

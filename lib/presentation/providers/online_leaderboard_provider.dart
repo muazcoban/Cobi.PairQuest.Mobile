@@ -85,7 +85,6 @@ final globalLeaderboardProvider =
           oddserId: doc.id,
           displayName: data['displayName'] ?? 'Unknown',
           photoUrl: data['photoUrl'],
-          email: data['email'],
           rating: data['rating'] ?? 1200,
           wins: data['wins'] ?? 0,
           losses: data['losses'] ?? 0,
@@ -108,17 +107,20 @@ final friendsLeaderboardProvider =
     StreamProvider.family<List<LeaderboardEntry>, String>((ref, userId) async* {
   final firestore = FirebaseFirestore.instance;
 
-  // First get friend IDs
-  final friendshipsSnapshot = await firestore
+  // First get friend IDs. A friendship stores its two users as user1Id and
+  // user2Id, so both sides are queried (the rules allow only these queries).
+  final friendships = firestore
       .collection('friendships')
-      .where('status', isEqualTo: 'accepted')
-      .where('userIds', arrayContains: userId)
-      .get();
+      .where('status', isEqualTo: 'accepted');
+  final friendshipSnapshots = await Future.wait([
+    friendships.where('user1Id', isEqualTo: userId).get(),
+    friendships.where('user2Id', isEqualTo: userId).get(),
+  ]);
 
   final friendIds = <String>{userId}; // Include self
-  for (final doc in friendshipsSnapshot.docs) {
-    final userIds = List<String>.from(doc.data()['userIds'] ?? []);
-    friendIds.addAll(userIds);
+  for (final doc in friendshipSnapshots.expand((snapshot) => snapshot.docs)) {
+    final data = doc.data();
+    friendIds.addAll([data['user1Id'] as String, data['user2Id'] as String]);
   }
 
   if (friendIds.isEmpty) {
@@ -129,7 +131,8 @@ final friendsLeaderboardProvider =
   // Get friend profiles
   yield* firestore
       .collection('users')
-      .where(FieldPath.documentId, whereIn: friendIds.toList())
+      // whereIn takes at most 30 values; self comes first in the set.
+      .where(FieldPath.documentId, whereIn: friendIds.take(30).toList())
       .snapshots()
       .map((snapshot) {
     final profiles = snapshot.docs.map((doc) {
@@ -138,7 +141,6 @@ final friendsLeaderboardProvider =
         oddserId: doc.id,
         displayName: data['displayName'] ?? 'Unknown',
         photoUrl: data['photoUrl'],
-        email: data['email'],
         rating: data['rating'] ?? 1200,
         wins: data['wins'] ?? 0,
         losses: data['losses'] ?? 0,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/daily_quest.dart';
 import '../../../domain/entities/power_up.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -30,6 +31,8 @@ class DailyQuestsScreen extends ConsumerWidget {
         title: Text(l10n.dailyQuests),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        titleTextStyle: AppTheme.onPrimaryTitleStyle,
+        iconTheme: AppTheme.onPrimaryIconTheme,
         elevation: 0,
       ),
       body: Column(
@@ -138,7 +141,7 @@ class DailyQuestsScreen extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(message),
-                          backgroundColor: AppColors.success,
+                          backgroundColor: AppColors.successStrong,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -307,7 +310,7 @@ class _QuestCard extends StatelessWidget {
                             child: Text(
                               _difficultyLabel,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: _difficultyColor,
                               ),
@@ -416,7 +419,7 @@ class _QuestCard extends StatelessWidget {
                   ElevatedButton(
                     onPressed: onClaimReward,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
+                      backgroundColor: AppColors.successStrong,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),

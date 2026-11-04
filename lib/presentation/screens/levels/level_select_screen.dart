@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/game_config.dart';
@@ -16,100 +17,105 @@ class LevelSelectScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final progress = ref.watch(progressProvider);
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primaryLight,
-              AppColors.backgroundLight,
-            ],
+    // White status bar icons on the teal gradient
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.primaryLight,
+                AppColors.backgroundLight,
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.selectLevel,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const Spacer(),
-                    // Total Stars
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            color: AppColors.accent,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${progress.totalStars}/${GameConfig.totalLevels * 3}',
-                            style: const TextStyle(
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.selectLevel,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
-                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Levels Grid
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 1.0,
+                      const Spacer(),
+                      // Total Stars
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: AppColors.accent,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${progress.totalStars}/${GameConfig.totalLevels * 3}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  itemCount: GameConfig.levels.length,
-                  itemBuilder: (context, index) {
-                    final config = GameConfig.levels[index];
-                    final levelProgress = progress.getLevelProgress(config.level);
-                    final isUnlocked = progress.isLevelUnlocked(config.level);
-
-                    return _LevelCard(
-                      config: config,
-                      stars: levelProgress?.stars ?? 0,
-                      bestScore: levelProgress?.bestScore ?? 0,
-                      isUnlocked: isUnlocked,
-                      onTap: isUnlocked
-                          ? () => _startLevel(context, ref, config.level)
-                          : null,
-                    );
-                  },
                 ),
-              ),
-            ],
+
+                // Levels Grid
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemCount: GameConfig.levels.length,
+                    itemBuilder: (context, index) {
+                      final config = GameConfig.levels[index];
+                      final levelProgress = progress.getLevelProgress(config.level);
+                      final isUnlocked = progress.isLevelUnlocked(config.level);
+
+                      return _LevelCard(
+                        config: config,
+                        stars: levelProgress?.stars ?? 0,
+                        bestScore: levelProgress?.bestScore ?? 0,
+                        isUnlocked: isUnlocked,
+                        onTap: isUnlocked
+                            ? () => _startLevel(context, ref, config.level)
+                            : null,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -317,7 +323,7 @@ class _LevelCard extends StatelessWidget {
                         'Best: $bestScore',
                         style: TextStyle(
                           color: AppColors.textSecondaryLight,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                   ],

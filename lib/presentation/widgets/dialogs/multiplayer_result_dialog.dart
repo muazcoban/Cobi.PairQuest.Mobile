@@ -85,7 +85,15 @@ class MultiplayerResultDialog extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
+            ] else
+              Text(
+                l10n.draw,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary(context),
+                ),
+              ),
             const SizedBox(height: 24),
 
             // Player rankings
@@ -95,7 +103,7 @@ class MultiplayerResultDialog extends StatelessWidget {
               return _PlayerRankRow(
                 rank: index + 1,
                 player: player,
-                isWinner: index == 0,
+                isWinner: player.id == winner?.id,
               );
             }),
 
