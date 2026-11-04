@@ -110,13 +110,25 @@ class GameNotifier extends StateNotifier<GameStateData> {
     return duration.clamp(_minPreviewDurationMs, _maxPreviewDurationMs);
   }
 
+  /// Clears everything left over from the previous game: running timers,
+  /// power-up flags (freeze, magnet, hint), the power-up usage counter and
+  /// the per-game power-up limits. "Play again" and "Next level" call
+  /// startGame directly, so this cannot be left to the screen.
+  void _resetForNewGame() {
+    _stopTimer();
+    _stopPreviewTimer();
+    _stopAllPowerUpTimers();
+    _ref.read(gamePowerUpUsageProvider.notifier).resetForNewGame();
+    state = const GameStateData(isLoading: true);
+  }
+
   /// Starts a new game
   Future<void> startGame({
     required int level,
     GameMode mode = GameMode.classic,
     String theme = 'animals',
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    _resetForNewGame();
 
     try {
       // Handle random theme selection
@@ -183,7 +195,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
     required List<String> playerNames,
     String theme = 'animals',
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    _resetForNewGame();
 
     try {
       // Handle random theme selection
@@ -446,7 +458,7 @@ class GameNotifier extends StateNotifier<GameStateData> {
   Future<void> _checkMatch(GameCard card1, GameCard card2) async {
     state = state.copyWith(isProcessing: true);
 
-    final game = state.currentGame!;
+    var game = state.currentGame!;
     final isMatch = card1.pairId == card2.pairId;
 
     // Only wait for mismatch - matches feel snappier without delay
@@ -454,6 +466,14 @@ class GameNotifier extends StateNotifier<GameStateData> {
       await Future.delayed(
         Duration(milliseconds: GameConfig.cardMatchDelay),
       );
+
+      // Continue from the current game, not the copy taken before the delay:
+      // the player may have paused, the timer may have ticked, or the game may
+      // have been ended or restarted in the meantime.
+      if (!mounted) return;
+      final currentGame = state.currentGame;
+      if (currentGame == null || currentGame.id != game.id) return;
+      game = currentGame;
     }
     final isMultiplayer = game.isMultiplayer;
 
@@ -799,6 +819,11 @@ class GameNotifier extends StateNotifier<GameStateData> {
     final game = state.currentGame;
     if (game == null || game.state != GameState.inProgress) return false;
 
+    // Not while a pair is being checked, a peek is showing or cards are
+    // shuffling: those flows finish with a delayed state write that would
+    // undo the power-up. Returning false makes PowerUpBar refund it.
+    if (state.isProcessing || state.isShuffling) return false;
+
     bool success = false;
     switch (type) {
       case PowerUpType.peek:
@@ -848,10 +873,12 @@ class GameNotifier extends StateNotifier<GameStateData> {
       return card;
     }).toList();
 
+    // Keep the selection: a card the player already turned over stays face up
+    // and selected, so after the peek they can pick its pair. Clearing it left
+    // the card revealed but unselectable, and the game could not be finished.
     state = state.copyWith(
       currentGame: game.copyWith(cards: updatedCards),
       isProcessing: true, // Block card selection during peek
-      selectedCards: [], // Clear selection during peek
     );
 
     _audioService.playSound(SoundEffect.cardFlip);
@@ -958,20 +985,23 @@ class GameNotifier extends StateNotifier<GameStateData> {
     final game = state.currentGame;
     if (game == null) return false;
 
-    final cards = List<GameCard>.from(game.cards);
-
-    // Get indices of hidden (unmatched) cards
-    final hiddenIndices = <int>[];
-    for (var i = 0; i < cards.length; i++) {
-      if (cards[i].state == CardState.hidden) {
-        hiddenIndices.add(i);
+    // Shuffle the hidden cards plus a card the player already turned over.
+    // That card goes back face down: if it stayed revealed after the
+    // selection is cleared, it could never be selected again.
+    final selectedIds = state.selectedCards.map((c) => c.id).toSet();
+    final shuffleIndices = <int>[];
+    for (var i = 0; i < game.cards.length; i++) {
+      final card = game.cards[i];
+      if (card.state == CardState.hidden ||
+          (card.state == CardState.revealed && selectedIds.contains(card.id))) {
+        shuffleIndices.add(i);
       }
     }
 
-    if (hiddenIndices.length < 2) return false;
+    if (shuffleIndices.length < 2) return false;
 
-    // Start shuffle animation
-    state = state.copyWith(isShuffling: true);
+    // Start shuffle animation and block selection until it is done
+    state = state.copyWith(isShuffling: true, isProcessing: true);
 
     _audioService.playSound(SoundEffect.cardFlip);
     _hapticService.trigger(HapticType.medium);
@@ -980,23 +1010,25 @@ class GameNotifier extends StateNotifier<GameStateData> {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (!mounted) return;
 
-      // Collect the hidden cards
-      final hiddenCards = hiddenIndices.map((i) => cards[i]).toList();
+      // Apply to the current game so timer ticks during the delay are kept
+      final currentGame = state.currentGame;
+      if (currentGame == null || currentGame.id != game.id) return;
 
-      // Shuffle them
-      final random = Random();
-      hiddenCards.shuffle(random);
+      final cards = List<GameCard>.from(currentGame.cards);
+      final shuffledCards = shuffleIndices
+          .map((i) => cards[i].copyWith(state: CardState.hidden))
+          .toList()
+        ..shuffle(Random());
 
-      // Put them back in the indices
-      for (var i = 0; i < hiddenIndices.length; i++) {
-        final originalIndex = hiddenIndices[i];
-        cards[originalIndex] = hiddenCards[i];
+      for (var i = 0; i < shuffleIndices.length; i++) {
+        cards[shuffleIndices[i]] = shuffledCards[i];
       }
 
       state = state.copyWith(
-        currentGame: game.copyWith(cards: cards),
+        currentGame: currentGame.copyWith(cards: cards),
         selectedCards: [], // Clear any selection
         isShuffling: false,
+        isProcessing: false,
       );
     });
 

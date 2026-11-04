@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/game_config.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/entities/game.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -11,7 +12,6 @@ import '../../providers/daily_quest_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/notification_provider.dart';
-import '../../providers/power_up_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/stats_provider.dart';
@@ -67,11 +67,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Skip if multiplayer - game is started from lobby
     if (widget.mode == 'multiplayer') return;
 
-    // End any existing game first
+    // End any existing game first (startGame also resets per-game power-up usage)
     ref.read(gameProvider.notifier).endGame();
-
-    // Reset power-up usage for new game
-    ref.read(gamePowerUpUsageProvider.notifier).resetForNewGame();
 
     final gameMode = widget.mode == 'timed' ? GameMode.timed : GameMode.classic;
     final cardTheme = ref.read(settingsProvider).cardTheme;
@@ -298,83 +295,128 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       }
     });
 
-    return Scaffold(
-      backgroundColor: AppColors.background(context),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              // Use different header for multiplayer
-              if (isMultiplayer)
-                const MultiplayerHeader()
-              else
-                const GameHeader(),
-              _buildControls(game),
+    return PopScope(
+      // The back swipe and the Android back button skip the in-game buttons
+      // that call endGame(), which left the timer and music running on the
+      // home screen. Ending the game here covers every way of leaving.
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) ref.read(gameProvider.notifier).endGame();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background(context),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                // Use different header for multiplayer
+                if (isMultiplayer)
+                  const MultiplayerHeader()
+                else
+                  const GameHeader(),
+                _buildControls(game),
 
-              // Power-up bar (single player only)
-              if (!isMultiplayer && game?.state == GameState.inProgress)
-                PowerUpBar(
-                  isTimedMode: game?.mode == GameMode.timed,
+                // Power-up bar (single player only)
+                if (!isMultiplayer && game?.state == GameState.inProgress)
+                  PowerUpBar(
+                    isTimedMode: game?.mode == GameMode.timed,
+                  ),
+
+                Expanded(
+                  child: gameState.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : game == null && gameState.error != null
+                          ? _buildStartError()
+                          : const GameBoard(),
                 ),
-
-              Expanded(
-                child: gameState.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : const GameBoard(),
-              ),
-            ],
-          ),
-
-          // Preview overlay with countdown
-          if (isPreview)
-            _PreviewOverlay(progress: gameState.previewProgress),
-
-          // Freeze power-up overlay
-          if (ref.watch(isTimerFrozenProvider))
-            const _FreezeOverlay(),
-
-          // Time Bonus +15 floating text
-          if (_showTimeBonusAnimation)
-            const _TimeBonusFloatingText(),
-
-          // Peek flash effect
-          if (_showPeekFlash)
-            const _PeekFlashOverlay(),
-
-          // Magnet active indicator
-          if (ref.watch(isMagnetActiveProvider))
-            const _MagnetActiveOverlay(),
-
-          // Turn transition indicator (multiplayer only)
-          if (isMultiplayer && gameState.showTurnTransition)
-            const TurnIndicator(),
-
-          // Combo popup (single player only)
-          if (!isMultiplayer && _currentCombo != null && _currentCombo! >= 2)
-            ComboPopup(
-              combo: _currentCombo!,
-              onComplete: () => setState(() => _currentCombo = null),
-            ),
-
-          // Confetti
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              shouldLoop: false,
-              colors: const [
-                AppColors.primary,
-                AppColors.accent,
-                AppColors.success,
-                AppColors.primaryLight,
-                AppColors.accentLight,
               ],
-              numberOfParticles: 30,
-              gravity: 0.2,
             ),
-          ),
-        ],
+
+            // Preview overlay with countdown
+            if (isPreview)
+              _PreviewOverlay(progress: gameState.previewProgress),
+
+            // Freeze power-up overlay
+            if (ref.watch(isTimerFrozenProvider))
+              const _FreezeOverlay(),
+
+            // Time Bonus +15 floating text
+            if (_showTimeBonusAnimation)
+              const _TimeBonusFloatingText(),
+
+            // Peek flash effect
+            if (_showPeekFlash)
+              const _PeekFlashOverlay(),
+
+            // Magnet active indicator
+            if (ref.watch(isMagnetActiveProvider))
+              const _MagnetActiveOverlay(),
+
+            // Turn transition indicator (multiplayer only)
+            if (isMultiplayer && gameState.showTurnTransition)
+              const TurnIndicator(),
+
+            // Combo popup (single player only)
+            if (!isMultiplayer && _currentCombo != null && _currentCombo! >= 2)
+              ComboPopup(
+                combo: _currentCombo!,
+                onComplete: () => setState(() => _currentCombo = null),
+              ),
+
+            // Confetti
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+                colors: const [
+                  AppColors.primary,
+                  AppColors.accent,
+                  AppColors.success,
+                  AppColors.primaryLight,
+                  AppColors.accentLight,
+                ],
+                numberOfParticles: 30,
+                gravity: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Shown when the game could not be created, instead of an endless spinner
+  Widget _buildStartError() {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.errorOccurred,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary(context),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (widget.mode != 'multiplayer')
+              ElevatedButton(
+                onPressed: _startGame,
+                child: Text(l10n.retry),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.goBack),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -492,7 +534,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         moves: game.moves,
         maxCombo: game.maxCombo,
         isPerfectGame: game.isPerfectGame,
-        hasNextLevel: game.level < 10,
+        hasNextLevel: game.level < GameConfig.totalLevels,
         coinsEarned: _lastCoinsEarned,
         onMainMenu: () {
           Navigator.of(dialogContext).pop();
@@ -503,7 +545,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           Navigator.of(dialogContext).pop();
           ref.read(gameProvider.notifier).resetGame();
         },
-        onNextLevel: game.level < 10
+        onNextLevel: game.level < GameConfig.totalLevels
             ? () {
                 Navigator.of(dialogContext).pop();
                 final cardTheme = ref.read(settingsProvider).cardTheme;
