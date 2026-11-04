@@ -152,9 +152,14 @@ service cloud.firestore {
       match /entries/{entryId} {
         allow read: if isAuthenticated();
 
-        // A score belongs to the user who submits it
+        // A score belongs to the user who submits it. New app versions keep
+        // one best score per player and level under {userId}_{level}, so
+        // nobody can take another player's ID first; older versions use
+        // random IDs, which contain no underscore.
         allow create: if isAuthenticated() &&
-          request.resource.data.userId == request.auth.uid;
+          request.resource.data.userId == request.auth.uid &&
+          (entryId == request.auth.uid + '_' + string(request.resource.data.level) ||
+            !entryId.matches('.*_.*'));
         allow update: if isAuthenticated() &&
           resource.data.userId == request.auth.uid &&
           request.resource.data.userId == request.auth.uid;

@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../data/repositories/leaderboard_repository.dart';
 import '../../domain/entities/leaderboard_entry.dart';
 import 'auth_provider.dart';
+import 'settings_provider.dart';
 
 /// Provider for leaderboard repository
 final leaderboardRepositoryProvider = Provider<LeaderboardRepository>((ref) {
@@ -27,6 +28,9 @@ final leaderboardProvider =
 /// Notifier for managing the local leaderboard
 class LeaderboardNotifier extends StateNotifier<List<LeaderboardEntry>> {
   static const String _storageKey = 'leaderboard';
+
+  /// Users whose old one-per-game global scores were already merged.
+  static const String _migratedKey = 'leaderboard_migrated_users';
   static const int _maxEntries = 100;
   final Uuid _uuid = const Uuid();
   final Ref _ref;
@@ -35,6 +39,20 @@ class LeaderboardNotifier extends StateNotifier<List<LeaderboardEntry>> {
 
   LeaderboardNotifier(this._ref) : super([]) {
     _loadLeaderboard();
+    // A new name (typed, or the saved one replacing the default at start-up)
+    // goes to every global score of the player, not only the next one.
+    _ref.listen<String>(settingsProvider.select((s) => s.playerName), (previous, next) {
+      if (previous != null && previous != next) _renameOnGlobalLeaderboard(next);
+    });
+  }
+
+  Future<void> _renameOnGlobalLeaderboard(String playerName) async {
+    final uid = _ref.read(authProvider).uid;
+    if (uid == null) return;
+    await _ref
+        .read(leaderboardRepositoryProvider)
+        .renamePlayer(userId: uid, playerName: playerName);
+    _ref.invalidate(globalLeaderboardProvider);
   }
 
   /// Check if leaderboard has been loaded
@@ -174,14 +192,14 @@ class LeaderboardNotifier extends StateNotifier<List<LeaderboardEntry>> {
     final authState = _ref.read(authProvider);
     if (!authState.isAuthenticated) return 0;
 
-    final pendingEntries = state.where((e) => !e.isSynced).toList();
-    if (pendingEntries.isEmpty) return 0;
-
     _isSyncing = true;
     int syncedCount = 0;
 
     try {
       final repository = _ref.read(leaderboardRepositoryProvider);
+      await _migrateLegacyScoresOnce(repository, authState.uid!);
+
+      final pendingEntries = state.where((e) => !e.isSynced).toList();
 
       for (final entry in pendingEntries) {
         try {
@@ -211,6 +229,23 @@ class LeaderboardNotifier extends StateNotifier<List<LeaderboardEntry>> {
     }
 
     return syncedCount;
+  }
+
+  /// Once per user on this device: merge the scores older app versions saved
+  /// one per game, so the player shows up once, under the current name.
+  Future<void> _migrateLegacyScoresOnce(
+    LeaderboardRepository repository,
+    String uid,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final migrated = prefs.getStringList(_migratedKey) ?? const <String>[];
+    if (migrated.contains(uid)) return;
+
+    final done = await repository.migrateLegacyScores(
+      userId: uid,
+      playerName: _ref.read(settingsProvider).playerName,
+    );
+    if (done) await prefs.setStringList(_migratedKey, [...migrated, uid]);
   }
 
   /// Manually trigger sync of pending entries
