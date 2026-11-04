@@ -289,6 +289,11 @@ class InvitationNotifier extends StateNotifier<AsyncValue<void>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  /// Cancel an invitation the current user sent
+  Future<void> cancelInvitation(String invitationId) async {
+    await _repository.cancelInvitation(invitationId);
+  }
 }
 
 final invitationNotifierProvider =

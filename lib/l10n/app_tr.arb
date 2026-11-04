@@ -592,5 +592,8 @@
   "tierPlatinum": "Platin",
   "tierDiamond": "Elmas",
   "tierMaster": "Usta",
-  "rating": "Rating"
+  "rating": "Rating",
+  "turnTimedOut": "Süren doldu, sıra rakibe geçti",
+  "opponentNotResponding": "Rakip yanıt vermiyor",
+  "claimWin": "Galibiyeti al"
 }

@@ -301,5 +301,8 @@
   "tierPlatinum": "Platinum",
   "tierDiamond": "Diamond",
   "tierMaster": "Master",
-  "rating": "Rating"
+  "rating": "Rating",
+  "turnTimedOut": "Time's up, the turn passed to your opponent",
+  "opponentNotResponding": "Opponent is not responding",
+  "claimWin": "Claim the win"
 }

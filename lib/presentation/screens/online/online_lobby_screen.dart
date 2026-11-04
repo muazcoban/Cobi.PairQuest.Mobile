@@ -8,7 +8,6 @@ import '../../providers/friends_provider.dart';
 import '../../providers/matchmaking_provider.dart';
 import '../../providers/online_profile_provider.dart';
 import '../../widgets/common/wallet_display.dart';
-import '../../widgets/dialogs/game_invitation_dialog.dart';
 import 'friends_screen.dart';
 import 'matchmaking_screen.dart';
 import 'online_leaderboard_screen.dart';
@@ -81,14 +80,8 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
             ),
     );
 
-    // Wrap with invitation listener if user is logged in (not anonymous)
-    if (user != null && !isAnonymous) {
-      return InvitationListener(
-        userId: user.uid,
-        child: scaffold,
-      );
-    }
-
+    // Game invitations are shown by GlobalInvitationListener (main.dart);
+    // a second listener here opened every invitation dialog twice
     return scaffold;
   }
 

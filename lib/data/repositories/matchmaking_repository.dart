@@ -426,6 +426,23 @@ class MatchmakingRepository {
     }
   }
 
+  /// Cancel an invitation the sender no longer waits for.
+  /// Only a pending invitation changes, so one the friend accepted at the
+  /// same moment stays accepted, and a cancelled one can no longer be accepted.
+  Future<void> cancelInvitation(String invitationId) async {
+    try {
+      final invRef = _firestore.collection(_invitationsCollection).doc(invitationId);
+      await _firestore.runTransaction((transaction) async {
+        final invDoc = await transaction.get(invRef);
+        if (!invDoc.exists) return;
+        if (!GameInvitation.fromFirestore(invDoc).isPending) return;
+        transaction.update(invRef, {'status': InvitationStatus.cancelled.name});
+      });
+    } catch (e) {
+      debugPrint('📨 Error cancelling invitation: $e');
+    }
+  }
+
   /// Cancel all pending invitations from a user to another user
   /// This is called before sending a new invitation to prevent duplicates
   Future<void> cancelPendingInvitationsFromUser({

@@ -9,7 +9,6 @@ import '../../providers/friends_provider.dart';
 import '../../providers/matchmaking_provider.dart';
 import '../../providers/online_game_provider.dart';
 import '../../providers/online_profile_provider.dart';
-import '../../widgets/dialogs/game_invitation_dialog.dart';
 import 'friend_search_screen.dart';
 import 'online_game_screen.dart';
 
@@ -30,10 +29,9 @@ class FriendsScreen extends ConsumerWidget {
       );
     }
 
-    // Wrap with InvitationListener to receive game invitations
-    return InvitationListener(
-      userId: userId,
-      child: DefaultTabController(
+    // Game invitations are shown by GlobalInvitationListener (main.dart);
+    // a second listener here opened every invitation dialog twice
+    return DefaultTabController(
       length: 2,
       child: Scaffold(
         backgroundColor: AppColors.background(context),
@@ -70,7 +68,6 @@ class FriendsScreen extends ConsumerWidget {
           ],
         ),
       ),
-    ),
     );
   }
 }
@@ -633,6 +630,9 @@ class _InvitationWaitingDialog extends ConsumerWidget {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {
+                  // Cancel the invitation too, otherwise the friend could still
+                  // accept it and wait alone in a game nobody joins
+                  ref.read(invitationNotifierProvider.notifier).cancelInvitation(invitationId);
                   Navigator.of(context).pop();
                 },
                 style: OutlinedButton.styleFrom(

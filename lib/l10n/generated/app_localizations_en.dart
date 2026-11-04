@@ -822,4 +822,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rating => 'Rating';
+
+  @override
+  String get turnTimedOut => 'Time\'s up, the turn passed to your opponent';
+
+  @override
+  String get opponentNotResponding => 'Opponent is not responding';
+
+  @override
+  String get claimWin => 'Claim the win';
 }

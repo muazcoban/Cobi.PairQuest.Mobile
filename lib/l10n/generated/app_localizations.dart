@@ -1687,6 +1687,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Rating'**
   String get rating;
+
+  /// No description provided for @turnTimedOut.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süren doldu, sıra rakibe geçti'**
+  String get turnTimedOut;
+
+  /// No description provided for @opponentNotResponding.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip yanıt vermiyor'**
+  String get opponentNotResponding;
+
+  /// No description provided for @claimWin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galibiyeti al'**
+  String get claimWin;
 }
 
 class _AppLocalizationsDelegate

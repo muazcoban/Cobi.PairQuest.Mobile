@@ -823,4 +823,13 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get rating => 'Rating';
+
+  @override
+  String get turnTimedOut => 'Süren doldu, sıra rakibe geçti';
+
+  @override
+  String get opponentNotResponding => 'Rakip yanıt vermiyor';
+
+  @override
+  String get claimWin => 'Galibiyeti al';
 }
