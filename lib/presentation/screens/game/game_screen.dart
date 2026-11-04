@@ -52,6 +52,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void initState() {
     super.initState();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    // Load saved achievements before the game ends. Created only at the end,
+    // the notifier would mark the new unlocks as already known while loading
+    // and show no notification for them.
+    ref.read(achievementProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startGame();
     });
@@ -141,7 +145,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
 
     // Check achievements
-    final newAchievements = ref.read(achievementProvider.notifier).checkAchievements();
+    final newAchievements = await ref.read(achievementProvider.notifier).checkAchievements();
     if (newAchievements.isNotEmpty && mounted) {
       // Show achievement unlocked notification (respects user settings)
       for (final achievement in newAchievements) {

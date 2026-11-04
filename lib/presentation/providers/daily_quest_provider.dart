@@ -184,10 +184,10 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
     int powerUpsUsed = 0,
     bool isTimedMode = false,
   }) {
-    // Check if quests need refresh
+    // New day: start fresh quests, then count this game toward them
+    // (returning here dropped the first game played after midnight)
     if (state.needsRefresh) {
       _generateNewQuests();
-      return;
     }
 
     // Update daily counters

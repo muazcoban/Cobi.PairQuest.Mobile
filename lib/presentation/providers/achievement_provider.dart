@@ -9,8 +9,10 @@ import 'stats_provider.dart';
 final achievementProvider =
     StateNotifierProvider<AchievementNotifier, Map<String, AchievementProgress>>(
         (ref) {
-  final stats = ref.watch(statsProvider);
-  return AchievementNotifier(stats);
+  // Read stats on demand instead of watching them: watching rebuilt the
+  // notifier on every stats change, and the fresh notifier (empty progress,
+  // still loading) reported every unlocked achievement as new after each win.
+  return AchievementNotifier(() => ref.read(statsProvider));
 });
 
 /// Provider to get newly unlocked achievements
@@ -20,11 +22,14 @@ final newlyUnlockedAchievementProvider = StateProvider<Achievement?>((ref) => nu
 class AchievementNotifier
     extends StateNotifier<Map<String, AchievementProgress>> {
   static const String _storageKey = 'achievement_progress';
-  final PlayerStats _stats;
+  final PlayerStats Function() _readStats;
+  late final Future<void> _loaded;
 
-  AchievementNotifier(this._stats) : super({}) {
-    _loadProgress();
+  AchievementNotifier(this._readStats) : super({}) {
+    _loaded = _loadProgress();
   }
+
+  PlayerStats get _stats => _readStats();
 
   /// Load progress from local storage
   Future<void> _loadProgress() async {
@@ -144,7 +149,11 @@ class AchievementNotifier
   int get totalCount => Achievements.all.length;
 
   /// Check and update achievements (call after game events)
-  List<Achievement> checkAchievements() {
+  Future<List<Achievement>> checkAchievements() async {
+    // Compare against the saved progress, not the empty state before it loads
+    await _loaded;
+    if (!mounted) return [];
+
     final previouslyUnlocked = Set<String>.from(
       state.entries
           .where((e) => e.value.isUnlocked)

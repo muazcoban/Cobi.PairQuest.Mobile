@@ -146,7 +146,9 @@ class WalletSyncService {
       if (rawQuantities != null) {
         for (final entry in rawQuantities.entries) {
           final type = _stringToPowerUpType(entry.key);
-          if (type != null) {
+          // Zero counts are stored on purpose (see cloudQuantities); locally a
+          // used-up power-up has no entry
+          if (type != null && (entry.value as int) > 0) {
             quantities[type] = entry.value as int;
           }
         }
@@ -159,19 +161,24 @@ class WalletSyncService {
     }
   }
 
+  /// Firestore map for an inventory, keyed by power-up name.
+  /// Every type is written, zero included: the document is saved with merge,
+  /// which keeps keys missing from the new map. A used-up power-up (no local
+  /// entry) would otherwise keep its old cloud count and come back on the
+  /// next sync.
+  static Map<String, int> cloudQuantities(PowerUpInventory inventory) {
+    return {
+      for (final type in PowerUpType.values) type.name: inventory.getQuantity(type),
+    };
+  }
+
   /// Save inventory to Firestore
   Future<bool> saveInventoryToCloud(PowerUpInventory inventory) async {
     if (!isLoggedIn) return false;
 
     try {
-      // Convert PowerUpType keys to strings for Firestore
-      final stringQuantities = <String, int>{};
-      for (final entry in inventory.quantities.entries) {
-        stringQuantities[entry.key.name] = entry.value;
-      }
-
       await _inventoryRef?.set({
-        'quantities': stringQuantities,
+        'quantities': cloudQuantities(inventory),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       return true;
@@ -225,13 +232,8 @@ class WalletSyncService {
   void saveInventoryToCloudAsync(PowerUpInventory inventory) {
     if (!isLoggedIn) return;
 
-    final stringQuantities = <String, int>{};
-    for (final entry in inventory.quantities.entries) {
-      stringQuantities[entry.key.name] = entry.value;
-    }
-
     _inventoryRef?.set({
-      'quantities': stringQuantities,
+      'quantities': cloudQuantities(inventory),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true)).catchError((e) {
       debugPrint('WalletSyncService: Async inventory save failed: $e');
