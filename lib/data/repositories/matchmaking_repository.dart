@@ -96,7 +96,12 @@ class MatchmakingRepository {
 
   /// Find a match for the user (client-side matching)
   /// In production, this should be a Cloud Function
-  Future<String?> findMatch(String queueId) async {
+  ///
+  /// Players in [excludeUserIds] (the ones the user blocked) are skipped.
+  Future<String?> findMatch(
+    String queueId, {
+    Set<String> excludeUserIds = const {},
+  }) async {
     try {
       final myDoc = await _firestore
           .collection(_matchmakingCollection)
@@ -120,6 +125,7 @@ class MatchmakingRepository {
         final candidate = MatchmakingEntry.fromFirestore(candidateDoc);
         // Skip self (client-side filter instead of isNotEqualTo query)
         if (candidate.oddserId == myEntry.oddserId) continue;
+        if (excludeUserIds.contains(candidate.oddserId)) continue;
         if (!candidate.isActive) continue;
 
         if (myEntry.isCompatibleWith(candidate)) {

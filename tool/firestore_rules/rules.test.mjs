@@ -416,6 +416,58 @@ describe('rankings', () => {
   });
 });
 
+describe('moderation', () => {
+  const report = (reporter, reported) => ({
+    reporterId: reporter,
+    reportedUserId: reported,
+    reportedName: reported,
+    reason: 'offensiveName',
+    source: 'leaderboard',
+    createdAt: serverTimestamp(),
+  });
+
+  it('a player reports another player, guests included (reportPlayer)', async () => {
+    await assertSucceeds(addDoc(collection(db(ALICE), 'reports'), report(ALICE, BOB)));
+  });
+
+  it('nobody reports in someone else\'s name, reports themselves or adds fields', async () => {
+    const alice = db(ALICE);
+    await assertFails(addDoc(collection(alice, 'reports'), report(BOB, CAROL)));
+    await assertFails(addDoc(collection(alice, 'reports'), report(ALICE, ALICE)));
+    await assertFails(addDoc(collection(alice, 'reports'), { ...report(ALICE, BOB), status: 'resolved' }));
+  });
+
+  it('only the reporter reads or deletes a report; nobody edits it', async () => {
+    await seed({ 'reports/r1': { reporterId: ALICE, reportedUserId: BOB, reason: 'other' } });
+    await assertFails(getDoc(doc(db(BOB), 'reports/r1')));
+    await assertFails(getDocs(query(collection(db(BOB), 'reports'), where('reportedUserId', '==', BOB))));
+    await assertFails(updateDoc(doc(db(ALICE), 'reports/r1'), { reason: 'cheating' }));
+    await assertSucceeds(getDoc(doc(db(ALICE), 'reports/r1')));
+    await assertSucceeds(deleteDoc(doc(db(ALICE), 'reports/r1')));
+  });
+
+  it('blocking ends the friendship and declines invitations; the list is private (blockPlayer)', async () => {
+    await seed({
+      'friendships/f1': friendship(ALICE, BOB, 'accepted'),
+      'invitations/i1': invitation(BOB, ALICE),
+    });
+    const alice = db(ALICE);
+    await assertSucceeds(setDoc(doc(alice, 'users/alice/blocked/bob'), { displayName: 'bob', createdAt: serverTimestamp() }));
+    const [user1Id, user2Id] = [ALICE, BOB].sort();
+    const friendships = await assertSucceeds(getDocs(query(collection(alice, 'friendships'), where('user1Id', '==', user1Id), where('user2Id', '==', user2Id))));
+    const invitations = await assertSucceeds(getDocs(query(collection(alice, 'invitations'), where('fromUserId', '==', BOB), where('toUserId', '==', ALICE))));
+    const batch = writeBatch(alice);
+    friendships.docs.forEach((d) => batch.delete(d.ref));
+    invitations.docs.forEach((d) => batch.update(d.ref, { status: 'declined' }));
+    await assertSucceeds(batch.commit());
+
+    await assertFails(getDoc(doc(db(BOB), 'users/alice/blocked/bob')));
+    await assertFails(setDoc(doc(db(BOB), 'users/alice/blocked/carol'), { displayName: 'carol' }));
+    await assertSucceeds(getDocs(collection(alice, 'users/alice/blocked')));
+    await assertSucceeds(deleteDoc(doc(alice, 'users/alice/blocked/bob')));
+  });
+});
+
 describe('account deletion', () => {
   // The same reads and writes as AccountRepository.deleteUserData.
   it('removes every document of the user and keeps the other players\' documents', async () => {
@@ -435,6 +487,9 @@ describe('account deletion', () => {
       'leaderboards/global/entries/s1': score(ALICE),
       'leaderboards/global/entries/s2': score(BOB),
       'games/g1': game(ALICE, BOB),
+      'users/alice/blocked/carol': { displayName: 'carol' },
+      'reports/r1': { reporterId: ALICE, reportedUserId: CAROL, reason: 'other' },
+      'reports/r2': { reporterId: BOB, reportedUserId: ALICE, reason: 'other' },
     });
     const alice = db(ALICE);
 
@@ -449,11 +504,13 @@ describe('account deletion', () => {
 
     const refs = [doc(alice, 'users/alice/data/wallet'), doc(alice, 'users/alice/data/inventory')];
     for (const q of [
+      collection(alice, 'users/alice/blocked'),
       query(collection(alice, 'friendships'), where('user1Id', '==', ALICE)),
       query(collection(alice, 'friendships'), where('user2Id', '==', ALICE)),
       query(collection(alice, 'invitations'), where('fromUserId', '==', ALICE)),
       query(collection(alice, 'invitations'), where('toUserId', '==', ALICE)),
       query(collection(alice, 'matchmaking'), where('oddserId', '==', ALICE)),
+      query(collection(alice, 'reports'), where('reporterId', '==', ALICE)),
       query(collection(alice, 'leaderboards/global/entries'), where('userId', '==', ALICE)),
     ]) {
       const snapshot = await assertSucceeds(getDocs(q));
@@ -468,8 +525,10 @@ describe('account deletion', () => {
       const admin = context.firestore();
       const exists = async (path) => (await getDoc(doc(admin, path))).exists();
       const gone = ['users/alice', 'users/alice/data/wallet', 'users/alice/data/inventory', 'friendships/f1',
-        'friendships/f2', 'invitations/i1', 'invitations/i2', 'matchmaking/qa', 'leaderboards/global/entries/s1'];
-      const kept = ['users/bob', 'friendships/f3', 'invitations/i3', 'matchmaking/qb', 'leaderboards/global/entries/s2', 'games/g1'];
+        'friendships/f2', 'invitations/i1', 'invitations/i2', 'matchmaking/qa', 'leaderboards/global/entries/s1',
+        'users/alice/blocked/carol', 'reports/r1'];
+      const kept = ['users/bob', 'friendships/f3', 'invitations/i3', 'matchmaking/qb', 'leaderboards/global/entries/s2',
+        'games/g1', 'reports/r2'];
       for (const path of gone) if (await exists(path)) throw new Error(`${path} was not deleted`);
       for (const path of kept) if (!(await exists(path))) throw new Error(`${path} was deleted`);
       const [me, opponent] = (await getDoc(doc(admin, 'games/g1'))).data().players;

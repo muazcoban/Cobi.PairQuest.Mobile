@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../auth/auth_screen.dart';
+import '../../widgets/moderation/player_safety.dart';
 
 /// Leaderboard screen with Global and Local tabs
 class LeaderboardScreen extends ConsumerStatefulWidget {
@@ -87,7 +89,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     return globalScores.when(
       data: (entries) => entries.isEmpty
           ? _buildEmptyState(context, l10n)
-          : _buildLeaderboard(context, l10n, entries, playerName),
+          : _buildLeaderboard(context, l10n, entries, playerName,
+              viewerId: authState.uid),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
         child: Column(
@@ -239,12 +242,18 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     );
   }
 
+  /// [viewerId] is set on the global tab: other players' names there can be
+  /// reported (App Review 1.2). Local scores are all from this device.
   Widget _buildLeaderboard(
     BuildContext context,
     AppLocalizations l10n,
     List<LeaderboardEntry> entries,
-    String currentPlayerName,
-  ) {
+    String currentPlayerName, {
+    String? viewerId,
+  }) {
+    bool canReport(LeaderboardEntry entry) =>
+        viewerId != null && entry.userId != null && entry.userId != viewerId;
+
     return Column(
       children: [
         // Top 3 podium
@@ -276,6 +285,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     height: 80,
                     isCurrentPlayer: entries[1].playerName.toLowerCase() ==
                         currentPlayerName.toLowerCase(),
+                    canReport: canReport(entries[1]),
                   )
                 else
                   const SizedBox(width: 100),
@@ -289,6 +299,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                   height: 100,
                   isCurrentPlayer: entries[0].playerName.toLowerCase() ==
                       currentPlayerName.toLowerCase(),
+                  canReport: canReport(entries[0]),
                 ),
 
                 const SizedBox(width: 8),
@@ -301,6 +312,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     height: 60,
                     isCurrentPlayer: entries[2].playerName.toLowerCase() ==
                         currentPlayerName.toLowerCase(),
+                    canReport: canReport(entries[2]),
                   )
                 else
                   const SizedBox(width: 100),
@@ -320,6 +332,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                 entry: entry,
                 isCurrentPlayer: entry.playerName.toLowerCase() ==
                     currentPlayerName.toLowerCase(),
+                canReport: canReport(entry),
               );
             },
           ),
@@ -368,12 +381,14 @@ class _PodiumItem extends StatelessWidget {
   final LeaderboardEntry entry;
   final double height;
   final bool isCurrentPlayer;
+  final bool canReport;
 
   const _PodiumItem({
     required this.rank,
     required this.entry,
     required this.height,
     this.isCurrentPlayer = false,
+    this.canReport = false,
   });
 
   Color get _medalColor {
@@ -435,22 +450,32 @@ class _PodiumItem extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              entry.playerName,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: isCurrentPlayer ? AppColors.accent : Colors.white,
+            // White on the teal podium: amber text gives only 2.5:1.
+            Flexible(
+              child: Text(
+                entry.playerName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
+            if (canReport)
+              PlayerSafetyButton(
+                userId: entry.userId!,
+                displayName: entry.playerName,
+                source: ReportSource.leaderboard,
+                color: Colors.white,
+              ),
             if (isCurrentPlayer) ...[
               const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: AppColors.accentStrong,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -513,16 +538,22 @@ class _LeaderboardRow extends StatelessWidget {
   final int rank;
   final LeaderboardEntry entry;
   final bool isCurrentPlayer;
+  final bool canReport;
 
   const _LeaderboardRow({
     required this.rank,
     required this.entry,
     this.isCurrentPlayer = false,
+    this.canReport = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // Amber text needs the darker shade on light rows (5.0:1 instead of 2.2:1).
+    final highlight = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.accent
+        : AppColors.accentStrong;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -530,7 +561,7 @@ class _LeaderboardRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: isCurrentPlayer
             ? AppColors.accent.withOpacity(0.1)
-            : Colors.white,
+            : AppColors.cardBackground(context),
         borderRadius: BorderRadius.circular(12),
         border: isCurrentPlayer
             ? Border.all(color: AppColors.accent, width: 2)
@@ -581,7 +612,7 @@ class _LeaderboardRow extends StatelessWidget {
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: isCurrentPlayer
-                            ? AppColors.accent
+                            ? highlight
                             : AppColors.textPrimary(context),
                       ),
                     ),
@@ -593,7 +624,7 @@ class _LeaderboardRow extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.accent,
+                          color: AppColors.accentStrong,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -644,7 +675,7 @@ class _LeaderboardRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isCurrentPlayer ? AppColors.accent : AppColors.primary,
+                  color: isCurrentPlayer ? highlight : AppColors.primaryText(context),
                 ),
               ),
               Text(
@@ -656,6 +687,13 @@ class _LeaderboardRow extends StatelessWidget {
               ),
             ],
           ),
+          if (canReport)
+            PlayerSafetyButton(
+              userId: entry.userId!,
+              displayName: entry.playerName,
+              source: ReportSource.leaderboard,
+              color: AppColors.textSecondary(context),
+            ),
         ],
       ),
     );

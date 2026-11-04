@@ -55,6 +55,11 @@ service cloud.firestore {
       match /data/{docId} {
         allow read, write: if isOwner(userId);
       }
+
+      // Players this user blocked; private to the user
+      match /blocked/{blockedId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // ========== ONLINE GAMES ==========
@@ -158,6 +163,25 @@ service cloud.firestore {
         allow delete: if isAuthenticated() &&
           resource.data.userId == request.auth.uid;
       }
+    }
+
+    // ========== REPORTS ==========
+
+    // Reports about other players (App Review 1.2). The developer reviews
+    // them in the Firebase console; clients cannot change them.
+    match /reports/{reportId} {
+      allow create: if isAuthenticated() &&
+        request.resource.data.reporterId == request.auth.uid &&
+        request.resource.data.reportedUserId is string &&
+        request.resource.data.reportedUserId != request.auth.uid &&
+        request.resource.data.keys().hasOnly(
+          ['reporterId', 'reportedUserId', 'reportedName', 'reason', 'source', 'createdAt']);
+
+      // The reporter can find and delete their reports (account deletion)
+      allow read, delete: if isAuthenticated() &&
+        resource.data.reporterId == request.auth.uid;
+
+      allow update: if false;
     }
 
     // ========== RANKINGS ==========

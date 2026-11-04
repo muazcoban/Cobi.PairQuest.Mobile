@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_links.dart';
+import '../../../core/moderation/name_filter.dart';
 import '../../../core/utils/card_shuffle.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
@@ -9,6 +10,7 @@ import '../../providers/notification_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../auth/auth_screen.dart';
 import '../themes/theme_select_screen.dart';
+import 'blocked_players_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -38,6 +40,22 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.open_in_new_rounded),
             onTap: () => AppLinks.open(AppLinks.privacyPolicy),
           ),
+          // App Review 1.2: published contact information
+          ListTile(
+            leading: const Icon(Icons.mail_outline_rounded),
+            title: Text(l10n.contactUs),
+            trailing: const Icon(Icons.open_in_new_rounded),
+            onTap: () => AppLinks.open(AppLinks.contactEmail),
+          ),
+          if (authState.isAuthenticated)
+            ListTile(
+              leading: const Icon(Icons.block),
+              title: Text(l10n.blockedPlayers),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const BlockedPlayersScreen()),
+              ),
+            ),
           if (authState.isAuthenticated)
             ListTile(
               leading: Icon(
@@ -219,43 +237,53 @@ class SettingsScreen extends ConsumerWidget {
     AppLocalizations l10n,
   ) {
     final controller = TextEditingController(text: currentName);
+    String? error;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.playerName),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 20,
-          decoration: InputDecoration(
-            hintText: l10n.enterYourName,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          onSubmitted: (value) {
-            ref.read(settingsProvider.notifier).setPlayerName(value);
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          // The name is public on the global leaderboard (App Review 1.2).
+          void save() {
+            if (!NameFilter.isAllowed(controller.text)) {
+              setState(() => error = l10n.nameNotAllowed);
+              return;
+            }
+            ref.read(settingsProvider.notifier).setPlayerName(controller.text);
             Navigator.of(context).pop();
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              ref.read(settingsProvider.notifier).setPlayerName(controller.text);
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+          }
+
+          return AlertDialog(
+            title: Text(l10n.playerName),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              maxLength: 20,
+              decoration: InputDecoration(
+                hintText: l10n.enterYourName,
+                errorText: error,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onSubmitted: (_) => save(),
             ),
-            child: Text(l10n.save),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.cancel),
+              ),
+              ElevatedButton(
+                onPressed: save,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(l10n.save),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -390,7 +418,11 @@ class SettingsScreen extends ConsumerWidget {
                     child: Icon(Icons.person, color: AppColors.primary),
                   ),
             title: Text(authState.displayName),
-            subtitle: Text(authState.email ?? l10n.account),
+            // HIG Sign in with Apple: show which sign-in is in use. The
+            // e-mail may be a private relay address, so it is not shown.
+            subtitle: Text(authState.isAppleLinked
+                ? l10n.signedInWithApple
+                : authState.email ?? l10n.account),
             trailing: IconButton(
               tooltip: AppLocalizations.of(context)!.signOut,
               icon: const Icon(Icons.logout),
@@ -471,7 +503,10 @@ class SettingsScreen extends ConsumerWidget {
         content: Text([
           l10n.deleteAccountConfirm,
           l10n.deleteAccountDetails,
-          if (authState.isGoogleLinked) l10n.deleteAccountReauth,
+          if (authState.isAppleLinked)
+            l10n.deleteAccountReauthApple
+          else if (authState.isGoogleLinked)
+            l10n.deleteAccountReauth,
         ].join('\n\n')),
         actions: [
           TextButton(

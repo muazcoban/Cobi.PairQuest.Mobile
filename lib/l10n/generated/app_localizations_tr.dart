@@ -895,4 +895,89 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get comboTitle => 'COMBO!';
+
+  @override
+  String get signInWithApple => 'Apple ile Giriş Yap';
+
+  @override
+  String get signedInWithApple => 'Apple ile giriş yapıldı';
+
+  @override
+  String get deleteAccountReauthApple =>
+      'Devam etmek için Apple ile yeniden giriş yapmanız istenecek.';
+
+  @override
+  String get reportPlayer => 'Bildir';
+
+  @override
+  String get blockPlayer => 'Engelle';
+
+  @override
+  String reportPlayerTitle(String name) {
+    return '$name adlı oyuncuyu bildir';
+  }
+
+  @override
+  String get reportReasonOffensiveName => 'Uygunsuz ad';
+
+  @override
+  String get reportReasonOffensivePhoto => 'Uygunsuz profil fotoğrafı';
+
+  @override
+  String get reportReasonHarassment => 'Taciz ya da istenmeyen davet';
+
+  @override
+  String get reportReasonCheating => 'Hile';
+
+  @override
+  String get reportReasonOther => 'Diğer';
+
+  @override
+  String get reportAlsoBlock => 'Bu oyuncuyu engelle';
+
+  @override
+  String get reportSend => 'Gönder';
+
+  @override
+  String get reportSent =>
+      'Bildiriminiz bize ulaştı. İnceleyip gerekirse oyuncunun adını ya da hesabını kaldıracağız.';
+
+  @override
+  String get reportFailed =>
+      'Bildirim gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.';
+
+  @override
+  String blockPlayerTitle(String name) {
+    return '$name engellensin mi?';
+  }
+
+  @override
+  String get blockPlayerDesc =>
+      'Bu oyuncu size arkadaşlık isteği ve oyun daveti gönderemez, rastgele eşleşmede karşınıza çıkmaz. Arkadaşsanız arkadaşlığınız sona erer. Engeli Ayarlar\'dan kaldırabilirsiniz.';
+
+  @override
+  String playerBlocked(String name) {
+    return '$name engellendi';
+  }
+
+  @override
+  String get blockFailed => 'Oyuncu engellenemedi. Tekrar deneyin.';
+
+  @override
+  String get playerOptions => 'Oyuncu seçenekleri';
+
+  @override
+  String get blockedPlayers => 'Engellenen oyuncular';
+
+  @override
+  String get noBlockedPlayers => 'Engellediğiniz oyuncu yok';
+
+  @override
+  String get unblock => 'Engeli kaldır';
+
+  @override
+  String get contactUs => 'Bize ulaşın';
+
+  @override
+  String get nameNotAllowed => 'Bu ad kullanılamaz. Başka bir ad seçin.';
 }

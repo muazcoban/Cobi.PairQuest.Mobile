@@ -15,8 +15,9 @@ class AccountRepository {
   // Firestore accepts at most 500 writes in one batch.
   static const int _batchLimit = 500;
 
-  /// Deletes the profile, cloud wallet, friendships, invitations, queue
-  /// entries and global leaderboard scores of [uid].
+  /// Deletes the profile, cloud wallet, block list, friendships,
+  /// invitations, queue entries, reports and global leaderboard scores of
+  /// [uid].
   ///
   /// Throws when one of these deletes fails, so the caller keeps the account
   /// and the user can try again.
@@ -30,11 +31,13 @@ class AccountRepository {
     ];
 
     final queries = <Query<Map<String, dynamic>>>[
+      userRef.collection('blocked'),
       _firestore.collection('friendships').where('user1Id', isEqualTo: uid),
       _firestore.collection('friendships').where('user2Id', isEqualTo: uid),
       _firestore.collection('invitations').where('fromUserId', isEqualTo: uid),
       _firestore.collection('invitations').where('toUserId', isEqualTo: uid),
       _firestore.collection('matchmaking').where('oddserId', isEqualTo: uid),
+      _firestore.collection('reports').where('reporterId', isEqualTo: uid),
       _firestore
           .collection('leaderboards')
           .doc('global')

@@ -19,14 +19,17 @@ We use Google Firebase as our server. What we store depends on how you use the a
 |---|---|---|
 | You continue as a guest | An anonymous user ID created by Firebase Authentication | Only us |
 | You sign in with Google | Your Google account name, e-mail address, profile photo link and account ID, kept by Firebase Authentication | Only us |
+| You sign in with Apple | Your name, if you share it, and an Apple account ID, kept by Firebase Authentication. The app does not ask Apple for your e-mail address | Only us |
 | You submit a score to the global leaderboard | The player name you set in the app, score, stars, moves, level, time and your user ID | All signed-in players |
 | You open online play (Google sign-in) | A profile with your display name, profile photo link, rating, win/loss statistics, online status and last seen time. Your e-mail address is **not** part of this profile | All signed-in players |
 | You play an online game | The game record: card moves, scores, your display name, profile photo link and rating | The players of that game |
 | You add friends or send invitations | The friendship or invitation with both user IDs, display names and the sender's profile photo link | The two players involved |
 | You look for an opponent | A temporary matchmaking entry with your display name, profile photo link and rating. It is deleted when a match is found or the search ends | All signed-in players |
-| You are signed in with Google | Your coin, gem and power-up counts, so they are the same on all your devices | Only you |
+| You are signed in with Google or Apple | Your coin, gem and power-up counts, so they are the same on all your devices | Only you |
+| You report a player | Your user ID, the reported player's user ID and name, the reason and where you saw the player | Only us |
+| You block a player | The blocked player's user ID and name | Only you |
 
-We use this information only to run the game features listed above.
+We use this information only to run the game features listed above. We review reports and remove offensive names or accounts.
 
 ### Notifications
 Daily reminders are scheduled on your device. The app uses Firebase Cloud Messaging for push notifications; Firebase creates a device token for this. We do not store this token with your profile.
@@ -34,6 +37,7 @@ Daily reminders are scheduled on your device. The app uses Firebase Cloud Messag
 ### Third-party services
 - **Firebase Authentication, Cloud Firestore and Cloud Messaging** (Google LLC) store and process the data above. See [Firebase Privacy and Security](https://firebase.google.com/support/privacy).
 - **Google Sign-In** (Google LLC) signs you in when you choose it.
+- **Sign in with Apple** (Apple Inc.) signs you in when you choose it.
 
 PairQuest does not use advertising, analytics or tracking services. We do not sell or share your data for advertising.
 
@@ -44,11 +48,14 @@ In the app, open **Settings → Account → Delete Account**. This permanently d
 - your cloud coins, gems and power-ups,
 - your friendships and game invitations,
 - your matchmaking entries,
-- your global leaderboard scores.
+- your global leaderboard scores,
+- your block list and the reports you sent.
+
+If you signed in with Apple, the app also revokes its Sign in with Apple access.
 
 Online game records stay, because they are also your opponent's games. Your display name in them is replaced with "Deleted player" and your profile photo link is removed. Games played with app versions released before November 2026 cannot be found this way; e-mail us and we will remove your name from them.
 
-Single-player progress on your device stays until you delete the app.
+Single-player progress on your device stays until you delete the app. Reports other players sent about you stay until we review them.
 
 You can also ask us by e-mail to delete your data or to send you a copy of it.
 
@@ -56,7 +63,7 @@ You can also ask us by e-mail to delete your data or to send you a copy of it.
 We keep the data above while your account exists and delete it when you delete your account. A guest account's leaderboard scores stay until you delete the account in the app.
 
 ### Children's privacy
-Online features require signing in with Google, and Google applies its own age requirements. If you believe a child has given us personal data, contact us and we will delete it.
+Online features require signing in with Google or Apple, and both apply their own age requirements. If you believe a child has given us personal data, contact us and we will delete it.
 
 ### Changes to this policy
 We update this page when the app changes how it handles data. The date at the top shows the last change.
@@ -82,14 +89,17 @@ Sunucu olarak Google Firebase kullanıyoruz. Ne sakladığımız, uygulamayı na
 |---|---|---|
 | Misafir olarak devam ettiğinizde | Firebase Authentication'ın oluşturduğu anonim kullanıcı kimliği | Yalnızca biz |
 | Google ile giriş yaptığınızda | Google hesap adınız, e-posta adresiniz, profil fotoğrafı bağlantınız ve hesap kimliğiniz; bunları Firebase Authentication saklar | Yalnızca biz |
+| Apple ile giriş yaptığınızda | Paylaşırsanız adınız ve bir Apple hesap kimliği; bunları Firebase Authentication saklar. Uygulama Apple'dan e-posta adresinizi istemez | Yalnızca biz |
 | Global skor tablosuna skor gönderdiğinizde | Uygulamada belirlediğiniz oyuncu adı, skor, yıldız, hamle sayısı, seviye, süre ve kullanıcı kimliğiniz | Giriş yapmış tüm oyuncular |
 | Çevrim içi oyunu açtığınızda (Google girişi) | Görünen adınız, profil fotoğrafı bağlantınız, puanınız, galibiyet/mağlubiyet istatistikleriniz, çevrim içi durumunuz ve son görülme zamanınızdan oluşan profil. E-posta adresiniz bu profilde **yer almaz** | Giriş yapmış tüm oyuncular |
 | Çevrim içi oyun oynadığınızda | Oyun kaydı: kart hamleleri, skorlar, görünen adınız, profil fotoğrafı bağlantınız ve puanınız | O oyunun oyuncuları |
 | Arkadaş eklediğinizde ya da davet gönderdiğinizde | İki kullanıcının kimliklerini, görünen adlarını ve gönderenin profil fotoğrafı bağlantısını içeren arkadaşlık ya da davet kaydı | İlgili iki oyuncu |
 | Rakip aradığınızda | Görünen adınızı, profil fotoğrafı bağlantınızı ve puanınızı içeren geçici eşleştirme kaydı. Rakip bulunduğunda ya da arama bittiğinde silinir | Giriş yapmış tüm oyuncular |
-| Google ile giriş yapmışken | Tüm cihazlarınızda aynı olsun diye jeton, elmas ve güçlendirici sayılarınız | Yalnızca siz |
+| Google ya da Apple ile giriş yapmışken | Tüm cihazlarınızda aynı olsun diye jeton, elmas ve güçlendirici sayılarınız | Yalnızca siz |
+| Bir oyuncuyu bildirdiğinizde | Kullanıcı kimliğiniz, bildirilen oyuncunun kullanıcı kimliği ve adı, bildirim nedeni ve oyuncuyu nerede gördüğünüz | Yalnızca biz |
+| Bir oyuncuyu engellediğinizde | Engellenen oyuncunun kullanıcı kimliği ve adı | Yalnızca siz |
 
-Bu bilgileri yalnızca yukarıdaki oyun özelliklerini çalıştırmak için kullanırız.
+Bu bilgileri yalnızca yukarıdaki oyun özelliklerini çalıştırmak için kullanırız. Bildirimleri inceler, uygunsuz adları ya da hesapları kaldırırız.
 
 ### Bildirimler
 Günlük hatırlatıcılar cihazınızda zamanlanır. Uygulama anlık bildirimler için Firebase Cloud Messaging kullanır; Firebase bunun için bir cihaz anahtarı (token) oluşturur. Bu anahtarı profilinizle birlikte saklamayız.
@@ -97,6 +107,7 @@ Günlük hatırlatıcılar cihazınızda zamanlanır. Uygulama anlık bildirimle
 ### Üçüncü taraf hizmetleri
 - **Firebase Authentication, Cloud Firestore ve Cloud Messaging** (Google LLC) yukarıdaki verileri saklar ve işler. Ayrıntı için [Firebase Gizlilik ve Güvenlik](https://firebase.google.com/support/privacy) sayfasına bakın.
 - **Google ile Giriş** (Google LLC), bu yöntemi seçtiğinizde girişinizi yapar.
+- **Apple ile Giriş** (Apple Inc.), bu yöntemi seçtiğinizde girişinizi yapar.
 
 PairQuest reklam, analitik ya da izleme hizmeti kullanmaz. Verilerinizi reklam amacıyla satmayız ve paylaşmayız.
 
@@ -107,11 +118,14 @@ Uygulamada **Ayarlar → Hesap → Hesabı Sil** adımlarını izleyin. Bu işle
 - buluttaki jeton, elmas ve güçlendiricilerinizi,
 - arkadaşlıklarınızı ve oyun davetlerinizi,
 - eşleştirme kayıtlarınızı,
-- global skor tablosundaki skorlarınızı.
+- global skor tablosundaki skorlarınızı,
+- engellediğiniz oyuncuların listesini ve gönderdiğiniz bildirimleri.
+
+Apple ile giriş yaptıysanız uygulama Apple ile Giriş erişimini de iptal eder.
 
 Çevrim içi oyun kayıtları kalır, çünkü bu oyunlar rakibinizin de oyunlarıdır. Bu kayıtlardaki görünen adınız "Deleted player" ile değiştirilir ve profil fotoğrafı bağlantınız kaldırılır. Kasım 2026'dan önce yayımlanan sürümlerle oynanan oyunlar bu yolla bulunamaz; bize e-posta gönderirseniz adınızı bu kayıtlardan da kaldırırız.
 
-Cihazınızdaki tek oyunculu ilerleme, uygulamayı silene kadar kalır.
+Cihazınızdaki tek oyunculu ilerleme, uygulamayı silene kadar kalır. Başka oyuncuların sizin hakkınızda gönderdiği bildirimler, biz inceleyene kadar kalır.
 
 Verilerinizin silinmesini ya da bir kopyasının size gönderilmesini e-postayla da isteyebilirsiniz.
 
@@ -119,7 +133,7 @@ Verilerinizin silinmesini ya da bir kopyasının size gönderilmesini e-postayla
 Yukarıdaki verileri hesabınız var olduğu sürece saklarız ve hesabınızı sildiğinizde sileriz. Misafir hesabın skor tablosundaki skorları, hesabı uygulamada silene kadar kalır.
 
 ### Çocukların gizliliği
-Çevrim içi özellikler Google ile giriş gerektirir ve Google kendi yaş koşullarını uygular. Bir çocuğun bize kişisel veri verdiğini düşünüyorsanız bizimle iletişime geçin, bu veriyi sileriz.
+Çevrim içi özellikler Google ya da Apple ile giriş gerektirir ve ikisi de kendi yaş koşullarını uygular. Bir çocuğun bize kişisel veri verdiğini düşünüyorsanız bizimle iletişime geçin, bu veriyi sileriz.
 
 ### Bu politikadaki değişiklikler
 Uygulamanın verileri işleme biçimi değiştiğinde bu sayfayı güncelleriz. En üstteki tarih son değişikliği gösterir.

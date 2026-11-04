@@ -5,6 +5,7 @@ import '../../../core/constants/app_links.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../widgets/auth/apple_sign_in_button.dart';
 import '../../widgets/auth/google_sign_in_button.dart';
 
 class AuthScreen extends ConsumerWidget {
@@ -111,6 +112,22 @@ class AuthScreen extends ConsumerWidget {
                         const SizedBox(height: 24),
                       ],
 
+                      // Sign in with Apple comes first on iOS (App Review 4.8)
+                      if (!authState.isLoading && AppleSignInButton.isAvailable) ...[
+                        AppleSignInButton(
+                          onDarkBackground: true,
+                          onPressed: () async {
+                            final success =
+                                await ref.read(authProvider.notifier).signInWithApple();
+                            if (success && context.mounted) {
+                              await _usePlayerNameFromAccount(ref);
+                              if (context.mounted) Navigator.of(context).pop(true);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
                       // Google Sign In Button
                       if (!authState.isLoading)
                         GoogleSignInButton(
@@ -118,12 +135,8 @@ class AuthScreen extends ConsumerWidget {
                             final success =
                                 await ref.read(authProvider.notifier).signInWithGoogle();
                             if (success && context.mounted) {
-                              // Update player name from Google account
-                              final displayName = ref.read(authProvider).displayName;
-                              if (displayName != 'Guest') {
-                                await ref.read(settingsProvider.notifier).setPlayerName(displayName);
-                              }
-                              Navigator.of(context).pop(true);
+                              await _usePlayerNameFromAccount(ref);
+                              if (context.mounted) Navigator.of(context).pop(true);
                             }
                           },
                         ),
@@ -178,6 +191,14 @@ class AuthScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Uses the account name as the leaderboard name; a guest keeps theirs.
+Future<void> _usePlayerNameFromAccount(WidgetRef ref) async {
+  final displayName = ref.read(authProvider).displayName;
+  if (displayName != 'Guest') {
+    await ref.read(settingsProvider.notifier).setPlayerName(displayName);
   }
 }
 

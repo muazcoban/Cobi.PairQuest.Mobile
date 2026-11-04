@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/matchmaking_repository.dart';
 import '../../domain/entities/matchmaking.dart';
 import '../../domain/entities/online_game.dart';
+import 'moderation_provider.dart';
 import 'online_game_provider.dart';
 
 /// Repository provider
@@ -129,7 +130,10 @@ class MatchmakingNotifier extends StateNotifier<MatchmakingSearchStatus> {
           return;
         }
 
-        final gameId = await _repository.findMatch(state.queueId!);
+        final gameId = await _repository.findMatch(
+          state.queueId!,
+          excludeUserIds: _ref.read(blockedUserIdsProvider(oddserId)),
+        );
         if (gameId != null) {
           _handleMatchFound(gameId);
         }
@@ -221,11 +225,15 @@ final matchmakingProvider =
   return MatchmakingNotifier(repository, ref);
 });
 
-/// Game invitations provider
+/// Game invitations provider; invitations from blocked players are hidden
 final pendingInvitationsProvider =
     StreamProvider.family<List<GameInvitation>, String>((ref, oddserId) {
   final repository = ref.watch(matchmakingRepositoryProvider);
-  return repository.watchPendingInvitations(oddserId);
+  final blocked = ref.watch(blockedUserIdsProvider(oddserId));
+  return repository.watchPendingInvitations(oddserId).map((invitations) => [
+        for (final invitation in invitations)
+          if (!blocked.contains(invitation.fromUserId)) invitation,
+      ]);
 });
 
 /// Watch a specific invitation (for sender to know when accepted)

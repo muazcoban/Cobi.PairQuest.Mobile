@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../core/moderation/name_filter.dart';
 import '../../data/repositories/account_repository.dart';
 
 /// Auth state
@@ -21,10 +23,15 @@ class AuthState {
   bool get isAuthenticated => user != null;
   bool get isGoogleLinked =>
       user?.providerData.any((p) => p.providerId == 'google.com') ?? false;
+  bool get isAppleLinked =>
+      user?.providerData.any((p) => p.providerId == 'apple.com') ?? false;
 
+  /// The account name, public on the online profile, leaderboards, friend
+  /// requests and invitations. Names the filter rejects are not used.
   String get displayName {
-    if (user?.displayName != null && user!.displayName!.isNotEmpty) {
-      return user!.displayName!;
+    final name = user?.displayName;
+    if (name != null && name.isNotEmpty && NameFilter.isAllowed(name)) {
+      return name;
     }
     // Not the e-mail address: this name is public on the online profile.
     return 'Guest';
@@ -157,6 +164,43 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  /// Sign in with Apple (App Review 4.8: offered next to Google on iOS).
+  /// Only the name is requested; people can keep their e-mail private.
+  /// A guest account is linked, so its progress stays.
+  Future<bool> signInWithApple() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    final provider = AppleAuthProvider()..addScope('name');
+    try {
+      if (state.isAnonymous && state.user != null) {
+        try {
+          await state.user!.linkWithProvider(provider);
+        } on FirebaseAuthException catch (e) {
+          // This Apple ID already has an account: sign in to that one.
+          if (e.code != 'credential-already-in-use' || e.credential == null) rethrow;
+          await _auth.signInWithCredential(e.credential!);
+        }
+      } else {
+        await _auth.signInWithProvider(provider);
+      }
+      await _auth.currentUser?.reload();
+      state = state.copyWith(
+        user: _auth.currentUser,
+        isLoading: false,
+        isAnonymous: false,
+      );
+      return true;
+    } on FirebaseAuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.code == 'canceled' ? null : e.message,
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
   /// Update Firebase user profile from Google account
   Future<void> _updateProfileFromGoogle(GoogleSignInAccount googleUser) async {
     final user = _auth.currentUser;
@@ -226,22 +270,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Delete the account and the data stored for it in Firestore.
   ///
-  /// Firebase deletes only a user who signed in recently, so a Google user
-  /// signs in again first. If that or a Firestore delete fails, the account
-  /// stays and the user can try again.
+  /// Firebase deletes only a user who signed in recently, so a Google or
+  /// Apple user signs in again first. If that or a Firestore delete fails,
+  /// the account stays and the user can try again.
   Future<AccountDeletionResult> deleteAccount() async {
     final user = state.user;
     if (user == null) return AccountDeletionResult.failed;
     final isGoogle = state.isGoogleLinked;
+    final isApple = state.isAppleLinked;
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      if (isGoogle && !await _reauthenticateWithGoogle(user)) {
+      String? appleAuthorizationCode;
+      if (isApple) {
+        final credential =
+            await user.reauthenticateWithProvider(AppleAuthProvider());
+        appleAuthorizationCode = credential.additionalUserInfo?.authorizationCode;
+      } else if (isGoogle && !await _reauthenticateWithGoogle(user)) {
         state = state.copyWith(isLoading: false);
         return AccountDeletionResult.cancelled;
       }
 
       await _accountRepository.deleteUserData(user.uid);
+
+      // Apple requires apps to revoke Sign in with Apple tokens when the
+      // account is deleted. A failure here must not keep the account.
+      if (appleAuthorizationCode != null) {
+        try {
+          await _auth.revokeTokenWithAuthorizationCode(appleAuthorizationCode);
+        } catch (e) {
+          debugPrint('AuthNotifier: could not revoke the Apple token: $e');
+        }
+      }
 
       try {
         await user.delete();
@@ -264,6 +324,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(isLoading: false, clearUser: true);
       return AccountDeletionResult.deleted;
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'canceled') {
+        state = state.copyWith(isLoading: false);
+        return AccountDeletionResult.cancelled;
+      }
       state = state.copyWith(isLoading: false, error: e.message);
       return e.code == 'user-mismatch'
           ? AccountDeletionResult.wrongAccount

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/game.dart';
 import '../../../domain/entities/online_game.dart';
 import '../../../domain/entities/online_player.dart';
@@ -12,6 +13,7 @@ import '../../providers/friends_provider.dart';
 import '../../providers/online_game_provider.dart';
 import '../../providers/online_profile_provider.dart';
 import '../../widgets/game/game_board.dart';
+import '../../widgets/moderation/player_safety.dart';
 
 /// Online multiplayer game screen
 ///
@@ -410,6 +412,13 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
               ],
             ),
           ),
+          if (isOpponent)
+            PlayerSafetyButton(
+              userId: player.oddserId,
+              displayName: player.displayName,
+              source: ReportSource.game,
+              color: AppColors.textSecondary(context),
+            ),
         ],
       ),
     );

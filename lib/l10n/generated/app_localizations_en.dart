@@ -894,4 +894,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get comboTitle => 'COMBO!';
+
+  @override
+  String get signInWithApple => 'Sign in with Apple';
+
+  @override
+  String get signedInWithApple => 'Using Sign in with Apple';
+
+  @override
+  String get deleteAccountReauthApple =>
+      'You will be asked to sign in with Apple again to continue.';
+
+  @override
+  String get reportPlayer => 'Report';
+
+  @override
+  String get blockPlayer => 'Block';
+
+  @override
+  String reportPlayerTitle(String name) {
+    return 'Report $name';
+  }
+
+  @override
+  String get reportReasonOffensiveName => 'Offensive name';
+
+  @override
+  String get reportReasonOffensivePhoto => 'Offensive profile photo';
+
+  @override
+  String get reportReasonHarassment => 'Harassment or unwanted invitations';
+
+  @override
+  String get reportReasonCheating => 'Cheating';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportAlsoBlock => 'Block this player';
+
+  @override
+  String get reportSend => 'Send';
+
+  @override
+  String get reportSent =>
+      'We received your report. We will review it and remove the player\'s name or account if needed.';
+
+  @override
+  String get reportFailed =>
+      'The report could not be sent. Check your connection and try again.';
+
+  @override
+  String blockPlayerTitle(String name) {
+    return 'Block $name?';
+  }
+
+  @override
+  String get blockPlayerDesc =>
+      'This player can\'t send you friend requests or game invitations and won\'t be matched with you. If you are friends, the friendship ends. You can unblock them in Settings.';
+
+  @override
+  String playerBlocked(String name) {
+    return '$name is blocked';
+  }
+
+  @override
+  String get blockFailed => 'The player could not be blocked. Try again.';
+
+  @override
+  String get playerOptions => 'Player options';
+
+  @override
+  String get blockedPlayers => 'Blocked players';
+
+  @override
+  String get noBlockedPlayers => 'You haven\'t blocked anyone';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String get contactUs => 'Contact us';
+
+  @override
+  String get nameNotAllowed => 'This name can\'t be used. Choose another one.';
 }

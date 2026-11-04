@@ -24,6 +24,9 @@ void main() {
       await firestore.doc('users/$me').set({'displayName': 'Me'});
       await firestore.doc('users/$me/data/wallet').set({'coins': 10});
       await firestore.doc('users/$me/data/inventory').set({'hint': 2});
+      await firestore.doc('users/$me/blocked/troll').set({'displayName': 'Troll'});
+      await firestore.doc('reports/r1').set({'reporterId': me, 'reportedUserId': 'troll'});
+      await firestore.doc('reports/r2').set({'reporterId': friend, 'reportedUserId': me});
       await firestore.doc('users/$friend').set({'displayName': 'Friend'});
       await firestore.doc('users/$friend/data/wallet').set({'coins': 5});
 
@@ -44,6 +47,8 @@ void main() {
         'users/$me',
         'users/$me/data/wallet',
         'users/$me/data/inventory',
+        'users/$me/blocked/troll',
+        'reports/r1',
         'friendships/f1',
         'friendships/f2',
         'invitations/i1',
@@ -56,6 +61,7 @@ void main() {
       for (final path in [
         'users/$friend',
         'users/$friend/data/wallet',
+        'reports/r2',
         'friendships/f3',
         'invitations/i3',
         'matchmaking/q2',

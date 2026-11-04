@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/matchmaking.dart';
 import '../../../domain/entities/online_player.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -9,6 +10,7 @@ import '../../providers/friends_provider.dart';
 import '../../providers/matchmaking_provider.dart';
 import '../../providers/online_game_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../widgets/moderation/player_safety.dart';
 import 'friend_search_screen.dart';
 import 'online_game_screen.dart';
 
@@ -303,6 +305,11 @@ class _FriendTile extends ConsumerWidget {
               _inviteToGame(context, ref, l10n);
             } else if (value == 'remove') {
               _removeFriend(context, ref, l10n);
+            } else {
+              handlePlayerSafetyAction(value, context, ref,
+                  userId: friendId,
+                  displayName: displayName,
+                  source: ReportSource.friends);
             }
           },
           itemBuilder: (context) => [
@@ -326,6 +333,8 @@ class _FriendTile extends ConsumerWidget {
                 ],
               ),
             ),
+            const PopupMenuDivider(),
+            ...playerSafetyMenuItems(l10n),
           ],
         ),
       ),
@@ -482,6 +491,12 @@ class _FriendRequestTile extends ConsumerWidget {
                 onPressed: () => _declineRequest(context, ref, l10n),
                 icon: Icon(Icons.cancel, color: Colors.red.shade400),
                 tooltip: l10n.decline,
+              ),
+              PlayerSafetyButton(
+                userId: senderId,
+                displayName: displayName,
+                source: ReportSource.friendRequest,
+                color: AppColors.textSecondary(context),
               ),
             ],
           ),
