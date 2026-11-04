@@ -28,8 +28,9 @@ class AuthScreen extends ConsumerWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
+            // White text needs 4.5:1 on every part of the gradient;
+            // primaryLight gives only 3.74:1.
             colors: [
-              AppColors.primaryLight,
               AppColors.primary,
               AppColors.primaryDark,
             ],
@@ -67,7 +68,7 @@ class AuthScreen extends ConsumerWidget {
                       Text(
                         returnMessage ?? l10n.signInToSaveProgress,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.white70,
+                              color: AppColors.textLightSecondary,
                             ),
                         textAlign: TextAlign.center,
                       ),
@@ -92,6 +93,7 @@ class AuthScreen extends ConsumerWidget {
                                 ),
                               ),
                               IconButton(
+                                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                                 icon: const Icon(Icons.close, color: Colors.white),
                                 onPressed: () {
                                   ref.read(authProvider.notifier).clearError();
@@ -147,7 +149,7 @@ class AuthScreen extends ConsumerWidget {
                         child: Text(
                           l10n.privacyPolicy,
                           style: const TextStyle(
-                            color: Colors.white54,
+                            color: AppColors.textLightSecondary,
                             decoration: TextDecoration.underline,
                           ),
                         ),
@@ -163,6 +165,7 @@ class AuthScreen extends ConsumerWidget {
                   top: 8,
                   left: 8,
                   child: IconButton(
+                    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(
                       Icons.arrow_back_ios_new,
@@ -196,7 +199,7 @@ class _GuestButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.white,
-          side: const BorderSide(color: Colors.white54, width: 2),
+          side: const BorderSide(color: AppColors.textLightSecondary, width: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

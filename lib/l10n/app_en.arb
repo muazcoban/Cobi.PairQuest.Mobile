@@ -309,5 +309,17 @@
   "deleteAccountReauth": "You will be asked to sign in with Google again to continue.",
   "accountDeleted": "Your account was deleted",
   "accountDeletionFailed": "The account could not be deleted. Check your connection and try again.",
-  "accountDeletionWrongAccount": "Sign in with the account you want to delete"
+  "accountDeletionWrongAccount": "Sign in with the account you want to delete",
+  "cardPosition": "Row {row}, column {column}",
+  "cardFaceDown": "face down",
+  "cardFaceUp": "face up, {image}",
+  "cardMatchedState": "matched, {image}",
+  "pairFoundAnnouncement": "Match",
+  "pairMissedAnnouncement": "No match",
+  "powerUpButtonLabel": "{name}, {count} left",
+  "timerFrozen": "FROZEN",
+  "comboAmazing": "AMAZING!",
+  "comboFantastic": "FANTASTIC!",
+  "comboGreat": "GREAT!",
+  "comboTitle": "COMBO!"
 }

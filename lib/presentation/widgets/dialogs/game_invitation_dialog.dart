@@ -78,7 +78,7 @@ class GameInvitationDialog extends ConsumerWidget {
                               ? invitation.fromDisplayName[0].toUpperCase()
                               : '?',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: AppColors.primaryText(context),
                             fontWeight: FontWeight.bold,
                           ),
                         )

@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../domain/entities/game.dart';
 import '../../../domain/entities/power_up.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../l10n/power_up_l10n.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/power_up_provider.dart';
 
@@ -63,8 +64,12 @@ class _PowerUpBarState extends ConsumerState<PowerUpBar> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      // Six 56 pt buttons and the active indicator do not fit one row on a
+      // 375 pt screen; Wrap moves the rest to a second row.
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runSpacing: 4,
         children: [
           // Active power-up indicator
           if (gameUsage.hasActivePowerUp)
@@ -142,7 +147,7 @@ class _PowerUpBarState extends ConsumerState<PowerUpBar> {
             ],
           ),
           duration: const Duration(seconds: 1),
-          backgroundColor: AppColors.success,
+          backgroundColor: AppColors.successStrong,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -165,7 +170,16 @@ class _PowerUpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final l10n = AppLocalizations.of(context)!;
+
+    return Semantics(
+      label: l10n.powerUpButtonLabel(l10n.powerUpName(powerUp.type), quantity),
+      button: true,
+      enabled: onTap != null,
+      selected: isActive,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -195,9 +209,11 @@ class _PowerUpButton extends StatelessWidget {
         child: Stack(
           children: [
             // Icon
+            // The emoji is an icon sized to the 48 pt button.
             Center(
               child: Text(
                 powerUp.icon,
+                textScaler: TextScaler.noScaling,
                 style: const TextStyle(fontSize: 24),
               ),
             ),
@@ -214,8 +230,10 @@ class _PowerUpButton extends StatelessWidget {
                 ),
                 child: Text(
                   'x$quantity',
+                  textScaler: MediaQuery.textScalerOf(context)
+                      .clamp(maxScaleFactor: 1.5),
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -224,6 +242,7 @@ class _PowerUpButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -269,7 +288,20 @@ class _ActivePowerUpIndicatorState extends State<_ActivePowerUpIndicator>
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
-    )..repeat(reverse: true);
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The pulse repeats for the whole power-up; Reduce Motion keeps it still.
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _controller
+        ..stop()
+        ..value = 0.5;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    }
   }
 
   @override

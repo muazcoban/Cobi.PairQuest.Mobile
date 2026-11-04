@@ -851,4 +851,48 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get accountDeletionWrongAccount =>
       'Silmek istediğiniz hesapla giriş yapın';
+
+  @override
+  String cardPosition(int row, int column) {
+    return 'Satır $row, sütun $column';
+  }
+
+  @override
+  String get cardFaceDown => 'kapalı';
+
+  @override
+  String cardFaceUp(String image) {
+    return 'açık, $image';
+  }
+
+  @override
+  String cardMatchedState(String image) {
+    return 'eşleşti, $image';
+  }
+
+  @override
+  String get pairFoundAnnouncement => 'Eşleşti';
+
+  @override
+  String get pairMissedAnnouncement => 'Eşleşmedi';
+
+  @override
+  String powerUpButtonLabel(String name, int count) {
+    return '$name, $count adet';
+  }
+
+  @override
+  String get timerFrozen => 'DONDU';
+
+  @override
+  String get comboAmazing => 'MUHTEŞEM!';
+
+  @override
+  String get comboFantastic => 'FANTASTİK!';
+
+  @override
+  String get comboGreat => 'HARİKA!';
+
+  @override
+  String get comboTitle => 'COMBO!';
 }

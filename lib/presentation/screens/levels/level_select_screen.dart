@@ -37,6 +37,7 @@ class LevelSelectScreen extends ConsumerWidget {
                 child: Row(
                   children: [
                     IconButton(
+                      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
@@ -317,7 +318,7 @@ class _LevelCard extends StatelessWidget {
                         'Best: $bestScore',
                         style: TextStyle(
                           color: AppColors.textSecondaryLight,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                   ],

@@ -34,16 +34,32 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
+    );
 
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
-    )..repeat();
+    );
 
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The search pulses and spins until a match is found; Reduce Motion keeps
+    // both still.
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _pulseController
+        ..stop()
+        ..value = 0.5;
+      _rotationController.stop();
+    } else {
+      if (!_pulseController.isAnimating) _pulseController.repeat(reverse: true);
+      if (!_rotationController.isAnimating) _rotationController.repeat();
+    }
   }
 
   void _startSearching() {
@@ -103,6 +119,7 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
+                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                       onPressed: () async {
                         await ref.read(matchmakingProvider.notifier).cancelSearch();
                         if (mounted) Navigator.of(context).pop();
@@ -334,7 +351,7 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen>
               Text(
                 l10n.searchTime,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   color: AppColors.textSecondary(context),
                 ),
               ),
@@ -365,7 +382,7 @@ class _MatchmakingScreenState extends ConsumerState<MatchmakingScreen>
               Text(
                 l10n.ratingRange,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   color: AppColors.textSecondary(context),
                 ),
               ),

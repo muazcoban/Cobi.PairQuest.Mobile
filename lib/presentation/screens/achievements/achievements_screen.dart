@@ -312,7 +312,7 @@ class _AchievementCard extends StatelessWidget {
                         child: Text(
                           _getRarityName(context),
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: _rarityColor,
                           ),

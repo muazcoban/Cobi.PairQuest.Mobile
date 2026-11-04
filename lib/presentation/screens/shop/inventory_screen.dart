@@ -192,7 +192,7 @@ class _InventoryItem extends StatelessWidget {
                           child: Text(
                             l10n.timedModeOnly,
                             style: const TextStyle(
-                              fontSize: 9,
+                              fontSize: 11,
                               color: AppColors.warning,
                               fontWeight: FontWeight.w500,
                             ),
@@ -215,10 +215,10 @@ class _InventoryItem extends StatelessWidget {
             ),
             child: Text(
               'x$quantity',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+                color: AppColors.primaryText(context),
               ),
             ),
           ),

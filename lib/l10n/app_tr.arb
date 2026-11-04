@@ -600,5 +600,21 @@
   "deleteAccountReauth": "Devam etmek için Google hesabınızla yeniden giriş yapmanız istenecek.",
   "accountDeleted": "Hesabınız silindi",
   "accountDeletionFailed": "Hesap silinemedi. Bağlantınızı kontrol edip tekrar deneyin.",
-  "accountDeletionWrongAccount": "Silmek istediğiniz hesapla giriş yapın"
+  "accountDeletionWrongAccount": "Silmek istediğiniz hesapla giriş yapın",
+  "cardPosition": "Satır {row}, sütun {column}",
+  "cardFaceDown": "kapalı",
+  "cardFaceUp": "açık, {image}",
+  "cardMatchedState": "eşleşti, {image}",
+  "pairFoundAnnouncement": "Eşleşti",
+  "pairMissedAnnouncement": "Eşleşmedi",
+  "powerUpButtonLabel": "{name}, {count} adet",
+  "@cardPosition": {"description": "VoiceOver label of a card's place on the board", "placeholders": {"row": {"type": "int"}, "column": {"type": "int"}}},
+  "@cardFaceUp": {"placeholders": {"image": {"type": "String"}}},
+  "@cardMatchedState": {"placeholders": {"image": {"type": "String"}}},
+  "@powerUpButtonLabel": {"description": "VoiceOver label of a power-up button", "placeholders": {"name": {"type": "String"}, "count": {"type": "int"}}},
+  "timerFrozen": "DONDU",
+  "comboAmazing": "MUHTEŞEM!",
+  "comboFantastic": "FANTASTİK!",
+  "comboGreat": "HARİKA!",
+  "comboTitle": "COMBO!"
 }

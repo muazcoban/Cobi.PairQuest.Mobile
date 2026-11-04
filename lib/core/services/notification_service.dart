@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import '../../main.dart' show navigatorKey;
@@ -25,6 +26,8 @@ class NotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+
+  static const String _permissionAskedKey = 'notification_permission_asked';
 
   bool _isInitialized = false;
   String? _fcmToken;
@@ -96,8 +99,8 @@ class NotificationService {
       // Small delay to let app finish launching
       await Future.delayed(const Duration(seconds: 2));
 
-      // Request permissions
-      await _requestPermission();
+      // No permission request here: asking at launch has no context (HIG
+      // Privacy). See requestPermission.
 
       // Get FCM token
       await _initializeFCMToken();
@@ -112,8 +115,22 @@ class NotificationService {
     }
   }
 
-  /// Request notification permissions
-  Future<bool> _requestPermission() async {
+  /// Asks once, after the first won level, so the daily reminder (on by
+  /// default) can be shown. The system shows its alert only the first time.
+  Future<void> requestPermissionAfterFirstWin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_permissionAskedKey) ?? false) return;
+      await prefs.setBool(_permissionAskedKey, true);
+      await requestPermission();
+    } catch (e) {
+      debugPrint('Notification permission request error: $e');
+    }
+  }
+
+  /// Request notification permissions. Called when people turn on the daily
+  /// reminder or win their first level, not at launch.
+  Future<bool> requestPermission() async {
     final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,

@@ -30,7 +30,7 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           // Account Section
-          _buildSectionHeader(l10n.account),
+          _buildSectionHeader(context, l10n.account),
           _buildAccountTile(context, ref, authState, l10n),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
@@ -53,12 +53,12 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Player Name Section
-          _buildSectionHeader(l10n.playerName),
+          _buildSectionHeader(context, l10n.playerName),
           _buildPlayerNameTile(context, ref, settings.playerName, l10n),
           const SizedBox(height: 24),
 
           // Language Section
-          _buildSectionHeader(l10n.language),
+          _buildSectionHeader(context, l10n.language),
           _buildLanguageTile(
             context: context,
             ref: ref,
@@ -78,7 +78,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Theme Section
-          _buildSectionHeader(l10n.theme),
+          _buildSectionHeader(context, l10n.theme),
           _buildThemeTile(
             context: context,
             ref: ref,
@@ -106,12 +106,12 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Card Theme Section
-          _buildSectionHeader(l10n.cardTheme),
+          _buildSectionHeader(context, l10n.cardTheme),
           _buildCardThemeTile(context, ref, settings.cardTheme, l10n),
           const SizedBox(height: 24),
 
           // Sound Section
-          _buildSectionHeader(l10n.sound),
+          _buildSectionHeader(context, l10n.sound),
           SwitchListTile(
             title: Text(l10n.music),
             subtitle: Text(l10n.musicDesc),
@@ -141,7 +141,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Notifications Section
-          _buildSectionHeader(l10n.notifications),
+          _buildSectionHeader(context, l10n.notifications),
           SwitchListTile(
             title: Text(l10n.dailyReminder),
             subtitle: Text(
@@ -260,15 +260,19 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.primary,
+      // VoiceOver lists headings in the rotor (HIG VoiceOver, Navigation).
+      child: Semantics(
+        header: true,
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryText(context),
+          ),
         ),
       ),
     );
@@ -388,6 +392,7 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(authState.displayName),
             subtitle: Text(authState.email ?? l10n.account),
             trailing: IconButton(
+              tooltip: AppLocalizations.of(context)!.signOut,
               icon: const Icon(Icons.logout),
               onPressed: () => _showSignOutDialog(context, ref, l10n),
             ),

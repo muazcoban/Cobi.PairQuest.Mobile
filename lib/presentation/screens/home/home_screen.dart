@@ -67,7 +67,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(message),
-                backgroundColor: AppColors.success,
+                backgroundColor: AppColors.successStrong,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -92,8 +92,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
+            // White text needs 4.5:1 on every part of the gradient;
+            // primaryLight gives only 3.74:1.
             colors: [
-              AppColors.primaryLight,
               AppColors.primary,
               AppColors.primaryDark,
             ],
@@ -126,7 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     Text(
                       l10n.appSubtitle,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.textLightSecondary,
                           ),
                     ),
                     const SizedBox(height: 32),
@@ -251,16 +252,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 24),
-
-                    // Version info
-                    Text(
-                      'v1.0.0',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white38,
-                          ),
-                    ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -281,15 +273,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                     ),
-                    // Music toggle
-                    IconButton(
-                      onPressed: () {
-                        ref.read(settingsProvider.notifier).toggleMusic();
-                      },
-                      icon: Icon(
-                        musicEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-                        color: Colors.white,
-                        size: 28,
+                    // Music toggle; VoiceOver reads the on/off state too
+                    Semantics(
+                      toggled: musicEnabled,
+                      child: IconButton(
+                        tooltip: AppLocalizations.of(context)!.music,
+                        onPressed: () {
+                          ref.read(settingsProvider.notifier).toggleMusic();
+                        },
+                        icon: Icon(
+                          musicEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                       ),
                     ),
                   ],
@@ -391,8 +387,8 @@ class _QuickAccessButton extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 10,
-              color: Colors.white70,
+              fontSize: 11,
+              color: AppColors.textLightSecondary,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -452,7 +448,7 @@ class _MenuButton extends StatelessWidget {
                   Text(
                     sublabel,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white60,
+                          color: AppColors.textLightSecondary,
                         ),
                   ),
                 ],
@@ -460,7 +456,7 @@ class _MenuButton extends StatelessWidget {
               const Spacer(),
               const Icon(
                 Icons.arrow_forward_ios,
-                color: Colors.white54,
+                color: AppColors.textLightSecondary,
                 size: 20,
               ),
             ],

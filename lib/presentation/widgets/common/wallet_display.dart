@@ -74,10 +74,12 @@ class _WalletDisplayState extends ConsumerState<WalletDisplay> {
         GestureDetector(
           onTap: widget.onTap,
           child: Container(
+            // A tappable pill is at least 44 pt tall (HIG Accessibility).
+            constraints: BoxConstraints(minHeight: widget.onTap != null ? 44 : 0),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: AppColors.surfaceColor(context),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(
                 color: AppColors.cardBorder(context),
                 width: 1,
@@ -383,15 +385,20 @@ class _CurrencyAddAnimationState extends State<CurrencyAddAnimation>
 
   @override
   Widget build(BuildContext context) {
+    // Reduce Motion: the amount fades out in place, without zoom or rise.
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return SlideTransition(
-          position: _slideAnimation,
+          position: reduceMotion
+              ? const AlwaysStoppedAnimation(Offset.zero)
+              : _slideAnimation,
           child: Opacity(
             opacity: _opacityAnimation.value,
             child: Transform.scale(
-              scale: _scaleAnimation.value,
+              scale: reduceMotion ? 1.0 : _scaleAnimation.value,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

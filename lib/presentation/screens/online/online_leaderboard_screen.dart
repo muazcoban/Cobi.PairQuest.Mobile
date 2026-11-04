@@ -228,7 +228,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                           Text(
                             l10n.yourRank,
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 11,
                               color: Colors.white.withValues(alpha: 0.8),
                             ),
                           ),
@@ -326,7 +326,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 11,
             color: Colors.white.withValues(alpha: 0.7),
           ),
         ),

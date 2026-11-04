@@ -1,9 +1,11 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/game_config.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/entities/game.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -186,7 +188,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
                 ),
               ],
             ),
-            backgroundColor: AppColors.accent,
+            backgroundColor: AppColors.accentStrong,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -263,7 +265,11 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     final isPreview = game?.state == GameState.preview;
     final isMultiplayer = game?.isMultiplayer ?? false;
 
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
     ref.listen<GameStateData>(gameProvider, (previous, next) {
+      _announceCardChanges(previous?.currentGame, next.currentGame);
+
       // Check for combo changes (single player only)
       if (!isMultiplayer) {
         final prevCombo = previous?.currentGame?.combo ?? 0;
@@ -289,7 +295,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
         final allRevealed = next.currentGame?.cards
             .where((c) => c.state != CardState.matched)
             .every((c) => c.state == CardState.revealed) ?? false;
-        if (allRevealed && next.currentGame?.cards.isNotEmpty == true) {
+        // The full-screen flash is skipped with Reduce Motion.
+        if (allRevealed &&
+            next.currentGame?.cards.isNotEmpty == true &&
+            !reduceMotion) {
           setState(() => _showPeekFlash = true);
           Future.delayed(const Duration(milliseconds: 400), () {
             if (mounted) setState(() => _showPeekFlash = false);
@@ -299,7 +308,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
 
       if (next.currentGame?.state == GameState.completed &&
           previous?.currentGame?.state != GameState.completed) {
-        _confettiController.play();
+        if (!reduceMotion) _confettiController.play();
         if (next.currentGame?.isMultiplayer ?? false) {
           _showMultiplayerResultDialog();
         } else {
@@ -403,6 +412,43 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     );
   }
 
+  /// VoiceOver does not read a changed label by itself, so the revealed
+  /// picture and the result of each pair are announced (HIG VoiceOver:
+  /// "Inform VoiceOver when visible content or layout changes occur").
+  void _announceCardChanges(Game? previous, Game? next) {
+    if (previous == null || next == null) return;
+    if (!MediaQuery.accessibleNavigationOf(context)) return;
+
+    final before = {for (final card in previous.cards) card.id: card.state};
+    final revealed = next.cards
+        .where((c) => c.state == CardState.revealed && before[c.id] == CardState.hidden)
+        .toList();
+    final matched = next.cards
+        .where((c) => c.state == CardState.matched && before[c.id] != CardState.matched)
+        .length;
+    final missed = next.cards
+        .where((c) => c.state == CardState.hidden && before[c.id] == CardState.revealed)
+        .length;
+
+    final l10n = AppLocalizations.of(context)!;
+    String? message;
+    if (matched > 0) {
+      message = l10n.pairFoundAnnouncement;
+    } else if (missed >= 2) {
+      message = l10n.pairMissedAnnouncement;
+    } else if (revealed.length == 1) {
+      // Peek reveals every card at once; announcing all of them is noise.
+      message = revealed.first.imageAsset;
+    }
+    if (message == null) return;
+
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
+  }
+
   /// Shown when the game could not be created, instead of an endless spinner
   Widget _buildStartError() {
     final l10n = AppLocalizations.of(context)!;
@@ -445,6 +491,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
               ref.read(gameProvider.notifier).endGame();
@@ -461,7 +508,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
               child: Text(
                 '${AppLocalizations.of(context)!.level} ${game.level} • ${game.gridSize.rows}x${game.gridSize.cols}',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: AppColors.primaryText(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -470,6 +517,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
             children: [
               if (game?.state == GameState.inProgress)
                 IconButton(
+                  tooltip: AppLocalizations.of(context)!.pause,
                   icon: const Icon(Icons.pause),
                   onPressed: () {
                     ref.read(gameProvider.notifier).pauseGame();
@@ -477,6 +525,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
                   },
                 ),
               IconButton(
+                tooltip: AppLocalizations.of(context)!.restart,
                 icon: const Icon(Icons.refresh),
                 onPressed: () {
                   ref.read(gameProvider.notifier).resetGame();
@@ -538,6 +587,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
 
     // Save progress with stars and get coins earned (awaited to ensure coins are calculated)
     await _saveProgress(game, stars);
+
+    // The first win is when the daily reminder starts to matter, so the
+    // permission alert comes here instead of at launch.
+    await NotificationService().requestPermissionAfterFirstWin();
 
     if (!mounted) return;
 
@@ -640,6 +693,8 @@ class _PreviewOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // With Reduce Motion the tweens start at their end value: no zoom.
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
     return Positioned.fill(
       child: IgnorePointer(
@@ -650,7 +705,7 @@ class _PreviewOverlay extends StatelessWidget {
             children: [
               // Animated "Memorize!" text
               TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.8, end: 1.2),
+                tween: Tween(begin: reduceMotion ? 1.2 : 0.8, end: 1.2),
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeInOut,
                 builder: (context, scale, child) {
@@ -721,7 +776,7 @@ class _PreviewOverlay extends StatelessWidget {
                     ),
                     // Pulsing eye icon
                     TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.9, end: 1.1),
+                      tween: Tween(begin: reduceMotion ? 1.1 : 0.9, end: 1.1),
                       duration: const Duration(milliseconds: 400),
                       curve: Curves.easeInOut,
                       builder: (context, scale, child) {
@@ -752,6 +807,37 @@ class _FreezeOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final label = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.cyan.shade800,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.cyan.withOpacity(0.5),
+            blurRadius: 15,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.ac_unit, color: Colors.white, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            AppLocalizations.of(context)!.timeFrozen,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+
     return Positioned.fill(
       child: IgnorePointer(
         child: Container(
@@ -779,8 +865,8 @@ class _FreezeOverlay extends StatelessWidget {
                   ),
                 ),
               ),
-              // Snowflake particles
-              ...List.generate(6, (index) {
+              // Snowflake particles (falling and blinking: off with Reduce Motion)
+              if (!reduceMotion) ...List.generate(6, (index) {
                 final positions = [
                   const Offset(30, 100),
                   const Offset(80, 200),
@@ -809,41 +895,15 @@ class _FreezeOverlay extends StatelessWidget {
                 alignment: Alignment.topCenter,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 100),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.cyan.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.cyan.withOpacity(0.5),
-                          blurRadius: 15,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.ac_unit, color: Colors.white, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'TIME FROZEN',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                  child: reduceMotion
+                      ? label
+                      : label
+                          .animate(onPlay: (c) => c.repeat(reverse: true))
+                          .scale(
+                            begin: const Offset(1.0, 1.0),
+                            end: const Offset(1.05, 1.05),
+                            duration: 800.ms,
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                      .animate(onPlay: (c) => c.repeat(reverse: true))
-                      .scale(
-                        begin: const Offset(1.0, 1.0),
-                        end: const Offset(1.05, 1.05),
-                        duration: 800.ms,
-                      ),
                 ),
               ),
             ],
@@ -860,12 +920,8 @@ class _TimeBonusFloatingText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 120,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final badge = Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -895,23 +951,36 @@ class _TimeBonusFloatingText extends StatelessWidget {
               ),
             ],
           ),
-        )
-            .animate()
-            .scale(
-              begin: const Offset(0.5, 0.5),
-              end: const Offset(1.1, 1.1),
-              duration: 300.ms,
-              curve: Curves.elasticOut,
-            )
-            .then()
-            .scale(
-              begin: const Offset(1.1, 1.1),
-              end: const Offset(1.0, 1.0),
-              duration: 200.ms,
-            )
-            .then(delay: 600.ms)
-            .fadeOut(duration: 400.ms)
-            .slideY(begin: 0, end: -0.5, duration: 400.ms),
+        );
+
+    return Positioned(
+      top: 120,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: reduceMotion
+            ? badge
+                .animate()
+                .fadeIn(duration: 200.ms)
+                .then(delay: 900.ms)
+                .fadeOut(duration: 400.ms)
+            : badge
+                .animate()
+                .scale(
+                  begin: const Offset(0.5, 0.5),
+                  end: const Offset(1.1, 1.1),
+                  duration: 300.ms,
+                  curve: Curves.elasticOut,
+                )
+                .then()
+                .scale(
+                  begin: const Offset(1.1, 1.1),
+                  end: const Offset(1.0, 1.0),
+                  duration: 200.ms,
+                )
+                .then(delay: 600.ms)
+                .fadeOut(duration: 400.ms)
+                .slideY(begin: 0, end: -0.5, duration: 400.ms),
       ),
     );
   }
@@ -966,15 +1035,11 @@ class _MagnetActiveOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 150,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final badge = Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.9),
+            color: Colors.red.shade700,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -984,14 +1049,14 @@ class _MagnetActiveOverlay extends StatelessWidget {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('🧲', style: TextStyle(fontSize: 20)),
-              SizedBox(width: 8),
+              const Text('🧲', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
               Text(
-                'TAP ANY CARD',
-                style: TextStyle(
+                AppLocalizations.of(context)!.tapAnyCard,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
@@ -999,14 +1064,23 @@ class _MagnetActiveOverlay extends StatelessWidget {
               ),
             ],
           ),
-        )
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .scale(
-              begin: const Offset(1.0, 1.0),
-              end: const Offset(1.05, 1.05),
-              duration: 600.ms,
-            )
-            .shimmer(duration: 1500.ms, color: Colors.white.withOpacity(0.3)),
+        );
+
+    return Positioned(
+      bottom: 150,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: reduceMotion
+            ? badge
+            : badge
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .scale(
+                  begin: const Offset(1.0, 1.0),
+                  end: const Offset(1.05, 1.05),
+                  duration: 600.ms,
+                )
+                .shimmer(duration: 1500.ms, color: Colors.white.withOpacity(0.3)),
       ),
     );
   }

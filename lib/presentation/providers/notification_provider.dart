@@ -148,6 +148,7 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
   Future<void> setDailyReminder(bool enabled) async {
     state = state.copyWith(dailyReminderEnabled: enabled);
     await _saveSettings();
+    if (enabled) await _notificationService.requestPermission();
     await _applySettings();
   }
 

@@ -126,6 +126,7 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
+                        tooltip: MaterialLocalizations.of(context).clearButtonTooltip,
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
@@ -279,7 +280,7 @@ class _UserSearchTile extends ConsumerWidget {
               ? Text(
                   displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.primaryText(context),
                     fontWeight: FontWeight.bold,
                   ),
                 )

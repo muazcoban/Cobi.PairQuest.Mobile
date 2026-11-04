@@ -53,9 +53,6 @@ dependencies:
   # Audio
   audioplayers: ^6.1.0
 
-  # Haptic Feedback
-  vibration: ^2.0.0
-
   # Confetti Animation
   confetti: ^0.8.0
   url_launcher: ^6.3.2

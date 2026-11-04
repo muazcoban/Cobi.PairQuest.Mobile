@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../domain/entities/player.dart';
@@ -20,40 +21,46 @@ class MultiplayerHeader extends ConsumerWidget {
     final players = game.players!;
     final currentPlayerIndex = game.currentPlayerIndex;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Player score cards
-          Row(
-            children: players.asMap().entries.map((entry) {
-              final index = entry.key;
-              final player = entry.value;
-              final isCurrentTurn = index == currentPlayerIndex;
+    // The header sits under the status bar, so it sets the icon color.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-              return Expanded(
-                child: _PlayerScoreCard(
-                  player: player,
-                  isCurrentTurn: isCurrentTurn,
-                  playerIndex: index,
-                ),
-              );
-            }).toList(),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceColor(context),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Player score cards
+            Row(
+              children: players.asMap().entries.map((entry) {
+                final index = entry.key;
+                final player = entry.value;
+                final isCurrentTurn = index == currentPlayerIndex;
+
+                return Expanded(
+                  child: _PlayerScoreCard(
+                    player: player,
+                    isCurrentTurn: isCurrentTurn,
+                    playerIndex: index,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
           ),
-        ],
         ),
       ),
     );
@@ -177,7 +184,7 @@ class _PlayerScoreCard extends StatelessWidget {
               child: Text(
                 '${player.combo}x',
                 style: const TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),

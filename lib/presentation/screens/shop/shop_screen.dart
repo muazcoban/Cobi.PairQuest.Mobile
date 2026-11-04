@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../domain/entities/power_up.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../l10n/power_up_l10n.dart';
 import '../../providers/power_up_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/common/wallet_display.dart';
@@ -117,7 +118,7 @@ class _PowerUpCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _getLocalizedName(l10n, powerUp.type),
+                    l10n.powerUpName(powerUp.type),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -138,7 +139,7 @@ class _PowerUpCard extends ConsumerWidget {
                       child: Text(
                         l10n.owned(ownedCount),
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 11,
                           color: AppColors.success,
                           fontWeight: FontWeight.w500,
                         ),
@@ -214,23 +215,6 @@ class _PowerUpCard extends ConsumerWidget {
         return Colors.purple;
       case PowerUpType.magnet:
         return Colors.red;
-    }
-  }
-
-  String _getLocalizedName(AppLocalizations l10n, PowerUpType type) {
-    switch (type) {
-      case PowerUpType.peek:
-        return l10n.powerUpPeek;
-      case PowerUpType.freeze:
-        return l10n.powerUpFreeze;
-      case PowerUpType.hint:
-        return l10n.powerUpHint;
-      case PowerUpType.shuffle:
-        return l10n.powerUpShuffle;
-      case PowerUpType.timeBonus:
-        return l10n.powerUpTimeBonus;
-      case PowerUpType.magnet:
-        return l10n.powerUpMagnet;
     }
   }
 

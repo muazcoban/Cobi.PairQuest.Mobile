@@ -850,4 +850,48 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountDeletionWrongAccount =>
       'Sign in with the account you want to delete';
+
+  @override
+  String cardPosition(int row, int column) {
+    return 'Row $row, column $column';
+  }
+
+  @override
+  String get cardFaceDown => 'face down';
+
+  @override
+  String cardFaceUp(String image) {
+    return 'face up, $image';
+  }
+
+  @override
+  String cardMatchedState(String image) {
+    return 'matched, $image';
+  }
+
+  @override
+  String get pairFoundAnnouncement => 'Match';
+
+  @override
+  String get pairMissedAnnouncement => 'No match';
+
+  @override
+  String powerUpButtonLabel(String name, int count) {
+    return '$name, $count left';
+  }
+
+  @override
+  String get timerFrozen => 'FROZEN';
+
+  @override
+  String get comboAmazing => 'AMAZING!';
+
+  @override
+  String get comboFantastic => 'FANTASTIC!';
+
+  @override
+  String get comboGreat => 'GREAT!';
+
+  @override
+  String get comboTitle => 'COMBO!';
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../domain/entities/game.dart';
 import '../../../domain/entities/online_game.dart';
 import '../../../domain/entities/online_player.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -10,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/friends_provider.dart';
 import '../../providers/online_game_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../widgets/game/game_board.dart';
 
 /// Online multiplayer game screen
 ///
@@ -401,7 +403,7 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
                 Text(
                   '${player.matches} pairs',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11,
                     color: AppColors.textSecondary(context),
                   ),
                 ),
@@ -555,41 +557,72 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
     // Wait until the opponent's pair has been shown before allowing taps
     final canTap = isMyTurn && !_isProcessing && _opponentRevealed.isEmpty;
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: game.cols,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.8,
-        ),
-        itemCount: game.totalCards,
-        itemBuilder: (context, index) {
-          final pairId = game.cardPairIds[index];
-          final isMatched = matchedPairIds.contains(pairId);
-          final isRevealed = _firstCardIndex == index ||
-              _secondCardIndex == index ||
-              _opponentRevealed.contains(index) ||
-              isMatched;
+    final l10n = AppLocalizations.of(context)!;
+    final grid = GridSize(rows: game.rows, cols: game.cols);
 
-          return GestureDetector(
-            key: ValueKey('card_${game.id}_$index'),  // Performance: add key for efficient rebuilds
-            onTap: canTap && !isMatched && !isRevealed
-                ? () => _onCardTap(index, game)
-                : null,
-            child: _buildCard(
-              index: index,
-              pairId: pairId,
-              isRevealed: isRevealed,
-              isMatched: isMatched,
-              isEnabled: canTap,
+    // Same fitting as the single-player board: the whole grid stays on
+    // screen on iPad and in short windows.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final layout = BoardLayout.fit(constraints.biggest, grid);
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(BoardLayout.padding),
+            child: SizedBox.fromSize(
+              size: layout.gridSizeFor(grid),
+              child: GridView.builder(
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: game.cols,
+                  crossAxisSpacing: layout.spacing,
+                  mainAxisSpacing: layout.spacing,
+                  childAspectRatio: 1 / BoardLayout.cardAspectRatio,
+                ),
+                itemCount: game.totalCards,
+                itemBuilder: (context, index) {
+                  final pairId = game.cardPairIds[index];
+                  final isMatched = matchedPairIds.contains(pairId);
+                  final isRevealed = _firstCardIndex == index ||
+                      _secondCardIndex == index ||
+                      _opponentRevealed.contains(index) ||
+                      isMatched;
+                  final onTap = canTap && !isMatched && !isRevealed
+                      ? () => _onCardTap(index, game)
+                      : null;
+
+                  final position =
+                      l10n.cardPosition(index ~/ game.cols + 1, index % game.cols + 1);
+                  final state = isMatched
+                      ? l10n.cardMatchedState(pairId)
+                      : isRevealed
+                          ? l10n.cardFaceUp(pairId)
+                          : l10n.cardFaceDown;
+
+                  return Semantics(
+                    key: ValueKey('card_${game.id}_$index'),  // Performance: add key for efficient rebuilds
+                    label: '$position, $state',
+                    button: onTap != null,
+                    enabled: onTap != null,
+                    onTap: onTap,
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      onTap: onTap,
+                      child: _buildCard(
+                        index: index,
+                        pairId: pairId,
+                        isRevealed: isRevealed,
+                        isMatched: isMatched,
+                        isEnabled: canTap,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -635,12 +668,18 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
       ),
       child: Center(
         child: isRevealed || isMatched
-            ? Text(
-                displayContent,
-                style: TextStyle(
-                  fontSize: isEmoji ? 32 : 24,
-                  fontWeight: FontWeight.bold,
-                  color: isMatched ? Colors.green : (isEmoji ? null : Colors.white),
+            // The emoji is the card's picture: it fits the card and ignores
+            // the Dynamic Type setting.
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  displayContent,
+                  textScaler: TextScaler.noScaling,
+                  style: TextStyle(
+                    fontSize: isEmoji ? 32 : 24,
+                    fontWeight: FontWeight.bold,
+                    color: isMatched ? Colors.green : (isEmoji ? null : Colors.white),
+                  ),
                 ),
               )
             : Icon(

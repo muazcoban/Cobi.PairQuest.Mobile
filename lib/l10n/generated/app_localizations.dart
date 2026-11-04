@@ -1735,6 +1735,78 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Silmek istediğiniz hesapla giriş yapın'**
   String get accountDeletionWrongAccount;
+
+  /// VoiceOver label of a card's place on the board
+  ///
+  /// In tr, this message translates to:
+  /// **'Satır {row}, sütun {column}'**
+  String cardPosition(int row, int column);
+
+  /// No description provided for @cardFaceDown.
+  ///
+  /// In tr, this message translates to:
+  /// **'kapalı'**
+  String get cardFaceDown;
+
+  /// No description provided for @cardFaceUp.
+  ///
+  /// In tr, this message translates to:
+  /// **'açık, {image}'**
+  String cardFaceUp(String image);
+
+  /// No description provided for @cardMatchedState.
+  ///
+  /// In tr, this message translates to:
+  /// **'eşleşti, {image}'**
+  String cardMatchedState(String image);
+
+  /// No description provided for @pairFoundAnnouncement.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşti'**
+  String get pairFoundAnnouncement;
+
+  /// No description provided for @pairMissedAnnouncement.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşmedi'**
+  String get pairMissedAnnouncement;
+
+  /// VoiceOver label of a power-up button
+  ///
+  /// In tr, this message translates to:
+  /// **'{name}, {count} adet'**
+  String powerUpButtonLabel(String name, int count);
+
+  /// No description provided for @timerFrozen.
+  ///
+  /// In tr, this message translates to:
+  /// **'DONDU'**
+  String get timerFrozen;
+
+  /// No description provided for @comboAmazing.
+  ///
+  /// In tr, this message translates to:
+  /// **'MUHTEŞEM!'**
+  String get comboAmazing;
+
+  /// No description provided for @comboFantastic.
+  ///
+  /// In tr, this message translates to:
+  /// **'FANTASTİK!'**
+  String get comboFantastic;
+
+  /// No description provided for @comboGreat.
+  ///
+  /// In tr, this message translates to:
+  /// **'HARİKA!'**
+  String get comboGreat;
+
+  /// No description provided for @comboTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'COMBO!'**
+  String get comboTitle;
 }
 
 class _AppLocalizationsDelegate

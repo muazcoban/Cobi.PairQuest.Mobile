@@ -48,7 +48,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
           controller: _tabController,
           indicatorColor: Colors.white,
           labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
+          unselectedLabelColor: AppColors.textLightSecondary,
           tabs: [
             Tab(text: l10n.globalLeaderboard),
             Tab(text: l10n.localLeaderboard),
@@ -456,7 +456,7 @@ class _PodiumItem extends StatelessWidget {
                 child: Text(
                   l10n.you,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -599,7 +599,7 @@ class _LeaderboardRow extends StatelessWidget {
                         child: Text(
                           l10n.you,
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),

@@ -64,13 +64,14 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
-        primary: AppColors.primary,
+        // Material widgets draw primary as text and icons on dark surfaces.
+        primary: AppColors.primaryOnDark,
         primaryContainer: AppColors.primaryDark,
         secondary: AppColors.secondary,
         secondaryContainer: AppColors.secondaryDark,
         surface: AppColors.surfaceDark,
         error: AppColors.error,
-        onPrimary: AppColors.textLight,
+        onPrimary: Color(0xFF042F2E), // Teal 950, 7.8:1 on Teal 400
         onSecondary: AppColors.textLight,
         onSurface: AppColors.textLight,
         onError: AppColors.textLight,
@@ -223,7 +224,7 @@ class AppTheme {
       bodyMedium: GoogleFonts.poppins(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: AppColors.textMuted,
+        color: AppColors.textSecondaryDark,
       ),
       labelLarge: GoogleFonts.poppins(
         fontSize: 14,

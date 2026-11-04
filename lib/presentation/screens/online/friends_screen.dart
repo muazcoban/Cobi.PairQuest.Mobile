@@ -41,6 +41,7 @@ class FriendsScreen extends ConsumerWidget {
           elevation: 0,
           actions: [
             IconButton(
+              tooltip: AppLocalizations.of(context)!.addFriend,
               icon: const Icon(Icons.person_add),
               onPressed: () {
                 Navigator.of(context).push(
@@ -259,7 +260,7 @@ class _FriendTile extends ConsumerWidget {
               ? Text(
                   displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.primaryText(context),
                     fontWeight: FontWeight.bold,
                   ),
                 )
@@ -441,7 +442,7 @@ class _FriendRequestTile extends ConsumerWidget {
                 ? Text(
                     displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                     style: TextStyle(
-                      color: AppColors.primary,
+                      color: AppColors.primaryText(context),
                       fontWeight: FontWeight.bold,
                     ),
                   )
