@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -45,6 +46,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
         title: Text(l10n.leaderboard),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        titleTextStyle: AppTheme.onPrimaryTitleStyle,
+        iconTheme: AppTheme.onPrimaryIconTheme,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,

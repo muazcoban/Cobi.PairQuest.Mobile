@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_links.dart';
@@ -23,170 +24,174 @@ class AuthScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authProvider);
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            // White text needs 4.5:1 on every part of the gradient;
-            // primaryLight gives only 3.74:1.
-            colors: [
-              AppColors.primary,
-              AppColors.primaryDark,
-            ],
+    // White status bar icons on the teal gradient
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              // White text needs 4.5:1 on every part of the gradient;
+              // primaryLight gives only 3.74:1.
+              colors: [
+                AppColors.primary,
+                AppColors.primaryDark,
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // Main content
-              Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Logo
-                      const Icon(
-                        Icons.psychology,
-                        size: 80,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Title
-                      Text(
-                        l10n.appTitle,
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Subtitle / Message
-                      Text(
-                        returnMessage ?? l10n.signInToSaveProgress,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: AppColors.textLightSecondary,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 48),
-
-                      // Error message
-                      if (authState.error != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.error_outline, color: Colors.white),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  authState.error!,
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                                icon: const Icon(Icons.close, color: Colors.white),
-                                onPressed: () {
-                                  ref.read(authProvider.notifier).clearError();
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-
-                      // Loading indicator
-                      if (authState.isLoading) ...[
-                        const CircularProgressIndicator(color: Colors.white),
-                        const SizedBox(height: 24),
-                      ],
-
-                      // Sign in with Apple comes first on iOS (App Review 4.8)
-                      if (!authState.isLoading && AppleSignInButton.isAvailable) ...[
-                        AppleSignInButton(
-                          onDarkBackground: true,
-                          onPressed: () async {
-                            final success =
-                                await ref.read(authProvider.notifier).signInWithApple();
-                            if (success && context.mounted) {
-                              await _usePlayerNameFromAccount(ref);
-                              if (context.mounted) Navigator.of(context).pop(true);
-                            }
-                          },
+          child: SafeArea(
+            child: Stack(
+              children: [
+                // Main content
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo
+                        const Icon(
+                          Icons.psychology,
+                          size: 80,
+                          color: Colors.white,
                         ),
                         const SizedBox(height: 16),
-                      ],
 
-                      // Google Sign In Button
-                      if (!authState.isLoading)
-                        GoogleSignInButton(
-                          onPressed: () async {
-                            final success =
-                                await ref.read(authProvider.notifier).signInWithGoogle();
-                            if (success && context.mounted) {
-                              await _usePlayerNameFromAccount(ref);
-                              if (context.mounted) Navigator.of(context).pop(true);
-                            }
-                          },
+                        // Title
+                        Text(
+                          l10n.appTitle,
+                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 8),
 
-                      // Continue as Guest Button
-                      if (!authState.isLoading)
-                        _GuestButton(
-                          label: l10n.continueAsGuest,
-                          onPressed: () async {
-                            await ref.read(authProvider.notifier).signInAnonymously();
-                            if (context.mounted) {
-                              Navigator.of(context).pop(false);
-                            }
-                          },
+                        // Subtitle / Message
+                        Text(
+                          returnMessage ?? l10n.signInToSaveProgress,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: AppColors.textLightSecondary,
+                              ),
+                          textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: 48),
 
-                      const SizedBox(height: 48),
+                        // Error message
+                        if (authState.error != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.error_outline, color: Colors.white),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    authState.error!,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                                  icon: const Icon(Icons.close, color: Colors.white),
+                                  onPressed: () {
+                                    ref.read(authProvider.notifier).clearError();
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
 
-                      // Privacy policy link
-                      TextButton(
-                        onPressed: () => AppLinks.open(AppLinks.privacyPolicy),
-                        child: Text(
-                          l10n.privacyPolicy,
-                          style: const TextStyle(
-                            color: AppColors.textLightSecondary,
-                            decoration: TextDecoration.underline,
+                        // Loading indicator
+                        if (authState.isLoading) ...[
+                          const CircularProgressIndicator(color: Colors.white),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Sign in with Apple comes first on iOS (App Review 4.8)
+                        if (!authState.isLoading && AppleSignInButton.isAvailable) ...[
+                          AppleSignInButton(
+                            onDarkBackground: true,
+                            onPressed: () async {
+                              final success =
+                                  await ref.read(authProvider.notifier).signInWithApple();
+                              if (success && context.mounted) {
+                                await _usePlayerNameFromAccount(ref);
+                                if (context.mounted) Navigator.of(context).pop(true);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Google Sign In Button
+                        if (!authState.isLoading)
+                          GoogleSignInButton(
+                            onPressed: () async {
+                              final success =
+                                  await ref.read(authProvider.notifier).signInWithGoogle();
+                              if (success && context.mounted) {
+                                await _usePlayerNameFromAccount(ref);
+                                if (context.mounted) Navigator.of(context).pop(true);
+                              }
+                            },
+                          ),
+                        const SizedBox(height: 16),
+
+                        // Continue as Guest Button
+                        if (!authState.isLoading)
+                          _GuestButton(
+                            label: l10n.continueAsGuest,
+                            onPressed: () async {
+                              await ref.read(authProvider.notifier).signInAnonymously();
+                              if (context.mounted) {
+                                Navigator.of(context).pop(false);
+                              }
+                            },
+                          ),
+
+                        const SizedBox(height: 48),
+
+                        // Privacy policy link
+                        TextButton(
+                          onPressed: () => AppLinks.open(AppLinks.privacyPolicy),
+                          child: Text(
+                            l10n.privacyPolicy,
+                            style: const TextStyle(
+                              color: AppColors.textLightSecondary,
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Back button
-              if (showBackButton)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: IconButton(
-                    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new,
-                      color: Colors.white,
+                      ],
                     ),
                   ),
                 ),
-            ],
+
+                // Back button
+                if (showBackButton)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: IconButton(
+                      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_links.dart';
 import '../../../core/moderation/name_filter.dart';
 import '../../../core/utils/card_shuffle.dart';
@@ -27,6 +28,8 @@ class SettingsScreen extends ConsumerWidget {
         title: Text(l10n.settings),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        titleTextStyle: AppTheme.onPrimaryTitleStyle,
+        iconTheme: AppTheme.onPrimaryIconTheme,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

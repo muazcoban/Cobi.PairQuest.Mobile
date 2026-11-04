@@ -5,6 +5,18 @@ import '../constants/app_colors.dart';
 class AppTheme {
   AppTheme._();
 
+  /// Title of an app bar on the primary color. The theme's title style and
+  /// icon theme are dark for the transparent app bars, and both override an
+  /// AppBar's foregroundColor, so teal app bars set these too.
+  static TextStyle get onPrimaryTitleStyle => GoogleFonts.poppins(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textLight,
+      );
+
+  static const IconThemeData onPrimaryIconTheme =
+      IconThemeData(color: AppColors.textLight);
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,

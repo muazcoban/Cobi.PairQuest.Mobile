@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/card_shuffle.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/settings_provider.dart';
@@ -33,6 +34,8 @@ class ThemeSelectScreen extends ConsumerWidget {
         title: Text(l10n.cardTheme),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        titleTextStyle: AppTheme.onPrimaryTitleStyle,
+        iconTheme: AppTheme.onPrimaryIconTheme,
         elevation: 0,
       ),
       body: Padding(

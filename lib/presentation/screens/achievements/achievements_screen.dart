@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/achievement.dart';
 import '../../../l10n/achievement_l10n.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -25,6 +26,8 @@ class AchievementsScreen extends ConsumerWidget {
         title: Text(l10n.achievements),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        titleTextStyle: AppTheme.onPrimaryTitleStyle,
+        iconTheme: AppTheme.onPrimaryIconTheme,
         elevation: 0,
       ),
       body: Column(
