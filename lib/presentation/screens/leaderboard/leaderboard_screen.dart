@@ -7,7 +7,6 @@ import '../../../domain/entities/leaderboard_entry.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/leaderboard_provider.dart';
-import '../../providers/settings_provider.dart';
 import '../auth/auth_screen.dart';
 import '../../widgets/moderation/player_safety.dart';
 
@@ -83,7 +82,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   Widget _buildGlobalTab(BuildContext context, AppLocalizations l10n) {
     final authState = ref.watch(authProvider);
     final globalScores = ref.watch(globalLeaderboardProvider(_selectedLevel));
-    final playerName = ref.watch(settingsProvider).playerName;
 
     if (!authState.isAuthenticated) {
       return _buildSignInPrompt(context, l10n);
@@ -92,8 +90,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     return globalScores.when(
       data: (entries) => entries.isEmpty
           ? _buildEmptyState(context, l10n)
-          : _buildLeaderboard(context, l10n, entries, playerName,
-              viewerId: authState.uid),
+          : _buildLeaderboard(context, l10n, entries, viewerId: authState.uid),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
         child: Column(
@@ -102,13 +99,13 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
             Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              'Error loading leaderboard',
-              style: TextStyle(color: Colors.grey.shade600),
+              l10n.errorOccurred,
+              style: TextStyle(color: AppColors.textSecondary(context)),
             ),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () => ref.invalidate(globalLeaderboardProvider(_selectedLevel)),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -118,7 +115,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
 
   Widget _buildLocalTab(BuildContext context, AppLocalizations l10n) {
     final allEntries = ref.watch(leaderboardProvider);
-    final playerName = ref.watch(settingsProvider).playerName;
 
     // Filter by level if selected
     final entries = _selectedLevel == null
@@ -127,7 +123,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
 
     return entries.isEmpty
         ? _buildEmptyState(context, l10n)
-        : _buildLeaderboard(context, l10n, entries, playerName);
+        : _buildLeaderboard(context, l10n, entries);
   }
 
   Widget _buildSignInPrompt(BuildContext context, AppLocalizations l10n) {
@@ -250,12 +246,16 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   Widget _buildLeaderboard(
     BuildContext context,
     AppLocalizations l10n,
-    List<LeaderboardEntry> entries,
-    String currentPlayerName, {
+    List<LeaderboardEntry> entries, {
     String? viewerId,
   }) {
     bool canReport(LeaderboardEntry entry) =>
         viewerId != null && entry.userId != null && entry.userId != viewerId;
+    // By account, not by name: other players can have the same name, and
+    // every unnamed player used to be "Player". Local scores are all yours,
+    // so none is singled out.
+    bool isMine(LeaderboardEntry entry) =>
+        viewerId != null && entry.userId == viewerId;
 
     return Column(
       children: [
@@ -286,8 +286,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     rank: 2,
                     entry: entries[1],
                     height: 80,
-                    isCurrentPlayer: entries[1].playerName.toLowerCase() ==
-                        currentPlayerName.toLowerCase(),
+                    isCurrentPlayer: isMine(entries[1]),
                     canReport: canReport(entries[1]),
                   )
                 else
@@ -300,8 +299,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                   rank: 1,
                   entry: entries[0],
                   height: 100,
-                  isCurrentPlayer: entries[0].playerName.toLowerCase() ==
-                      currentPlayerName.toLowerCase(),
+                  isCurrentPlayer: isMine(entries[0]),
                   canReport: canReport(entries[0]),
                 ),
 
@@ -313,8 +311,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     rank: 3,
                     entry: entries[2],
                     height: 60,
-                    isCurrentPlayer: entries[2].playerName.toLowerCase() ==
-                        currentPlayerName.toLowerCase(),
+                    isCurrentPlayer: isMine(entries[2]),
                     canReport: canReport(entries[2]),
                   )
                 else
@@ -333,8 +330,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               return _LeaderboardRow(
                 rank: index + 4,
                 entry: entry,
-                isCurrentPlayer: entry.playerName.toLowerCase() ==
-                    currentPlayerName.toLowerCase(),
+                isCurrentPlayer: isMine(entry),
                 canReport: canReport(entry),
               );
             },

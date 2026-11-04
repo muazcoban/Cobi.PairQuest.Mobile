@@ -399,6 +399,40 @@ describe('leaderboards', () => {
     await assertFails(getDocs(query(entries(guestDb()), orderBy('score', 'desc'))));
   });
 
+  it('a player keeps one best score per level under {uid}_{level} (submitScore)', async () => {
+    const alice = db(ALICE);
+    const ref = doc(entries(alice), 'alice_3');
+    await assertSucceeds(runTransaction(alice, async (tx) => {
+      await tx.get(ref);
+      tx.set(ref, { ...score(ALICE, 100), playedAt: serverTimestamp() });
+    }));
+    await assertSucceeds(runTransaction(alice, async (tx) => {
+      await tx.get(ref);
+      tx.update(ref, { playerName: 'Alice' });
+    }));
+  });
+
+  it('nobody takes another player\'s {uid}_{level} ID or files a score under the wrong level', async () => {
+    await assertFails(setDoc(doc(entries(db(CAROL)), 'alice_3'), score(CAROL)));
+    await assertFails(setDoc(doc(entries(db(ALICE)), 'alice_4'), score(ALICE)));
+    await seed({ 'leaderboards/global/entries/alice_3': score(ALICE) });
+    await assertFails(updateDoc(doc(entries(db(BOB)), 'alice_3'), { score: 1 }));
+  });
+
+  it('a player merges and renames their scores (migrateLegacyScores, renamePlayer)', async () => {
+    await seed({
+      'leaderboards/global/entries/old1': score(ALICE, 80),
+      'leaderboards/global/entries/old2': score(ALICE, 120),
+    });
+    const alice = db(ALICE);
+    const mine = await assertSucceeds(getDocs(query(entries(alice), where('userId', '==', ALICE))));
+    const batch = writeBatch(alice);
+    batch.set(doc(entries(alice), 'alice_3'), { ...score(ALICE, 120), playerName: 'Alice' });
+    mine.docs.forEach((d) => batch.delete(d.ref));
+    await assertSucceeds(batch.commit());
+    await assertSucceeds(updateDoc(doc(entries(alice), 'alice_3'), { playerName: 'Alice 2' }));
+  });
+
   it('only the owner deletes a score', async () => {
     await seed({ 'leaderboards/global/entries/s1': score(ALICE) });
     await assertFails(deleteDoc(doc(entries(db(BOB)), 's1')));

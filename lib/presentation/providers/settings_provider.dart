@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -58,6 +59,14 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     _loadSettings();
   }
 
+  /// Name for a player who has not chosen one, such as "Oyuncu 4821". It is
+  /// shown on the global leaderboard; everyone sharing the plain "Player"
+  /// made different people look like one player listed many times.
+  static String defaultPlayerName(String languageCode) {
+    final word = languageCode == 'tr' ? 'Oyuncu' : 'Player';
+    return '$word ${1000 + Random().nextInt(9000)}';
+  }
+
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -67,7 +76,12 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final musicEnabled = prefs.getBool(_musicKey) ?? true;
     final vibrationEnabled = prefs.getBool(_vibrationKey) ?? true;
     final cardTheme = prefs.getString(_cardThemeKey) ?? 'random';
-    final playerName = prefs.getString(_playerNameKey) ?? 'Player';
+    var playerName = prefs.getString(_playerNameKey);
+    // 'Player' was the shared default before defaultPlayerName.
+    if (playerName == null || playerName == 'Player') {
+      playerName = defaultPlayerName(localeCode);
+      await prefs.setString(_playerNameKey, playerName);
+    }
 
     state = SettingsState(
       locale: Locale(localeCode),
@@ -138,7 +152,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   Future<void> setPlayerName(String name) async {
     final prefs = await SharedPreferences.getInstance();
     final trimmedName = name.trim();
-    final finalName = trimmedName.isEmpty ? 'Player' : trimmedName;
+    final finalName = trimmedName.isEmpty
+        ? defaultPlayerName(state.locale.languageCode)
+        : trimmedName;
     await prefs.setString(_playerNameKey, finalName);
     state = state.copyWith(playerName: finalName);
   }
