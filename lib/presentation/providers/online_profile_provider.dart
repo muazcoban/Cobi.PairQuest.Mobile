@@ -26,7 +26,6 @@ class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>
     required String oddserId,
     required String displayName,
     String? photoUrl,
-    String? email,
   }) async {
     // Use safe state update helper
     _safeSetState(const AsyncValue.loading());
@@ -36,7 +35,6 @@ class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>
         oddserId,
         displayName: displayName,
         photoUrl: photoUrl,
-        email: email,
       );
 
       // Set current player ID for game provider

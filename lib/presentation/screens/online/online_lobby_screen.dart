@@ -44,7 +44,6 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
             oddserId: user.uid,
             displayName: authState.displayName,
             photoUrl: user.photoURL,
-            email: user.email,
           );
     }
   }

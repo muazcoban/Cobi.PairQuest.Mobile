@@ -155,7 +155,7 @@ abstract class OnlineUserProfile with _$OnlineUserProfile {
     /// Profile photo URL
     String? photoUrl,
 
-    /// Email (optional)
+    /// Only read from profiles that older versions wrote; never written.
     String? email,
 
     /// ELO rating (only changes in ranked games)
@@ -261,6 +261,7 @@ abstract class OnlineUserProfile with _$OnlineUserProfile {
   Map<String, dynamic> toFirestore() {
     final json = toJson();
     json.remove('oddserId'); // ID is the document ID
+    json.remove('email'); // profiles are public to signed-in users
     return json;
   }
 }

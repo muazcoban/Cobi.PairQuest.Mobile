@@ -168,6 +168,12 @@ class MatchmakingNotifier extends StateNotifier<MatchmakingSearchStatus> {
 
   void _handleMatchFound(String gameId) {
     _cleanup();
+
+    // The game ID is read; the queue entry with name and photo is no longer needed
+    if (state.queueId != null) {
+      _repository.leaveQueue(state.queueId!);
+    }
+
     state = MatchmakingSearchStatus(
       state: MatchmakingUIState.matched,
       gameId: gameId,

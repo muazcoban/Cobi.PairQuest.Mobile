@@ -353,7 +353,6 @@ class OnlineGameRepository {
   Future<OnlineUserProfile> getOrCreateProfile(String oddserId, {
     required String displayName,
     String? photoUrl,
-    String? email,
   }) async {
     try {
       final doc = await _usersRef.doc(oddserId).get();
@@ -361,10 +360,12 @@ class OnlineGameRepository {
       if (doc.exists) {
         final existingProfile = OnlineUserProfile.fromFirestore(doc);
 
-        // Update profile if displayName changed (e.g., Guest -> Gmail name)
+        // Update profile if displayName changed (e.g., Guest -> Gmail name).
+        // Profiles are readable by every signed-in user, so an e-mail address
+        // that older versions stored here is removed.
         final needsUpdate = existingProfile.displayName != displayName ||
             (photoUrl != null && existingProfile.photoUrl != photoUrl) ||
-            (email != null && existingProfile.email != email);
+            existingProfile.email != null;
 
         if (needsUpdate) {
           final updates = <String, dynamic>{
@@ -372,15 +373,15 @@ class OnlineGameRepository {
             'lastSeenAt': FieldValue.serverTimestamp(),
           };
           if (photoUrl != null) updates['photoUrl'] = photoUrl;
-          if (email != null) updates['email'] = email;
+          if (existingProfile.email != null) updates['email'] = FieldValue.delete();
 
           await _usersRef.doc(oddserId).update(updates);
-          debugPrint('🔄 Updated profile: displayName=$displayName, email=$email');
+          debugPrint('🔄 Updated profile: displayName=$displayName');
 
           return existingProfile.copyWith(
             displayName: displayName,
             photoUrl: photoUrl ?? existingProfile.photoUrl,
-            email: email ?? existingProfile.email,
+            email: null,
           );
         }
 
@@ -392,7 +393,6 @@ class OnlineGameRepository {
         oddserId: oddserId,
         displayName: displayName,
         photoUrl: photoUrl,
-        email: email,
         createdAt: DateTime.now(),
         lastSeenAt: DateTime.now(),
       );
