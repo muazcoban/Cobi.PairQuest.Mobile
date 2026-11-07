@@ -132,7 +132,7 @@ class DailyRewardDialog extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Day ${rewardNotifier.currentDay}',
+                          AppLocalizations.of(context)!.dayNumber(rewardNotifier.currentDay),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary(context),

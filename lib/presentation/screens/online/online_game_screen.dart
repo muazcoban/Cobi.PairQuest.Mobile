@@ -365,7 +365,7 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
                         ),
                       ),
                     Text(
-                      isOpponent ? player.displayName : 'You',
+                      isOpponent ? player.displayName : AppLocalizations.of(context)!.you,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -403,7 +403,7 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
                   ),
                 ),
                 Text(
-                  '${player.matches} pairs',
+                  AppLocalizations.of(context)!.pairsCount(player.matches),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(context),

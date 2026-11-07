@@ -1,15 +1,21 @@
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/notification_service.dart';
+import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/reminder_l10n.dart';
+import 'auth_provider.dart';
+import 'settings_provider.dart';
 
 /// Provider for notification settings
 final notificationSettingsProvider =
-    StateNotifierProvider<NotificationSettingsNotifier, NotificationSettings>(
-        (ref) {
-  return NotificationSettingsNotifier();
-});
+    StateNotifierProvider<NotificationSettingsNotifier, NotificationSettings>((
+      ref,
+    ) {
+      return NotificationSettingsNotifier(ref);
+    });
 
 /// Notification settings model
 class NotificationSettings extends Equatable {
@@ -79,23 +85,39 @@ class NotificationSettings extends Equatable {
 
   @override
   List<Object?> get props => [
-        dailyReminderEnabled,
-        reminderHour,
-        reminderMinute,
-        achievementNotifications,
-        questNotifications,
-        streakWarningEnabled,
-      ];
+    dailyReminderEnabled,
+    reminderHour,
+    reminderMinute,
+    achievementNotifications,
+    questNotifications,
+    streakWarningEnabled,
+  ];
 }
 
 /// Notifier for managing notification settings
 class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
   static const String _storageKey = 'notification_settings';
   final NotificationService _notificationService = NotificationService();
+  final Ref _ref;
 
-  NotificationSettingsNotifier() : super(const NotificationSettings()) {
+  NotificationSettingsNotifier(this._ref)
+    : super(const NotificationSettings()) {
     _loadSettings();
+    // The reminder text follows the app language and whether the player has
+    // signed in, so reschedule when either changes.
+    _ref.listen(
+      settingsProvider.select((s) => s.locale.languageCode),
+      (_, __) => _applySettings(),
+    );
+    _ref.listen(authProvider.select(_isSignedIn), (_, __) => _applySettings());
   }
+
+  static bool _isSignedIn(AuthState auth) =>
+      auth.isAuthenticated && !auth.isAnonymous;
+
+  AppLocalizations get _l10n => lookupAppLocalizations(
+    Locale(_ref.read(settingsProvider).locale.languageCode),
+  );
 
   /// Load settings from local storage
   Future<void> _loadSettings() async {
@@ -130,11 +152,12 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
   Future<void> _applySettings() async {
     try {
       if (state.dailyReminderEnabled) {
-        await _notificationService.scheduleDailyReminder(
+        await _notificationService.scheduleWeeklyReminders(
           hour: state.reminderHour,
           minute: state.reminderMinute,
-          title: 'Time to Play!',
-          body: 'Your daily reward is waiting. Come back and play PairQuest!',
+          messages: _l10n.weeklyReminders(
+            signedIn: _isSignedIn(_ref.read(authProvider)),
+          ),
         );
       } else {
         await _notificationService.cancelDailyReminder();
@@ -178,28 +201,11 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
   }
 
   /// Show achievement notification if enabled
-  Future<void> showAchievementUnlocked({
-    required String title,
-    required String description,
-  }) async {
+  Future<void> showAchievementUnlocked({required String title}) async {
     if (state.achievementNotifications) {
       await _notificationService.showAchievementNotification(
+        heading: _l10n.achievementUnlocked,
         achievementTitle: title,
-        achievementDescription: description,
-      );
-    }
-  }
-
-  /// Show quest complete notification if enabled
-  Future<void> showQuestCompleted({
-    required String questName,
-    required int reward,
-  }) async {
-    if (state.questNotifications) {
-      await _notificationService.showLocalNotification(
-        title: 'Quest Completed!',
-        body: '$questName - Earned $reward points!',
-        payload: 'quests',
       );
     }
   }

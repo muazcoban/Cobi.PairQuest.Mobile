@@ -90,6 +90,9 @@ class GameProgress {
 
   bool isLevelUnlocked(int level) {
     if (level == 1) return true;
+    // A level already completed stays open: Classic and Timed mode on the
+    // home screen start on level 5 directly.
+    if ((levels[level]?.stars ?? 0) >= 1) return true;
     // A level is unlocked if the previous level has at least 1 star
     final previousLevel = levels[level - 1];
     return previousLevel != null && previousLevel.stars >= 1;

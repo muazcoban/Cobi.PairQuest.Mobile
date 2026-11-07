@@ -8,7 +8,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import '../../main.dart' show navigatorKey;
+import '../../presentation/screens/achievements/achievements_screen.dart';
+import '../../presentation/screens/leaderboard/leaderboard_screen.dart';
 import '../../presentation/screens/online/friends_screen.dart';
+import '../../presentation/screens/quests/daily_quests_screen.dart';
+
+/// One weekday's daily reminder; [payload] names the screen a tap opens.
+class ReminderMessage {
+  const ReminderMessage(this.title, this.body, {this.payload});
+
+  final String title;
+  final String body;
+  final String? payload;
+}
 
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -41,7 +53,8 @@ class NotificationService {
   /// Initialize notification service (non-blocking, fail-safe)
   Future<void> initialize() async {
     if (_isInitialized) return;
-    _isInitialized = true; // Mark as initialized immediately to prevent re-entry
+    _isInitialized =
+        true; // Mark as initialized immediately to prevent re-entry
 
     try {
       // Initialize timezone database
@@ -81,7 +94,9 @@ class NotificationService {
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
       // Handle background messages
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
 
       // Handle notification tap when app is in background
       FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
@@ -168,8 +183,9 @@ class NotificationService {
   /// Initialize local notifications plugin
   Future<void> _initializeLocalNotifications() async {
     try {
-      const androidSettings =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
 
       // Don't request permissions here, do it in background
       const iosSettings = DarwinInitializationSettings(
@@ -197,9 +213,10 @@ class NotificationService {
 
   /// Create Android notification channels
   Future<void> _createNotificationChannels() async {
-    final androidPlugin =
-        _localNotifications.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     if (androidPlugin != null) {
       // Main notifications channel
@@ -264,58 +281,69 @@ class NotificationService {
     );
   }
 
-  /// Show achievement unlock notification
+  /// Show achievement unlock notification; [heading] is the localized
+  /// "Achievement unlocked" line.
   Future<void> showAchievementNotification({
+    required String heading,
     required String achievementTitle,
-    required String achievementDescription,
   }) async {
     await showLocalNotification(
-      title: 'Achievement Unlocked!',
+      title: heading,
       body: achievementTitle,
       payload: 'achievements',
       channelId: 'achievements',
     );
   }
 
-  /// Schedule daily reminder notification
-  Future<void> scheduleDailyReminder({
+  // The daily reminder is one notification per weekday, IDs 101-107
+  // (DateTime.monday is 1). Earlier versions used ID 0 for every day.
+  static const int _weeklyReminderBaseId = 100;
+  static const int _legacyDailyReminderId = 0;
+
+  /// Schedules the daily reminder at [hour]:[minute], one of [messages]
+  /// (Monday first) on each weekday, repeating every week.
+  Future<void> scheduleWeeklyReminders({
     required int hour,
     required int minute,
-    required String title,
-    required String body,
+    required List<ReminderMessage> messages,
   }) async {
-    // Cancel existing daily reminder
     await cancelDailyReminder();
 
-    final scheduledTime = _nextInstanceOfTime(hour, minute);
-
-    await _localNotifications.zonedSchedule(
-      0, // ID 0 for daily reminder
-      title,
-      body,
-      scheduledTime,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_reminder',
-          'Daily Reminders',
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
-          icon: '@mipmap/ic_launcher',
+    for (var i = 0; i < messages.length && i < DateTime.daysPerWeek; i++) {
+      final weekday = DateTime.monday + i;
+      final message = messages[i];
+      await _localNotifications.zonedSchedule(
+        _weeklyReminderBaseId + weekday,
+        message.title,
+        message.body,
+        _nextInstanceOfWeekdayTime(weekday, hour, minute),
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'daily_reminder',
+            'Daily Reminders',
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(),
         ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        payload: message.payload,
+      );
+    }
 
-    debugPrint('Daily reminder scheduled for $hour:$minute');
+    debugPrint('Weekly reminders scheduled for $hour:$minute');
   }
 
   /// Cancel daily reminder
   Future<void> cancelDailyReminder() async {
-    await _localNotifications.cancel(0);
+    await _localNotifications.cancel(_legacyDailyReminderId);
+    for (var weekday = DateTime.monday; weekday <= DateTime.sunday; weekday++) {
+      await _localNotifications.cancel(_weeklyReminderBaseId + weekday);
+    }
   }
 
   /// Schedule streak warning notification
@@ -381,6 +409,32 @@ class NotificationService {
     return scheduled;
   }
 
+  /// Next [weekday] at [hour]:[minute]. Built from the date, not by adding
+  /// days, so a daylight saving change in between keeps the clock time.
+  tz.TZDateTime _nextInstanceOfWeekdayTime(int weekday, int hour, int minute) {
+    final now = tz.TZDateTime.now(tz.local);
+    final daysAhead = (weekday - now.weekday) % DateTime.daysPerWeek;
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day + daysAhead,
+      hour,
+      minute,
+    );
+    if (scheduled.isBefore(now)) {
+      scheduled = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day + daysAhead + DateTime.daysPerWeek,
+        hour,
+        minute,
+      );
+    }
+    return scheduled;
+  }
+
   /// Handle foreground FCM message
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('Foreground message: ${message.notification?.title}');
@@ -425,25 +479,24 @@ class NotificationService {
     // Handle invitation payload: "invitation:{invitationId}"
     if (payload.startsWith('invitation:')) {
       debugPrint('Opening Friends screen for invitation');
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const FriendsScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const FriendsScreen()));
       return;
     }
 
     // Handle other payloads
-    switch (payload) {
-      case 'friends':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const FriendsScreen()),
-        );
-        break;
-      case 'achievements':
-        // Could navigate to achievements screen
-        debugPrint('Should navigate to achievements');
-        break;
-      default:
-        debugPrint('Unknown payload: $payload');
+    final Widget? screen = switch (payload) {
+      'friends' => const FriendsScreen(),
+      'achievements' => const AchievementsScreen(),
+      'quests' => const DailyQuestsScreen(),
+      'leaderboard' => const LeaderboardScreen(),
+      _ => null,
+    };
+    if (screen == null) {
+      debugPrint('Unknown payload: $payload');
+      return;
     }
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 }

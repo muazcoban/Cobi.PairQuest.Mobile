@@ -989,4 +989,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notNow => 'Not now';
+
+  @override
+  String pairsCount(int count) {
+    return '$count pairs';
+  }
+
+  @override
+  String bestScoreValue(int score) {
+    return 'Best: $score';
+  }
+
+  @override
+  String dayNumber(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String rewardClaimed(String items) {
+    return '$items claimed!';
+  }
+
+  @override
+  String rewardCoins(int count) {
+    return '+$count coins';
+  }
+
+  @override
+  String rewardGems(int count) {
+    return '+$count gems';
+  }
+
+  @override
+  String get rewardPowerUp => '+1 power-up';
+
+  @override
+  String get reminderRewardTitle => 'Your daily reward is ready';
+
+  @override
+  String get reminderRewardBody => 'Drop by to collect today\'s coins.';
+
+  @override
+  String get reminderStreakBody =>
+      'Keep your streak going: collect today\'s reward.';
+
+  @override
+  String get reminderQuestsTitle => 'New daily quests';
+
+  @override
+  String get reminderQuestsBody =>
+      'Finish today\'s quests and collect the rewards.';
+
+  @override
+  String get reminderLevelTitle => 'Your next level is waiting';
+
+  @override
+  String get reminderLevelBody => 'Play a round to keep your memory sharp.';
+
+  @override
+  String get reminderRankTitle => 'Your place on the leaderboard';
+
+  @override
+  String get reminderRankBody => 'Play a round and raise your score.';
+
+  @override
+  String get reminderSignInBody =>
+      'Sign in to compare your score with other players.';
+
+  @override
+  String get reminderFriendTitle => 'Race a friend';
+
+  @override
+  String get reminderFriendBody => 'Play local multiplayer on one device.';
 }

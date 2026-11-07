@@ -202,7 +202,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
         // Show local notification only if user has enabled achievement notifications
         ref.read(notificationSettingsProvider.notifier).showAchievementUnlocked(
           title: achievementTitle,
-          description: AchievementTexts.description(achievement.id, language),
         );
       }
     }

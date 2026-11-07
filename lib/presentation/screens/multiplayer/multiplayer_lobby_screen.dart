@@ -283,7 +283,7 @@ class _MultiplayerLobbyScreenState
                   ),
                 ),
                 Text(
-                  '${level.rows * level.cols ~/ 2} pairs',
+                  AppLocalizations.of(context)!.pairsCount(level.rows * level.cols ~/ 2),
                   style: TextStyle(
                     fontSize: 12,
                     color: isSelected

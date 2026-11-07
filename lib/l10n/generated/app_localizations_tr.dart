@@ -986,8 +986,80 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get signInPromptBody =>
-      'Giriş yap; online oyna, jeton ve güçlendiricilerin her cihazında seninle olsun.';
+      'Giriş yap; online oyna, altın ve güç-up\'ların her cihazında seninle olsun.';
 
   @override
   String get notNow => 'Şimdi değil';
+
+  @override
+  String pairsCount(int count) {
+    return '$count çift';
+  }
+
+  @override
+  String bestScoreValue(int score) {
+    return 'En iyi: $score';
+  }
+
+  @override
+  String dayNumber(int day) {
+    return '$day. gün';
+  }
+
+  @override
+  String rewardClaimed(String items) {
+    return '$items alındı!';
+  }
+
+  @override
+  String rewardCoins(int count) {
+    return '+$count altın';
+  }
+
+  @override
+  String rewardGems(int count) {
+    return '+$count elmas';
+  }
+
+  @override
+  String get rewardPowerUp => '+1 güç-up';
+
+  @override
+  String get reminderRewardTitle => 'Günlük ödülün hazır';
+
+  @override
+  String get reminderRewardBody => 'Bugünkü altınlarını almak için uğra.';
+
+  @override
+  String get reminderStreakBody => 'Seriyi bozma, bugünkü ödülünü al.';
+
+  @override
+  String get reminderQuestsTitle => 'Yeni günlük görevler';
+
+  @override
+  String get reminderQuestsBody =>
+      'Bugünün görevlerini tamamla, ödülleri topla.';
+
+  @override
+  String get reminderLevelTitle => 'Sıradaki seviye seni bekliyor';
+
+  @override
+  String get reminderLevelBody => 'Bir tur oyna, hafızanı tazele.';
+
+  @override
+  String get reminderRankTitle => 'Dünya tablosundaki yerin';
+
+  @override
+  String get reminderRankBody => 'Bir tur at, skorunu yükselt.';
+
+  @override
+  String get reminderSignInBody =>
+      'Giriş yap, skorunu diğer oyuncularla karşılaştır.';
+
+  @override
+  String get reminderFriendTitle => 'Bir arkadaşınla yarış';
+
+  @override
+  String get reminderFriendBody =>
+      'Yerel çok oyunculu modda aynı cihazda oynayın.';
 }

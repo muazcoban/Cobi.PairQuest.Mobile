@@ -1967,7 +1967,7 @@ abstract class AppLocalizations {
   /// No description provided for @signInPromptBody.
   ///
   /// In tr, this message translates to:
-  /// **'Giriş yap; online oyna, jeton ve güçlendiricilerin her cihazında seninle olsun.'**
+  /// **'Giriş yap; online oyna, altın ve güç-up\'ların her cihazında seninle olsun.'**
   String get signInPromptBody;
 
   /// No description provided for @notNow.
@@ -1975,6 +1975,120 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Şimdi değil'**
   String get notNow;
+
+  /// No description provided for @pairsCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} çift'**
+  String pairsCount(int count);
+
+  /// No description provided for @bestScoreValue.
+  ///
+  /// In tr, this message translates to:
+  /// **'En iyi: {score}'**
+  String bestScoreValue(int score);
+
+  /// No description provided for @dayNumber.
+  ///
+  /// In tr, this message translates to:
+  /// **'{day}. gün'**
+  String dayNumber(int day);
+
+  /// No description provided for @rewardClaimed.
+  ///
+  /// In tr, this message translates to:
+  /// **'{items} alındı!'**
+  String rewardClaimed(String items);
+
+  /// No description provided for @rewardCoins.
+  ///
+  /// In tr, this message translates to:
+  /// **'+{count} altın'**
+  String rewardCoins(int count);
+
+  /// No description provided for @rewardGems.
+  ///
+  /// In tr, this message translates to:
+  /// **'+{count} elmas'**
+  String rewardGems(int count);
+
+  /// No description provided for @rewardPowerUp.
+  ///
+  /// In tr, this message translates to:
+  /// **'+1 güç-up'**
+  String get rewardPowerUp;
+
+  /// No description provided for @reminderRewardTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük ödülün hazır'**
+  String get reminderRewardTitle;
+
+  /// No description provided for @reminderRewardBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugünkü altınlarını almak için uğra.'**
+  String get reminderRewardBody;
+
+  /// No description provided for @reminderStreakBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seriyi bozma, bugünkü ödülünü al.'**
+  String get reminderStreakBody;
+
+  /// No description provided for @reminderQuestsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni günlük görevler'**
+  String get reminderQuestsTitle;
+
+  /// No description provided for @reminderQuestsBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugünün görevlerini tamamla, ödülleri topla.'**
+  String get reminderQuestsBody;
+
+  /// No description provided for @reminderLevelTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki seviye seni bekliyor'**
+  String get reminderLevelTitle;
+
+  /// No description provided for @reminderLevelBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir tur oyna, hafızanı tazele.'**
+  String get reminderLevelBody;
+
+  /// No description provided for @reminderRankTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dünya tablosundaki yerin'**
+  String get reminderRankTitle;
+
+  /// No description provided for @reminderRankBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir tur at, skorunu yükselt.'**
+  String get reminderRankBody;
+
+  /// No description provided for @reminderSignInBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş yap, skorunu diğer oyuncularla karşılaştır.'**
+  String get reminderSignInBody;
+
+  /// No description provided for @reminderFriendTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir arkadaşınla yarış'**
+  String get reminderFriendTitle;
+
+  /// No description provided for @reminderFriendBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yerel çok oyunculu modda aynı cihazda oynayın.'**
+  String get reminderFriendBody;
 }
 
 class _AppLocalizationsDelegate
