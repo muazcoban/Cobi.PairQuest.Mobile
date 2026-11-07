@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/daily_quest.dart';
 import '../../../domain/entities/power_up.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../l10n/quest_l10n.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/power_up_provider.dart';
 import '../../providers/wallet_provider.dart';
@@ -108,7 +109,8 @@ class DailyQuestsScreen extends ConsumerWidget {
               itemCount: questData.quests.length,
               itemBuilder: (context, index) {
                 final quest = questData.quests[index];
-                final progress = questData.progress[quest.id] ??
+                final progress =
+                    questData.progress[quest.id] ??
                     QuestProgress(questId: quest.id);
 
                 return _QuestCard(
@@ -123,19 +125,25 @@ class DailyQuestsScreen extends ConsumerWidget {
                       ref.read(walletProvider.notifier).addCoins(reward.coins);
 
                       // Add power-up if rewarded
-                      if (reward.powerUp != null && reward.powerUpQuantity > 0) {
-                        ref.read(powerUpInventoryProvider.notifier).addPowerUp(
-                          reward.powerUp!,
-                          reward.powerUpQuantity,
-                        );
+                      if (reward.powerUp != null &&
+                          reward.powerUpQuantity > 0) {
+                        ref
+                            .read(powerUpInventoryProvider.notifier)
+                            .addPowerUp(
+                              reward.powerUp!,
+                              reward.powerUpQuantity,
+                            );
                       }
 
                       // Build snackbar message
                       String message = '+${reward.coins} coins!';
-                      if (reward.powerUp != null && reward.powerUpQuantity > 0) {
-                        final powerUp = PowerUps.all
-                            .firstWhere((p) => p.type == reward.powerUp);
-                        message += ' +${reward.powerUpQuantity} ${powerUp.icon}';
+                      if (reward.powerUp != null &&
+                          reward.powerUpQuantity > 0) {
+                        final powerUp = PowerUps.all.firstWhere(
+                          (p) => p.type == reward.powerUp,
+                        );
+                        message +=
+                            ' +${reward.powerUpQuantity} ${powerUp.icon}';
                       }
 
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -171,48 +179,6 @@ class _QuestCard extends StatelessWidget {
     required this.onClaimReward,
   });
 
-  String _getTitle() {
-    final titles = {
-      'play_1': 'Play a Game',
-      'play_3': 'Play 3 Games',
-      'win_2': 'Win 2 Games',
-      'win_5': 'Win 5 Games',
-      'matches_10': 'Make 10 Matches',
-      'matches_30': 'Make 30 Matches',
-      'combo_3': 'Get 3x Combo',
-      'combo_5': 'Get 5x Combo',
-      'perfect_1': 'Perfect Game',
-      'stars_3': 'Earn 3 Stars',
-      'stars_6': 'Earn 6 Stars',
-      'powerup_1': 'Power User',
-      'powerup_3': 'Power Master',
-      'no_powerup_win': 'Purist Victory',
-      'timed_3': 'Speed Runner',
-    };
-    return titles[quest.id] ?? quest.id;
-  }
-
-  String _getDescription() {
-    final descriptions = {
-      'play_1': 'Play any game to complete',
-      'play_3': 'Play 3 games today',
-      'win_2': 'Win 2 games today',
-      'win_5': 'Win 5 games today',
-      'matches_10': 'Match 10 pairs',
-      'matches_30': 'Match 30 pairs today',
-      'combo_3': 'Get a 3x combo streak',
-      'combo_5': 'Get a 5x combo streak',
-      'perfect_1': 'Complete without mistakes',
-      'stars_3': 'Earn 3 stars total',
-      'stars_6': 'Earn 6 stars today',
-      'powerup_1': 'Use any power-up in a game',
-      'powerup_3': 'Use 3 power-ups today',
-      'no_powerup_win': 'Win without using power-ups',
-      'timed_3': 'Win 3 games in Timed Mode',
-    };
-    return descriptions[quest.id] ?? '';
-  }
-
   Color get _difficultyColor {
     if (QuestTemplates.easy.any((q) => q.id == quest.id)) {
       return AppColors.success;
@@ -222,18 +188,19 @@ class _QuestCard extends StatelessWidget {
     return AppColors.error;
   }
 
-  String get _difficultyLabel {
+  String _difficultyLabel(AppLocalizations l10n) {
     if (QuestTemplates.easy.any((q) => q.id == quest.id)) {
-      return 'Easy';
+      return l10n.easy;
     } else if (QuestTemplates.medium.any((q) => q.id == quest.id)) {
-      return 'Medium';
+      return l10n.medium;
     }
-    return 'Hard';
+    return l10n.hard;
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
     final isCompleted = progress.isCompleted;
     final isClaimed = progress.isRewardClaimed;
     final progressPercent = quest.targetValue > 0
@@ -273,11 +240,7 @@ class _QuestCard extends StatelessWidget {
                     color: _difficultyColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    quest.icon,
-                    color: _difficultyColor,
-                    size: 24,
-                  ),
+                  child: Icon(quest.icon, color: _difficultyColor, size: 24),
                 ),
                 const SizedBox(width: 12),
 
@@ -290,7 +253,7 @@ class _QuestCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              _getTitle(),
+                              QuestTexts.title(quest.id, languageCode),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -308,7 +271,7 @@ class _QuestCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              _difficultyLabel,
+                              _difficultyLabel(l10n),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -320,7 +283,7 @@ class _QuestCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _getDescription(),
+                        QuestTexts.description(quest.id, languageCode),
                         style: TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary(context),
@@ -385,10 +348,14 @@ class _QuestCard extends StatelessWidget {
                       ),
                     ),
                     // Show power-up reward if exists
-                    if (quest.rewardPowerUp != null && quest.rewardPowerUpQuantity > 0) ...[
+                    if (quest.rewardPowerUp != null &&
+                        quest.rewardPowerUpQuantity > 0) ...[
                       const SizedBox(width: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.purple.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -397,7 +364,11 @@ class _QuestCard extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              PowerUps.all.firstWhere((p) => p.type == quest.rewardPowerUp).icon,
+                              PowerUps.all
+                                  .firstWhere(
+                                    (p) => p.type == quest.rewardPowerUp,
+                                  )
+                                  .icon,
                               style: const TextStyle(fontSize: 14),
                             ),
                             const SizedBox(width: 4),

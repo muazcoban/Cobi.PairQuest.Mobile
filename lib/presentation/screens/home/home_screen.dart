@@ -8,9 +8,11 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/daily_reward_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/leaderboard_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/dialogs/daily_reward_dialog.dart';
+import '../../widgets/home/sign_in_prompt_card.dart';
 import '../achievements/achievements_screen.dart';
 import '../game/game_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
@@ -37,6 +39,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkDailyReward();
       _syncPendingScores();
+      // Schedules the daily reminder now, so its text follows the language
+      // and sign-in state without the settings screen being opened.
+      ref.read(notificationSettingsProvider);
     });
   }
 
@@ -63,7 +68,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         builder: (context) => const DailyRewardDialog(),
       ).then((reward) {
         if (reward != null && mounted) {
-          final message = _buildRewardMessage(reward);
+          final message = _buildRewardMessage(
+            AppLocalizations.of(context)!,
+            reward,
+          );
           if (message.isNotEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -98,174 +106,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               end: Alignment.bottomRight,
               // White text needs 4.5:1 on every part of the gradient;
               // primaryLight gives only 3.74:1.
-              colors: [
-                AppColors.primary,
-                AppColors.primaryDark,
-              ],
+              colors: [AppColors.primary, AppColors.primaryDark],
             ),
           ),
           child: SafeArea(
-            child: Stack(
+            child: Column(
               children: [
-                // Main content with scroll
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      // Logo / Title
-                      const Icon(
-                        Icons.psychology,
-                        size: 64,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.appTitle,
-                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.appSubtitle,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppColors.textLightSecondary,
-                            ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Play Button - Classic Mode
-                      _MenuButton(
-                        icon: Icons.play_arrow_rounded,
-                        label: l10n.classicMode,
-                        sublabel: l10n.classicModeDesc,
-                        onTap: () => _startGame(
-                          context,
-                          GameMode.classic,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Timed Mode Button
-                      _MenuButton(
-                        icon: Icons.timer,
-                        label: l10n.timedMode,
-                        sublabel: l10n.timedModeDesc,
-                        onTap: () => _startGame(
-                          context,
-                          GameMode.timed,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Online Multiplayer Mode Button
-                      _MenuButton(
-                        icon: Icons.public,
-                        label: l10n.onlineMultiplayer,
-                        sublabel: l10n.onlineMultiplayerDesc,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const OnlineLobbyScreen(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Local Multiplayer Mode Button
-                      _MenuButton(
-                        icon: Icons.people,
-                        label: l10n.localMultiplayer,
-                        sublabel: l10n.localMultiplayerDesc,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const MultiplayerLobbyScreen(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Level Selection
-                      _MenuButton(
-                        icon: Icons.grid_view_rounded,
-                        label: l10n.selectLevel,
-                        sublabel: l10n.selectLevelDesc,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const LevelSelectScreen(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Settings Button
-                      _MenuButton(
-                        icon: Icons.settings,
-                        label: l10n.settings,
-                        sublabel: l10n.language,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsScreen(),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Quick access row for gamification features
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _QuickAccessButton(
-                            icon: Icons.bar_chart_rounded,
-                            label: l10n.statistics,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const StatisticsScreen(),
-                              ),
-                            ),
-                          ),
-                          _QuickAccessButton(
-                            icon: Icons.emoji_events_rounded,
-                            label: l10n.achievements,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const AchievementsScreen(),
-                              ),
-                            ),
-                          ),
-                          _QuickAccessButton(
-                            icon: Icons.today_rounded,
-                            label: l10n.dailyQuests,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const DailyQuestsScreen(),
-                              ),
-                            ),
-                          ),
-                          _QuickAccessButton(
-                            icon: Icons.leaderboard_rounded,
-                            label: l10n.leaderboard,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const LeaderboardScreen(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-
-                // Top bar - wallet and music toggle
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  right: 8,
+                // Top bar - wallet and music toggle. Outside the scroll view,
+                // so scrolled content does not pass under it.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -286,13 +136,171 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ref.read(settingsProvider.notifier).toggleMusic();
                           },
                           icon: Icon(
-                            musicEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                            musicEnabled
+                                ? Icons.volume_up_rounded
+                                : Icons.volume_off_rounded,
                             color: Colors.white,
                             size: 28,
                           ),
                         ),
                       ),
                     ],
+                  ),
+                ),
+                // Main content with scroll
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    child: Column(
+                      children: [
+                        // Logo / Title
+                        const Icon(
+                          Icons.psychology,
+                          size: 64,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.appTitle,
+                          style: Theme.of(context).textTheme.displayMedium
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.appSubtitle,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(color: AppColors.textLightSecondary),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Only for players who have not signed in
+                        const SignInPromptCard(),
+
+                        // Play Button - Classic Mode
+                        _MenuButton(
+                          icon: Icons.play_arrow_rounded,
+                          label: l10n.classicMode,
+                          sublabel: l10n.classicModeDesc,
+                          onTap: () => _startGame(context, GameMode.classic),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Timed Mode Button
+                        _MenuButton(
+                          icon: Icons.timer,
+                          label: l10n.timedMode,
+                          sublabel: l10n.timedModeDesc,
+                          onTap: () => _startGame(context, GameMode.timed),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Online Multiplayer Mode Button
+                        _MenuButton(
+                          icon: Icons.public,
+                          label: l10n.onlineMultiplayer,
+                          sublabel: l10n.onlineMultiplayerDesc,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const OnlineLobbyScreen(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Local Multiplayer Mode Button
+                        _MenuButton(
+                          icon: Icons.people,
+                          label: l10n.localMultiplayer,
+                          sublabel: l10n.localMultiplayerDesc,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const MultiplayerLobbyScreen(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Level Selection
+                        _MenuButton(
+                          icon: Icons.grid_view_rounded,
+                          label: l10n.selectLevel,
+                          sublabel: l10n.selectLevelDesc,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const LevelSelectScreen(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Settings Button
+                        _MenuButton(
+                          icon: Icons.settings,
+                          label: l10n.settings,
+                          sublabel: l10n.language,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const SettingsScreen(),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Quick access row for gamification features
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _QuickAccessButton(
+                              icon: Icons.bar_chart_rounded,
+                              label: l10n.statistics,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const StatisticsScreen(),
+                                ),
+                              ),
+                            ),
+                            _QuickAccessButton(
+                              icon: Icons.emoji_events_rounded,
+                              label: l10n.achievements,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AchievementsScreen(),
+                                ),
+                              ),
+                            ),
+                            _QuickAccessButton(
+                              icon: Icons.today_rounded,
+                              label: l10n.dailyQuests,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const DailyQuestsScreen(),
+                                ),
+                              ),
+                            ),
+                            _QuickAccessButton(
+                              icon: Icons.leaderboard_rounded,
+                              label: l10n.leaderboard,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const LeaderboardScreen(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -304,7 +312,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _startGame(BuildContext context, GameMode mode) {
-    ref.read(gameProvider.notifier).startGame(
+    ref
+        .read(gameProvider.notifier)
+        .startGame(
           level: 5, // Default 4x4
           mode: mode,
         );
@@ -319,18 +329,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  String _buildRewardMessage(DailyReward reward) {
-    final parts = <String>[];
-    if (reward.coins > 0) {
-      parts.add('+${reward.coins} coins');
-    }
-    if (reward.gems > 0) {
-      parts.add('+${reward.gems} gems');
-    }
-    if (reward.powerUpId != null) {
-      parts.add('+1 power-up');
-    }
-    return parts.join(', ') + ' claimed!';
+  String _buildRewardMessage(AppLocalizations l10n, DailyReward reward) {
+    final parts = [
+      if (reward.coins > 0) l10n.rewardCoins(reward.coins),
+      if (reward.gems > 0) l10n.rewardGems(reward.gems),
+      if (reward.powerUpId != null) l10n.rewardPowerUp,
+    ];
+    return parts.isEmpty ? '' : l10n.rewardClaimed(parts.join(', '));
   }
 
   void _showLevelSelector(BuildContext context) {
@@ -340,16 +345,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       builder: (context) => _LevelSelectorSheet(
         onLevelSelected: (level) {
           Navigator.pop(context);
-          ref.read(gameProvider.notifier).startGame(
-                level: level,
-                mode: GameMode.classic,
-              );
+          ref
+              .read(gameProvider.notifier)
+              .startGame(level: level, mode: GameMode.classic);
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => GameScreen(
-                level: level,
-                mode: 'classic',
-              ),
+              builder: (context) => GameScreen(level: level, mode: 'classic'),
             ),
           );
         },
@@ -382,11 +383,7 @@ class _QuickAccessButton extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 26,
-            ),
+            child: Icon(icon, color: Colors.white, size: 26),
           ),
           const SizedBox(height: 6),
           Text(
@@ -446,15 +443,15 @@ class _MenuButton extends StatelessWidget {
                   Text(
                     label,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   Text(
                     sublabel,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textLightSecondary,
-                        ),
+                      color: AppColors.textLightSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -573,15 +570,15 @@ class _LevelTile extends StatelessWidget {
             Text(
               '$level',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Text(
               grid,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondaryLight,
-                  ),
+                color: AppColors.textSecondaryLight,
+              ),
             ),
           ],
         ),

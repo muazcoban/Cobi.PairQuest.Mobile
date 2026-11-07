@@ -295,7 +295,7 @@ class _LevelCard extends StatelessWidget {
 
                     // Pairs count
                     Text(
-                      '${config.pairs} pairs',
+                      AppLocalizations.of(context)!.pairsCount(config.pairs),
                       style: TextStyle(
                         color: AppColors.textSecondaryLight,
                         fontSize: 12,
@@ -320,7 +320,7 @@ class _LevelCard extends StatelessWidget {
                     // Best score
                     if (bestScore > 0)
                       Text(
-                        'Best: $bestScore',
+                        AppLocalizations.of(context)!.bestScoreValue(bestScore),
                         style: TextStyle(
                           color: AppColors.textSecondaryLight,
                           fontSize: 11,
