@@ -9,13 +9,9 @@ cd "$CI_PRIMARY_REPOSITORY_PATH"
 git clone https://github.com/flutter/flutter.git --depth 1 -b 3.38.3 "$HOME/flutter"
 export PATH="$PATH:$HOME/flutter/bin"
 
-# lib/firebase_options.dart is not in the public repository. The workflow
-# keeps it, base64-encoded, in the FIREBASE_OPTIONS_BASE64 secret.
-if [ -z "$FIREBASE_OPTIONS_BASE64" ]; then
-  echo "error: FIREBASE_OPTIONS_BASE64 is not set in the Xcode Cloud workflow" >&2
-  exit 1
-fi
-echo "$FIREBASE_OPTIONS_BASE64" | base64 --decode > lib/firebase_options.dart
+# lib/firebase_options.dart is not in the repository; rebuild it from the
+# Firebase config files that are.
+python3 ios/ci_scripts/write_firebase_options.py
 
 flutter precache --ios
 flutter pub get
