@@ -980,4 +980,14 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get nameNotAllowed => 'Bu ad kullanılamaz. Başka bir ad seçin.';
+
+  @override
+  String get signInPromptTitle => 'Skorun dünya tablosuna girsin';
+
+  @override
+  String get signInPromptBody =>
+      'Giriş yap; online oyna, jeton ve güçlendiricilerin her cihazında seninle olsun.';
+
+  @override
+  String get notNow => 'Şimdi değil';
 }

@@ -979,4 +979,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nameNotAllowed => 'This name can\'t be used. Choose another one.';
+
+  @override
+  String get signInPromptTitle => 'Put your scores on the global leaderboard';
+
+  @override
+  String get signInPromptBody =>
+      'Sign in to play online and keep your coins and power-ups on every device.';
+
+  @override
+  String get notNow => 'Not now';
 }

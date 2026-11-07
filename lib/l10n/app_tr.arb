@@ -642,6 +642,9 @@
   "unblock": "Engeli kaldır",
   "contactUs": "Bize ulaşın",
   "nameNotAllowed": "Bu ad kullanılamaz. Başka bir ad seçin.",
+  "signInPromptTitle": "Skorun dünya tablosuna girsin",
+  "signInPromptBody": "Giriş yap; online oyna, jeton ve güçlendiricilerin her cihazında seninle olsun.",
+  "notNow": "Şimdi değil",
   "@reportPlayerTitle": {"placeholders": {"name": {"type": "String"}}},
   "@blockPlayerTitle": {"placeholders": {"name": {"type": "String"}}},
   "@playerBlocked": {"placeholders": {"name": {"type": "String"}}}

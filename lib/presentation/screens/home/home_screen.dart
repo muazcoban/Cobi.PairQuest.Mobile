@@ -11,6 +11,7 @@ import '../../providers/leaderboard_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/dialogs/daily_reward_dialog.dart';
+import '../../widgets/home/sign_in_prompt_card.dart';
 import '../achievements/achievements_screen.dart';
 import '../game/game_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
@@ -135,6 +136,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                       ),
                       const SizedBox(height: 32),
+
+                      // Only for players who have not signed in
+                      const SignInPromptCard(),
 
                       // Play Button - Classic Mode
                       _MenuButton(

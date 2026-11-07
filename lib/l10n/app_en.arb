@@ -346,5 +346,8 @@
   "noBlockedPlayers": "You haven't blocked anyone",
   "unblock": "Unblock",
   "contactUs": "Contact us",
-  "nameNotAllowed": "This name can't be used. Choose another one."
+  "nameNotAllowed": "This name can't be used. Choose another one.",
+  "signInPromptTitle": "Put your scores on the global leaderboard",
+  "signInPromptBody": "Sign in to play online and keep your coins and power-ups on every device.",
+  "notNow": "Not now"
 }

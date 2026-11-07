@@ -1957,6 +1957,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu ad kullanılamaz. Başka bir ad seçin.'**
   String get nameNotAllowed;
+
+  /// No description provided for @signInPromptTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Skorun dünya tablosuna girsin'**
+  String get signInPromptTitle;
+
+  /// No description provided for @signInPromptBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş yap; online oyna, jeton ve güçlendiricilerin her cihazında seninle olsun.'**
+  String get signInPromptBody;
+
+  /// No description provided for @notNow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdi değil'**
+  String get notNow;
 }
 
 class _AppLocalizationsDelegate
