@@ -174,8 +174,9 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
     }
   }
 
-  /// Update quest progress after a game
-  void recordGameResult({
+  /// Update quest progress after a game. Returns the ids of the quests this
+  /// game completed.
+  List<String> recordGameResult({
     required bool won,
     required int matches,
     required int maxCombo,
@@ -203,6 +204,7 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
 
     // Update quest progress
     final newProgress = Map<String, QuestProgress>.from(state.progress);
+    final completedNow = <String>[];
 
     for (final quest in state.quests) {
       if (newProgress[quest.id]?.isCompleted ?? false) continue;
@@ -239,6 +241,7 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
       }
 
       final isCompleted = currentValue >= quest.targetValue;
+      if (isCompleted) completedNow.add(quest.id);
       newProgress[quest.id] = QuestProgress(
         questId: quest.id,
         currentValue: currentValue,
@@ -249,6 +252,7 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
 
     state = state.copyWith(progress: newProgress);
     _saveQuests();
+    return completedNow;
   }
 
   /// Claim reward for completed quest

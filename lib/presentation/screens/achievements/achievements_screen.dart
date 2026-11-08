@@ -151,7 +151,9 @@ class _AchievementCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isUnlocked ? Colors.white : Colors.white.withOpacity(0.7),
+        // A fixed white card hid the title, which is white in dark mode.
+        color: AppColors.cardBackground(context)
+            .withValues(alpha: isUnlocked ? 1 : 0.6),
         borderRadius: BorderRadius.circular(16),
         border: isUnlocked
             ? Border.all(color: _rarityColor, width: 2)
@@ -206,7 +208,7 @@ class _AchievementCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             color: isUnlocked
                                 ? AppColors.textPrimary(context)
-                                : Colors.grey,
+                                : AppColors.textSecondary(context),
                           ),
                         ),
                       ),
@@ -235,9 +237,8 @@ class _AchievementCard extends StatelessWidget {
                     _getDescription(context),
                     style: TextStyle(
                       fontSize: 13,
-                      color: isUnlocked
-                          ? AppColors.textSecondary(context)
-                          : Colors.grey,
+                      // Grey gave 2.6:1 on the card; locked texts stay readable.
+                      color: AppColors.textSecondary(context),
                     ),
                   ),
                   const SizedBox(height: 8),

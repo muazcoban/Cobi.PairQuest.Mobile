@@ -209,16 +209,23 @@ final tierDistributionProvider = FutureProvider<Map<PlayerTier, int>>((ref) asyn
   return distribution;
 });
 
-/// Total online players count
-final totalOnlinePlayersProvider = StreamProvider<int>((ref) {
-  final firestore = FirebaseFirestore.instance;
-
-  return firestore
-      .collection('users')
-      // Profiles store the connection state as 'status' (OnlineUserProfile).
-      .where('status', isEqualTo: 'online')
-      .snapshots()
-      .map((snapshot) => snapshot.size);
+/// Players online now, counted again every heartbeat.
+///
+/// A status of 'online' alone is not enough: an app that was killed never
+/// wrote 'offline'. The query asks for recent lastSeenAt values, which a
+/// single-field index serves, and the status is checked here.
+final totalOnlinePlayersProvider = StreamProvider.autoDispose<int>((ref) async* {
+  final users = FirebaseFirestore.instance.collection('users');
+  while (true) {
+    final cutoff = DateTime.now().subtract(OnlineUserProfile.onlineTimeout);
+    final snapshot = await users
+        .where('lastSeenAt', isGreaterThan: Timestamp.fromDate(cutoff))
+        .get();
+    yield snapshot.docs
+        .where((doc) => doc.data()['status'] == ConnectionStatus.online.name)
+        .length;
+    await Future<void>.delayed(OnlineUserProfile.presenceHeartbeat);
+  }
 });
 
 /// Selected leaderboard filter

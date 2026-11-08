@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/game_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
@@ -181,8 +182,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   }
 
   Widget _buildLevelFilter(BuildContext context, AppLocalizations l10n) {
+    // 44 pt tall chips: the HIG minimum touch target.
     return Container(
-      height: 50,
+      height: 60,
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: ListView(
         scrollDirection: Axis.horizontal,
@@ -194,7 +196,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
             onTap: () => setState(() => _selectedLevel = null),
           ),
           const SizedBox(width: 8),
-          ...List.generate(10, (index) {
+          ...List.generate(GameConfig.totalLevels, (index) {
             final level = index + 1;
             return Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -280,42 +282,48 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // Three equal columns: a column sized by its name and menu
+                // button overflowed the screen.
                 // 2nd place
-                if (entries.length >= 2)
-                  _PodiumItem(
-                    rank: 2,
-                    entry: entries[1],
-                    height: 80,
-                    isCurrentPlayer: isMine(entries[1]),
-                    canReport: canReport(entries[1]),
-                  )
-                else
-                  const SizedBox(width: 100),
+                Expanded(
+                  child: entries.length >= 2
+                      ? _PodiumItem(
+                          rank: 2,
+                          entry: entries[1],
+                          height: 80,
+                          isCurrentPlayer: isMine(entries[1]),
+                          canReport: canReport(entries[1]),
+                        )
+                      : const SizedBox(),
+                ),
 
                 const SizedBox(width: 8),
 
                 // 1st place
-                _PodiumItem(
-                  rank: 1,
-                  entry: entries[0],
-                  height: 100,
-                  isCurrentPlayer: isMine(entries[0]),
-                  canReport: canReport(entries[0]),
+                Expanded(
+                  child: _PodiumItem(
+                    rank: 1,
+                    entry: entries[0],
+                    height: 100,
+                    isCurrentPlayer: isMine(entries[0]),
+                    canReport: canReport(entries[0]),
+                  ),
                 ),
 
                 const SizedBox(width: 8),
 
                 // 3rd place
-                if (entries.length >= 3)
-                  _PodiumItem(
-                    rank: 3,
-                    entry: entries[2],
-                    height: 60,
-                    isCurrentPlayer: isMine(entries[2]),
-                    canReport: canReport(entries[2]),
-                  )
-                else
-                  const SizedBox(width: 100),
+                Expanded(
+                  child: entries.length >= 3
+                      ? _PodiumItem(
+                          rank: 3,
+                          entry: entries[2],
+                          height: 60,
+                          isCurrentPlayer: isMine(entries[2]),
+                          canReport: canReport(entries[2]),
+                        )
+                      : const SizedBox(),
+                ),
               ],
             ),
           ),
@@ -354,20 +362,30 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : Colors.grey.shade700,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? AppColors.surfaceDark : Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? AppColors.textSecondaryDark : Colors.grey.shade700),
+            ),
           ),
         ),
       ),
@@ -458,7 +476,9 @@ class _PodiumItem extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
-                maxLines: 1,
+                // Two lines: beside the menu button one line held ~6 letters.
+                textAlign: TextAlign.center,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -469,26 +489,26 @@ class _PodiumItem extends StatelessWidget {
                 source: ReportSource.leaderboard,
                 color: Colors.white,
               ),
-            if (isCurrentPlayer) ...[
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.accentStrong,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  l10n.you,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
+        // Under the name: a third of the screen leaves no room beside it.
+        if (isCurrentPlayer)
+          Container(
+            margin: const EdgeInsets.only(top: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.accentStrong,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              l10n.you,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
         const SizedBox(height: 4),
 
         // Score
@@ -504,7 +524,7 @@ class _PodiumItem extends StatelessWidget {
 
         // Podium block
         Container(
-          width: 100,
+          width: double.infinity,
           height: height,
           decoration: BoxDecoration(
             color: isCurrentPlayer
@@ -580,9 +600,10 @@ class _LeaderboardRow extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
+              // White on Amber 500 gave 2.2:1, Teal 700 on the dark card 2.7:1.
               color: isCurrentPlayer
-                  ? AppColors.accent
-                  : AppColors.primary.withOpacity(0.1),
+                  ? AppColors.accentStrong
+                  : AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -591,7 +612,9 @@ class _LeaderboardRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: isCurrentPlayer ? Colors.white : AppColors.primary,
+                  color: isCurrentPlayer
+                      ? Colors.white
+                      : AppColors.primaryText(context),
                 ),
               ),
             ),

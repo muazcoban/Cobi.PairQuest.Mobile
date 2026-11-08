@@ -12,7 +12,10 @@ final achievementProvider =
   // Read stats on demand instead of watching them: watching rebuilt the
   // notifier on every stats change, and the fresh notifier (empty progress,
   // still loading) reported every unlocked achievement as new after each win.
-  return AchievementNotifier(() => ref.read(statsProvider));
+  return AchievementNotifier(
+    () => ref.read(statsProvider),
+    statsLoaded: ref.read(statsProvider.notifier).loaded,
+  );
 });
 
 /// Provider to get newly unlocked achievements
@@ -23,9 +26,12 @@ class AchievementNotifier
     extends StateNotifier<Map<String, AchievementProgress>> {
   static const String _storageKey = 'achievement_progress';
   final PlayerStats Function() _readStats;
+  final Future<void> _statsLoaded;
   late final Future<void> _loaded;
 
-  AchievementNotifier(this._readStats) : super({}) {
+  AchievementNotifier(this._readStats, {Future<void>? statsLoaded})
+      : _statsLoaded = statsLoaded ?? Future<void>.value(),
+        super({}) {
     _loaded = _loadProgress();
   }
 
@@ -48,7 +54,9 @@ class AchievementNotifier
       // Keep empty progress on error
     }
 
-    // Check for any new unlocks based on current stats
+    // Check for any new unlocks based on current stats. Before the stats
+    // were loaded this saw empty stats and stored 0 as every progress.
+    await _statsLoaded;
     if (mounted) _checkAllAchievements();
   }
 

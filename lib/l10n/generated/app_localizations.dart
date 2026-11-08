@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// Seviye seçim açıklaması
   ///
   /// In tr, this message translates to:
-  /// **'Istediğin seviyeyi seç'**
+  /// **'İstediğin seviyeyi seç'**
   String get selectLevelDesc;
 
   /// Ayarlar butonu
@@ -683,7 +683,7 @@ abstract class AppLocalizations {
   /// No description provided for @questRefresh.
   ///
   /// In tr, this message translates to:
-  /// **'Yeni görevler: {hours}s {minutes}dk'**
+  /// **'Yeni görevler: {hours} sa {minutes} dk'**
   String questRefresh(Object hours, Object minutes);
 
   /// No description provided for @leaderboard.
@@ -2089,6 +2089,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yerel çok oyunculu modda aynı cihazda oynayın.'**
   String get reminderFriendBody;
+
+  /// No description provided for @settingsDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap, ses, tema ve bildirimler'**
+  String get settingsDesc;
+
+  /// No description provided for @questCompleted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görev tamamlandı'**
+  String get questCompleted;
+
+  /// No description provided for @durationMinutes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dk'**
+  String durationMinutes(int minutes);
+
+  /// No description provided for @durationHoursMinutes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{hours} sa {minutes} dk'**
+  String durationHoursMinutes(int hours, int minutes);
 }
 
 class _AppLocalizationsDelegate

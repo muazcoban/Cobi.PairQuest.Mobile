@@ -241,7 +241,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         _MenuButton(
                           icon: Icons.settings,
                           label: l10n.settings,
-                          sublabel: l10n.language,
+                          sublabel: l10n.settingsDesc,
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => const SettingsScreen(),
@@ -256,7 +256,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _QuickAccessButton(
-                              icon: Icons.bar_chart_rounded,
+                              icon: Icons.insights_rounded,
                               label: l10n.statistics,
                               onTap: () => Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -336,26 +336,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (reward.powerUpId != null) l10n.rewardPowerUp,
     ];
     return parts.isEmpty ? '' : l10n.rewardClaimed(parts.join(', '));
-  }
-
-  void _showLevelSelector(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _LevelSelectorSheet(
-        onLevelSelected: (level) {
-          Navigator.pop(context);
-          ref
-              .read(gameProvider.notifier)
-              .startGame(level: level, mode: GameMode.classic);
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => GameScreen(level: level, mode: 'classic'),
-            ),
-          );
-        },
-      ),
-    );
   }
 }
 
@@ -463,124 +443,6 @@ class _MenuButton extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LevelSelectorSheet extends StatelessWidget {
-  final Function(int) onLevelSelected;
-
-  const _LevelSelectorSheet({required this.onLevelSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    final levels = [
-      (1, '2x2', l10n.tutorial),
-      (2, '2x3', l10n.veryEasy),
-      (3, '2x4', l10n.easy),
-      (4, '3x4', l10n.easy),
-      (5, '4x4', l10n.medium),
-      (6, '4x5', l10n.medium),
-      (7, '5x6', l10n.hard),
-      (8, '6x6', l10n.hard),
-      (9, '6x7', l10n.veryHard),
-      (10, '8x8', l10n.expert),
-    ];
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            l10n.selectLevel,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 16),
-          Flexible(
-            child: GridView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.8,
-              ),
-              itemCount: levels.length,
-              itemBuilder: (context, index) {
-                final (level, grid, difficulty) = levels[index];
-                return _LevelTile(
-                  level: level,
-                  grid: grid,
-                  difficulty: difficulty,
-                  onTap: () => onLevelSelected(level),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-}
-
-class _LevelTile extends StatelessWidget {
-  final int level;
-  final String grid;
-  final String difficulty;
-  final VoidCallback onTap;
-
-  const _LevelTile({
-    required this.level,
-    required this.grid,
-    required this.difficulty,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.primary.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '$level',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              grid,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondaryLight,
-              ),
-            ),
-          ],
         ),
       ),
     );

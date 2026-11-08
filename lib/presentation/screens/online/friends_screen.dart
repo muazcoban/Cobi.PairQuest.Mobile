@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/matchmaking.dart';
-import '../../../domain/entities/online_player.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/friends_provider.dart';
@@ -237,7 +236,7 @@ class _FriendTile extends ConsumerWidget {
     // Get friend's profile for online status and display name
     final friendProfileAsync = ref.watch(onlineProfileProvider(friendId));
     final friendProfile = friendProfileAsync.valueOrNull;
-    final isOnline = friendProfile?.status == ConnectionStatus.online;
+    final isOnline = friendProfile?.isOnlineAt(DateTime.now()) ?? false;
 
     // Get display name from friendship or profile
     final displayName = friendship.getDisplayName(currentUserId) ??

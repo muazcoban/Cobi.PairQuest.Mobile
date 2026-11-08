@@ -16,7 +16,10 @@ import '../../domain/entities/online_player.dart';
 /// - Casual games: Update casualWins/casualLosses/casualGames (no rating change)
 /// - Legacy fields (wins/losses/totalGames) kept for backward compatibility
 class OnlineGameRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  OnlineGameRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
 
   static const String _gamesCollection = 'games';
   static const String _usersCollection = 'users';
@@ -432,6 +435,19 @@ class OnlineGameRepository {
       });
     } catch (e) {
       debugPrint('Error updating online status: $e');
+    }
+  }
+
+  /// Write the presence status and refresh lastSeenAt, leaving the current
+  /// game alone (updateOnlineStatus clears it).
+  Future<void> updatePresence(String oddserId, ConnectionStatus status) async {
+    try {
+      await _usersRef.doc(oddserId).update({
+        'status': status.name,
+        'lastSeenAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Error updating presence: $e');
     }
   }
 

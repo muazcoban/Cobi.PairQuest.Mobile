@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/game_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/stats_provider.dart';
@@ -68,87 +70,89 @@ class StatisticsScreen extends ConsumerWidget {
     );
   }
 
+  /// Cards in one row take the tallest card's height.
+  Widget _cardRow(List<Widget> cards) => IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < cards.length; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              Expanded(child: cards[i]),
+            ],
+          ],
+        ),
+      );
+
+  String _playTime(AppLocalizations l10n, int seconds) {
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+    return hours > 0
+        ? l10n.durationHoursMinutes(hours, minutes)
+        : l10n.durationMinutes(minutes);
+  }
+
   Widget _buildOverviewCards(
       BuildContext context, AppLocalizations l10n, stats) {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            icon: Icons.videogame_asset_rounded,
-            iconColor: AppColors.primary,
-            label: l10n.totalGames,
-            value: '${stats.totalGamesPlayed}',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.emoji_events_rounded,
-            iconColor: AppColors.accent,
-            label: l10n.gamesWon,
-            value: '${stats.totalGamesWon}',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.timer_rounded,
-            iconColor: AppColors.info,
-            label: l10n.playTime,
-            value: stats.formattedPlayTime,
-          ),
-        ),
-      ],
-    );
+    return _cardRow([
+      _StatCard(
+        icon: Icons.videogame_asset_rounded,
+        iconColor: AppColors.primaryText(context),
+        label: l10n.totalGames,
+        value: '${stats.totalGamesPlayed}',
+      ),
+      _StatCard(
+        icon: Icons.emoji_events_rounded,
+        iconColor: AppColors.accent,
+        label: l10n.gamesWon,
+        value: '${stats.totalGamesWon}',
+      ),
+      _StatCard(
+        icon: Icons.timer_rounded,
+        iconColor: AppColors.info,
+        label: l10n.playTime,
+        value: _playTime(l10n, stats.totalPlayTimeSeconds),
+      ),
+    ]);
   }
 
   Widget _buildPerformanceCards(
       BuildContext context, AppLocalizations l10n, stats) {
+    // Turkish writes "%88,9" and "14,6".
+    final locale = Localizations.localeOf(context).toString();
+    final percent =
+        NumberFormat.decimalPercentPattern(locale: locale, decimalDigits: 1);
+    final decimal = NumberFormat('0.0', locale);
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                icon: Icons.percent_rounded,
-                iconColor: AppColors.success,
-                label: l10n.winRate,
-                value: '${stats.winRate.toStringAsFixed(1)}%',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _StatCard(
-                icon: Icons.touch_app_rounded,
-                iconColor: AppColors.warning,
-                label: l10n.avgMoves,
-                value: stats.avgMovesPerGame.toStringAsFixed(1),
-              ),
-            ),
-          ],
-        ),
+        _cardRow([
+          _StatCard(
+            icon: Icons.percent_rounded,
+            iconColor: AppColors.success,
+            label: l10n.winRate,
+            value: percent.format(stats.winRate / 100),
+          ),
+          _StatCard(
+            icon: Icons.touch_app_rounded,
+            iconColor: AppColors.warning,
+            label: l10n.avgMoves,
+            value: decimal.format(stats.avgMovesPerGame),
+          ),
+        ]),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                icon: Icons.join_full_rounded,
-                iconColor: AppColors.primary,
-                label: l10n.totalMatches,
-                value: '${stats.totalMatchesMade}',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _StatCard(
-                icon: Icons.star_rounded,
-                iconColor: AppColors.accent,
-                label: l10n.starsEarned,
-                value: '${stats.totalStarsEarned}',
-              ),
-            ),
-          ],
-        ),
+        _cardRow([
+          _StatCard(
+            icon: Icons.join_full_rounded,
+            iconColor: AppColors.primaryText(context),
+            label: l10n.totalMatches,
+            value: '${stats.totalMatchesMade}',
+          ),
+          _StatCard(
+            icon: Icons.star_rounded,
+            iconColor: AppColors.accent,
+            label: l10n.starsEarned,
+            value: '${stats.totalStarsEarned}',
+          ),
+        ]),
       ],
     );
   }
@@ -157,71 +161,50 @@ class StatisticsScreen extends ConsumerWidget {
       BuildContext context, AppLocalizations l10n, stats) {
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                icon: Icons.local_fire_department_rounded,
-                iconColor: AppColors.error,
-                label: l10n.highestCombo,
-                value: '${stats.highestCombo}x',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _StatCard(
-                icon: Icons.whatshot_rounded,
-                iconColor: AppColors.warning,
-                label: l10n.longestStreak,
-                value: '${stats.longestStreak}',
-              ),
-            ),
-          ],
-        ),
+        _cardRow([
+          _StatCard(
+            icon: Icons.local_fire_department_rounded,
+            iconColor: AppColors.error,
+            label: l10n.highestCombo,
+            value: '${stats.highestCombo}x',
+          ),
+          _StatCard(
+            icon: Icons.whatshot_rounded,
+            iconColor: AppColors.warning,
+            label: l10n.longestStreak,
+            value: '${stats.longestStreak}',
+          ),
+        ]),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                icon: Icons.workspace_premium_rounded,
-                iconColor: AppColors.success,
-                label: l10n.perfectGames,
-                value: '${stats.perfectGames}',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _StatCard(
-                icon: Icons.grade_rounded,
-                iconColor: AppColors.accent,
-                label: l10n.threeStarLevels,
-                value: '${stats.levelsWithThreeStars}',
-              ),
-            ),
-          ],
-        ),
+        _cardRow([
+          _StatCard(
+            icon: Icons.workspace_premium_rounded,
+            iconColor: AppColors.success,
+            label: l10n.perfectGames,
+            value: '${stats.perfectGames}',
+          ),
+          _StatCard(
+            icon: Icons.grade_rounded,
+            iconColor: AppColors.accent,
+            label: l10n.threeStarLevels,
+            value: '${stats.levelsWithThreeStars}',
+          ),
+        ]),
       ],
     );
   }
 
   Widget _buildProgressCard(
       BuildContext context, AppLocalizations l10n, stats) {
+    const totalLevels = GameConfig.totalLevels;
     final highestLevel = stats.highestLevelCompleted;
-    final progress = highestLevel / 10;
+    final progress = highestLevel / totalLevels;
+    final accent = AppColors.primaryText(context);
+    final scheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -230,13 +213,14 @@ class StatisticsScreen extends ConsumerWidget {
             children: [
               Text(
                 l10n.levelProgress,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary(context),
                 ),
               ),
               Text(
-                '$highestLevel / 10',
+                '$highestLevel / $totalLevels',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -251,15 +235,18 @@ class StatisticsScreen extends ConsumerWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 12,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              backgroundColor: accent.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(accent),
             ),
           ),
+          // Ten levels to a row: 20 circles do not fit one row on a phone.
+          for (var first = 1; first <= totalLevels; first += 10) ...[
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(10, (index) {
-              final level = index + 1;
+            children: List.generate(
+                (totalLevels - first + 1).clamp(0, 10), (index) {
+              final level = first + index;
               final levelStats = stats.levelStats[level];
               final isCompleted = levelStats?.completed ?? false;
               final stars = levelStats?.bestStars ?? 0;
@@ -270,9 +257,10 @@ class StatisticsScreen extends ConsumerWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
+                      // Teal 700 barely stood out from the dark card.
                       color: isCompleted
-                          ? AppColors.primary
-                          : AppColors.primary.withOpacity(0.1),
+                          ? scheme.primary
+                          : accent.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -281,7 +269,7 @@ class StatisticsScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: isCompleted ? Colors.white : AppColors.primary,
+                          color: isCompleted ? scheme.onPrimary : accent,
                         ),
                       ),
                     ),
@@ -297,7 +285,7 @@ class StatisticsScreen extends ConsumerWidget {
                         size: 8,
                         color: starIndex < stars
                             ? AppColors.accent
-                            : Colors.grey.shade300,
+                            : AppColors.textMuted,
                       );
                     }),
                   ),
@@ -305,11 +293,26 @@ class StatisticsScreen extends ConsumerWidget {
               );
             }),
           ),
+          ],
         ],
       ),
     );
   }
 }
+
+/// Card background that follows the theme. A fixed white card left the
+/// theme's white dark-mode text unreadable.
+BoxDecoration _cardDecoration(BuildContext context) => BoxDecoration(
+      color: AppColors.cardBackground(context),
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.08),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
 
 /// Individual stat card widget
 class _StatCard extends StatelessWidget {
@@ -329,24 +332,15 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: _cardDecoration(context),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(

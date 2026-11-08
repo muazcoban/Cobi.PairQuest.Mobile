@@ -223,7 +223,7 @@ class SettingsScreen extends ConsumerWidget {
         ),
         child: Icon(
           Icons.person_rounded,
-          color: AppColors.primary,
+          color: AppColors.primaryText(context),
         ),
       ),
       title: Text(currentName),
@@ -327,7 +327,7 @@ class SettingsScreen extends ConsumerWidget {
       title: Text(title),
       subtitle: Text(subtitle),
       trailing: isSelected
-          ? Icon(Icons.check_circle, color: AppColors.primary)
+          ? Icon(Icons.check_circle, color: AppColors.primaryText(context))
           : null,
       onTap: () {
         ref.read(settingsProvider.notifier).setLocale(locale);
@@ -352,7 +352,7 @@ class SettingsScreen extends ConsumerWidget {
       ),
       title: Text(title),
       trailing: isSelected
-          ? Icon(Icons.check_circle, color: AppColors.primary)
+          ? Icon(Icons.check_circle, color: AppColors.primaryText(context))
           : null,
       onTap: () {
         ref.read(settingsProvider.notifier).setThemeMode(themeMode);
@@ -375,7 +375,10 @@ class SettingsScreen extends ConsumerWidget {
       'travel': l10n.travel,
       'food': l10n.food,
       'objects': l10n.objects,
+      'random': l10n.randomTheme,
     };
+    // "random" has no images of its own: it showed its raw id and empty boxes.
+    final isRandom = currentTheme == 'random';
     final emojis = CardShuffle.themeImages[currentTheme]?.take(4).join(' ') ?? '';
 
     return ListTile(
@@ -387,11 +390,13 @@ class SettingsScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
-          child: Text(emojis.split(' ').first, style: const TextStyle(fontSize: 20)),
+          child: isRandom
+              ? Icon(Icons.shuffle_rounded, color: AppColors.primaryText(context))
+              : Text(emojis.split(' ').first, style: const TextStyle(fontSize: 20)),
         ),
       ),
       title: Text(themeNames[currentTheme] ?? currentTheme),
-      subtitle: Text(emojis),
+      subtitle: isRandom ? null : Text(emojis),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () {
         Navigator.of(context).push(
@@ -418,7 +423,7 @@ class SettingsScreen extends ConsumerWidget {
                   )
                 : CircleAvatar(
                     backgroundColor: AppColors.primary.withOpacity(0.1),
-                    child: Icon(Icons.person, color: AppColors.primary),
+                    child: Icon(Icons.person, color: AppColors.primaryText(context)),
                   ),
             title: Text(authState.displayName),
             // HIG Sign in with Apple: show which sign-in is in use. The
@@ -445,7 +450,7 @@ class SettingsScreen extends ConsumerWidget {
           color: AppColors.primary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(Icons.person_outline, color: AppColors.primary),
+        child: Icon(Icons.person_outline, color: AppColors.primaryText(context)),
       ),
       title: Text(authState.isAnonymous ? l10n.guest : l10n.signIn),
       subtitle: Text(l10n.linkAccountDesc),

@@ -210,7 +210,8 @@ class _QuestCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // A fixed white card hid the title, which is white in dark mode.
+        color: AppColors.cardBackground(context),
         borderRadius: BorderRadius.circular(16),
         border: isCompleted && !isClaimed
             ? Border.all(color: AppColors.success, width: 2)
@@ -319,7 +320,9 @@ class _QuestCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isCompleted ? AppColors.success : Colors.grey,
+                    color: isCompleted
+                        ? AppColors.success
+                        : AppColors.textSecondary(context),
                   ),
                 ),
               ],
