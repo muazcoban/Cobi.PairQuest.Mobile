@@ -1,12 +1,36 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pair_quest/domain/entities/game.dart';
+import 'package:pair_quest/domain/entities/player_stats.dart';
 import 'package:pair_quest/domain/entities/player.dart';
 import 'package:pair_quest/presentation/providers/achievement_provider.dart';
 import 'package:pair_quest/presentation/providers/stats_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  testWidgets('progress on launch counts the saved stats', (tester) async {
+    // Opening Achievements before Statistics computed progress from empty,
+    // still-loading stats and showed 0 / 10 after eight wins.
+    final saved = PlayerStats(firstPlayedAt: DateTime(2026, 1, 1)).copyWith(
+      totalGamesPlayed: 9,
+      totalGamesWon: 8,
+    );
+    SharedPreferences.setMockInitialValues({
+      'player_stats': jsonEncode(saved.toJson()),
+    });
+    final c = ProviderContainer();
+    addTearDown(c.dispose);
+
+    c.read(achievementProvider.notifier);
+    for (var i = 0; i < 5; i++) {
+      await tester.pump();
+    }
+
+    expect(c.read(achievementProvider.notifier).getProgress('games_10').currentValue, 8);
+  });
+
   testWidgets('a second win does not report earlier achievements again', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final c = ProviderContainer();

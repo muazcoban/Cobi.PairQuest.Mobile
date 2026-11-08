@@ -13,8 +13,11 @@ class StatsNotifier extends StateNotifier<PlayerStats> {
   static const String _storageKey = 'player_stats';
 
   StatsNotifier() : super(PlayerStats(firstPlayedAt: DateTime.now())) {
-    _loadStats();
+    loaded = _loadStats();
   }
+
+  /// Completes when the saved stats are loaded.
+  late final Future<void> loaded;
 
   /// Load stats from local storage
   Future<void> _loadStats() async {
