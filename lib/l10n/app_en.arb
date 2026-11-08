@@ -368,5 +368,9 @@
   "reminderRankBody": "Play a round and raise your score.",
   "reminderSignInBody": "Sign in to compare your score with other players.",
   "reminderFriendTitle": "Race a friend",
-  "reminderFriendBody": "Play local multiplayer on one device."
+  "reminderFriendBody": "Play local multiplayer on one device.",
+  "settingsDesc": "Account, sound, theme and notifications",
+  "questCompleted": "Quest completed",
+  "durationMinutes": "{minutes}m",
+  "durationHoursMinutes": "{hours}h {minutes}m"
 }

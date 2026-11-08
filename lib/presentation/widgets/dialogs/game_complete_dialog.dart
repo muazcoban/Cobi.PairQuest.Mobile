@@ -175,7 +175,7 @@ class GameCompleteDialog extends StatelessWidget {
                             l10n.perfectGame,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: AppColors.accentDark,
+                              color: AppColors.accentStrong,
                               fontSize: 14,
                             ),
                           ),
@@ -213,9 +213,10 @@ class GameCompleteDialog extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(
                             '+$coinsEarned',
+                            // Amber 500 on the pale amber band gave 2:1.
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.amber,
+                              color: AppColors.accentStrong,
                               fontSize: 20,
                             ),
                           ),
@@ -224,7 +225,7 @@ class GameCompleteDialog extends StatelessWidget {
                             l10n.coins,
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              color: Colors.amber.shade700,
+                              color: AppColors.accentStrong,
                               fontSize: 14,
                             ),
                           ),
@@ -258,9 +259,9 @@ class GameCompleteDialog extends StatelessWidget {
                       Expanded(
                         child: _StatCard(
                           icon: Icons.bolt_rounded,
-                          label: 'Combo',
+                          label: l10n.combo,
                           value: '${maxCombo}x',
-                          color: AppColors.accent,
+                          color: AppColors.accentStrong,
                         ),
                       ),
                     ],

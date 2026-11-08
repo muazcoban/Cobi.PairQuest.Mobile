@@ -209,4 +209,14 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
       );
     }
   }
+
+  /// Show a completed daily quest if the player enabled quest notifications.
+  Future<void> showQuestCompleted({required String title}) async {
+    if (state.questNotifications) {
+      await _notificationService.showAchievementNotification(
+        heading: _l10n.questCompleted,
+        achievementTitle: title,
+      );
+    }
+  }
 }

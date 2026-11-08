@@ -36,7 +36,7 @@
     "description": "Seviye seçim butonu"
   },
 
-  "selectLevelDesc": "Istediğin seviyeyi seç",
+  "selectLevelDesc": "İstediğin seviyeyi seç",
   "@selectLevelDesc": {
     "description": "Seviye seçim açıklaması"
   },
@@ -410,7 +410,7 @@
   "questsCompleted": "{count} / {total} Tamamlandı",
   "claimReward": "Al",
   "claimed": "Alındı",
-  "questRefresh": "Yeni görevler: {hours}s {minutes}dk",
+  "questRefresh": "Yeni görevler: {hours} sa {minutes} dk",
 
   "leaderboard": "Liderlik Tablosu",
   "yourRank": "Sıralamanız",
@@ -672,5 +672,11 @@
   "@dayNumber": {"placeholders": {"day": {"type": "int"}}},
   "@rewardClaimed": {"placeholders": {"items": {"type": "String"}}},
   "@rewardCoins": {"placeholders": {"count": {"type": "int"}}},
-  "@rewardGems": {"placeholders": {"count": {"type": "int"}}}
+  "@rewardGems": {"placeholders": {"count": {"type": "int"}}},
+  "settingsDesc": "Hesap, ses, tema ve bildirimler",
+  "questCompleted": "Görev tamamlandı",
+  "durationMinutes": "{minutes} dk",
+  "durationHoursMinutes": "{hours} sa {minutes} dk",
+  "@durationMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "@durationHoursMinutes": {"placeholders": {"hours": {"type": "int"}, "minutes": {"type": "int"}}}
 }

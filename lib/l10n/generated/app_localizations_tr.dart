@@ -30,7 +30,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get selectLevel => 'Seviye Seç';
 
   @override
-  String get selectLevelDesc => 'Istediğin seviyeyi seç';
+  String get selectLevelDesc => 'İstediğin seviyeyi seç';
 
   @override
   String get settings => 'Ayarlar';
@@ -309,7 +309,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String questRefresh(Object hours, Object minutes) {
-    return 'Yeni görevler: ${hours}s ${minutes}dk';
+    return 'Yeni görevler: $hours sa $minutes dk';
   }
 
   @override
@@ -1062,4 +1062,20 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get reminderFriendBody =>
       'Yerel çok oyunculu modda aynı cihazda oynayın.';
+
+  @override
+  String get settingsDesc => 'Hesap, ses, tema ve bildirimler';
+
+  @override
+  String get questCompleted => 'Görev tamamlandı';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes dk';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours sa $minutes dk';
+  }
 }

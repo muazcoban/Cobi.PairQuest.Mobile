@@ -1061,4 +1061,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderFriendBody => 'Play local multiplayer on one device.';
+
+  @override
+  String get settingsDesc => 'Account, sound, theme and notifications';
+
+  @override
+  String get questCompleted => 'Quest completed';
+
+  @override
+  String durationMinutes(int minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
 }

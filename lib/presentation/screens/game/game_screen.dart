@@ -6,10 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/game_config.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/entities/game.dart';
 import '../../../l10n/achievement_l10n.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../l10n/quest_l10n.dart';
 import '../../providers/achievement_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/game_provider.dart';
@@ -139,7 +141,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
 
     // Update daily quests
     final gameState = ref.read(gameProvider);
-    ref.read(dailyQuestProvider.notifier).recordGameResult(
+    final completedQuests = ref.read(dailyQuestProvider.notifier).recordGameResult(
           won: true,
           matches: game.matches,
           maxCombo: game.maxCombo,
@@ -148,6 +150,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
           powerUpsUsed: gameState.powerUpsUsedCount,
           isTimedMode: game.mode == GameMode.timed,
         );
+    _announceCompletedQuests(completedQuests);
 
     // Add to leaderboard
     final playerName = ref.read(settingsProvider).playerName;
@@ -222,7 +225,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
 
     // Update daily quests
     final gameState = ref.read(gameProvider);
-    ref.read(dailyQuestProvider.notifier).recordGameResult(
+    final completedQuests = ref.read(dailyQuestProvider.notifier).recordGameResult(
           won: false,
           matches: game.matches,
           maxCombo: game.maxCombo,
@@ -231,6 +234,18 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
           powerUpsUsed: gameState.powerUpsUsedCount,
           isTimedMode: game.mode == GameMode.timed,
         );
+    _announceCompletedQuests(completedQuests);
+  }
+
+  /// Tell the player about quests this game completed; the notification
+  /// respects the quest notification setting.
+  void _announceCompletedQuests(List<String> questIds) {
+    if (questIds.isEmpty || !mounted) return;
+    final language = Localizations.localeOf(context).languageCode;
+    final notifications = ref.read(notificationSettingsProvider.notifier);
+    for (final id in questIds) {
+      notifications.showQuestCompleted(title: QuestTexts.title(id, language));
+    }
   }
 
   @override
@@ -572,35 +587,41 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => GameCompleteDialog(
-        level: game.level,
-        stars: stars,
-        score: game.score,
-        moves: game.moves,
-        maxCombo: game.maxCombo,
-        isPerfectGame: game.isPerfectGame,
-        hasNextLevel: game.level < GameConfig.totalLevels,
-        coinsEarned: _lastCoinsEarned,
-        onMainMenu: () {
-          Navigator.of(dialogContext).pop();
-          ref.read(gameProvider.notifier).endGame();
-          Navigator.of(context).pop();
-        },
-        onPlayAgain: () {
-          Navigator.of(dialogContext).pop();
-          ref.read(gameProvider.notifier).resetGame();
-        },
-        onNextLevel: game.level < GameConfig.totalLevels
-            ? () {
-                Navigator.of(dialogContext).pop();
-                final cardTheme = ref.read(settingsProvider).cardTheme;
-                ref.read(gameProvider.notifier).startGame(
-                      level: game.level + 1,
-                      mode: game.mode,
-                      theme: cardTheme,
-                    );
-              }
-            : null,
+      // The dialog is drawn white in both modes, so its colors come from the
+      // light theme; in dark mode they made light text on the white card.
+      builder: (dialogContext) => Theme(
+        data: AppTheme.lightTheme,
+        child: GameCompleteDialog(
+          level: game.level,
+          stars: stars,
+          score: game.score,
+          moves: game.moves,
+          maxCombo: game.maxCombo,
+          isPerfectGame: game.isPerfectGame,
+          hasNextLevel: game.level < GameConfig.totalLevels,
+          coinsEarned: _lastCoinsEarned,
+          onMainMenu: () {
+            Navigator.of(dialogContext).pop();
+            ref.read(gameProvider.notifier).endGame();
+            // The game can be opened from level select; "Main menu" goes home.
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+          onPlayAgain: () {
+            Navigator.of(dialogContext).pop();
+            ref.read(gameProvider.notifier).resetGame();
+          },
+          onNextLevel: game.level < GameConfig.totalLevels
+              ? () {
+                  Navigator.of(dialogContext).pop();
+                  final cardTheme = ref.read(settingsProvider).cardTheme;
+                  ref.read(gameProvider.notifier).startGame(
+                        level: game.level + 1,
+                        mode: game.mode,
+                        theme: cardTheme,
+                      );
+                }
+              : null,
+        ),
       ),
     );
   }
@@ -618,20 +639,24 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => GameOverDialog(
-        score: game.score,
-        matchedPairs: game.matches,
-        totalPairs: game.gridSize.pairs,
-        coinsEarned: partialCoins,
-        onMainMenu: () {
-          Navigator.of(dialogContext).pop();
-          ref.read(gameProvider.notifier).endGame();
-          Navigator.of(context).pop();
-        },
-        onTryAgain: () {
-          Navigator.of(dialogContext).pop();
-          ref.read(gameProvider.notifier).resetGame();
-        },
+      builder: (dialogContext) => Theme(
+        data: AppTheme.lightTheme,
+        child: GameOverDialog(
+          score: game.score,
+          matchedPairs: game.matches,
+          totalPairs: game.gridSize.pairs,
+          coinsEarned: partialCoins,
+          onMainMenu: () {
+            Navigator.of(dialogContext).pop();
+            ref.read(gameProvider.notifier).endGame();
+            // The game can be opened from level select; "Main menu" goes home.
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+          onTryAgain: () {
+            Navigator.of(dialogContext).pop();
+            ref.read(gameProvider.notifier).resetGame();
+          },
+        ),
       ),
     );
   }
@@ -648,7 +673,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
         onMainMenu: () {
           Navigator.of(dialogContext).pop();
           ref.read(gameProvider.notifier).endGame();
-          Navigator.of(context).pop();
+          // The game can be opened from level select; "Main menu" goes home.
+          Navigator.of(context).popUntil((route) => route.isFirst);
         },
         onPlayAgain: () {
           Navigator.of(dialogContext).pop();

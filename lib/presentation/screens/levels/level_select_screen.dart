@@ -180,24 +180,26 @@ class _LevelCard extends StatelessWidget {
     }
   }
 
+  /// The label is text on the white card, so every color reaches 4.5:1 on
+  /// white (HIG Accessibility); green, orange and amber gave 2.1:1 to 2.5:1.
   Color _getDifficultyColor(String difficulty) {
     switch (difficulty) {
       case 'tutorial':
-        return Colors.grey;
+        return Colors.grey.shade700;
       case 'very_easy':
-        return Colors.green;
+        return Colors.green.shade800;
       case 'easy':
-        return Colors.lightGreen;
+        return Colors.lightGreen.shade900;
       case 'medium':
-        return Colors.orange;
+        return AppColors.accentStrong;
       case 'hard':
-        return Colors.deepOrange;
+        return Colors.deepOrange.shade900;
       case 'very_hard':
-        return Colors.red;
+        return Colors.red.shade800;
       case 'expert':
         return Colors.purple;
       case 'legendary':
-        return Colors.amber.shade700;
+        return const Color(0xFF92400E); // Amber 800
       case 'master':
         return Colors.teal.shade700;
       default:
