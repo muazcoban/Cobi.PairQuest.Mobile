@@ -132,10 +132,7 @@ abstract class OnlinePlayer with _$OnlinePlayer {
         maxCombo: combo + 1 > maxCombo ? combo + 1 : maxCombo,
       );
     } else {
-      return copyWith(
-        errors: errors + 1,
-        combo: 0,
-      );
+      return copyWith(errors: errors + 1, combo: 0);
     }
   }
 }
@@ -213,10 +210,32 @@ abstract class OnlineUserProfile with _$OnlineUserProfile {
   /// Create from Firestore document
   factory OnlineUserProfile.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return OnlineUserProfile.fromJson({...data, 'oddserId': doc.id});
+    // A server timestamp this device has just written reads as null until
+    // the server confirms it, and the write happened now.
+    final now = Timestamp.now();
+    return OnlineUserProfile.fromJson({
+      ...data,
+      'oddserId': doc.id,
+      'createdAt': data['createdAt'] ?? now,
+      'lastSeenAt': data['lastSeenAt'] ?? now,
+    });
   }
 
+  /// How often an open app refreshes [lastSeenAt].
+  static const Duration presenceHeartbeat = Duration(minutes: 1);
+
+  /// How long a player counts as online after the last refresh. An app that
+  /// was killed or lost its connection never writes "offline", so its status
+  /// goes stale instead. Two missed heartbeats are tolerated.
+  static const Duration onlineTimeout = Duration(minutes: 3);
+
   // ========== COMPUTED GETTERS ==========
+
+  /// Whether the player is online at [now]: the status says so and the app
+  /// refreshed it recently.
+  bool isOnlineAt(DateTime now) =>
+      status == ConnectionStatus.online &&
+      now.difference(lastSeenAt) < onlineTimeout;
 
   /// Overall win rate percentage (all games)
   double get winRate {
@@ -245,7 +264,8 @@ abstract class OnlineUserProfile with _$OnlineUserProfile {
   int get totalLosses => losses > 0 ? losses : (rankedLosses + casualLosses);
 
   /// Total games played (computed)
-  int get totalGamesPlayed => totalGames > 0 ? totalGames : (rankedGames + casualGames);
+  int get totalGamesPlayed =>
+      totalGames > 0 ? totalGames : (rankedGames + casualGames);
 
   /// Get tier name based on rating
   String get tierName {

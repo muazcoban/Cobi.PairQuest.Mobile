@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/online_game_repository.dart';
 import '../../domain/entities/online_player.dart';
+import 'auth_provider.dart';
 import 'online_game_provider.dart';
 
 /// Current user's online profile
@@ -12,14 +16,76 @@ final onlineProfileProvider =
 });
 
 /// Profile actions notifier
-class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>> {
+///
+/// Also keeps the player's presence: while the app is in the foreground it
+/// refreshes lastSeenAt every [OnlineUserProfile.presenceHeartbeat], and it
+/// writes "offline" when the app leaves the screen. Readers treat a status
+/// older than [OnlineUserProfile.onlineTimeout] as offline, which covers an
+/// app that was killed before it could write.
+class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>>
+    with WidgetsBindingObserver {
   final OnlineGameRepository _repository;
   final Ref _ref;
   Stream<OnlineUserProfile?>? _profileStream;
   String? _currentOddserId;
+  String? _presenceUserId;
+  Timer? _heartbeat;
 
   OnlineProfileNotifier(this._repository, this._ref)
       : super(const AsyncValue.data(null));
+
+  void _startPresence(String oddserId) {
+    if (_presenceUserId == null) WidgetsBinding.instance.addObserver(this);
+    _presenceUserId = oddserId;
+    _startHeartbeat();
+  }
+
+  void _startHeartbeat() {
+    final oddserId = _presenceUserId;
+    if (oddserId == null) return;
+    _heartbeat?.cancel();
+    _heartbeat = Timer.periodic(OnlineUserProfile.presenceHeartbeat, (_) {
+      _repository.updatePresence(oddserId, ConnectionStatus.online);
+    });
+  }
+
+  /// Stop refreshing presence without writing, for when the signed-in user
+  /// changed and can no longer write the old profile.
+  void stopPresence() {
+    _heartbeat?.cancel();
+    _heartbeat = null;
+    if (_presenceUserId != null) WidgetsBinding.instance.removeObserver(this);
+    _presenceUserId = null;
+  }
+
+  @override
+  // `state` would shadow StateNotifier.state.
+  // ignore: avoid_renaming_method_parameters
+  void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
+    final oddserId = _presenceUserId;
+    if (oddserId == null) return;
+    switch (lifecycle) {
+      case AppLifecycleState.resumed:
+        _repository.updatePresence(oddserId, ConnectionStatus.online);
+        _startHeartbeat();
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        // iOS reports hidden, then paused: write once.
+        if (_heartbeat == null) return;
+        _heartbeat?.cancel();
+        _heartbeat = null;
+        _repository.updatePresence(oddserId, ConnectionStatus.offline);
+      case AppLifecycleState.inactive:
+        break;
+    }
+  }
+
+  @override
+  void dispose() {
+    stopPresence();
+    super.dispose();
+  }
 
   /// Get or create profile on login
   Future<OnlineUserProfile?> initializeProfile({
@@ -44,6 +110,7 @@ class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>
 
       // Set online status
       await _repository.updateOnlineStatus(oddserId, ConnectionStatus.online);
+      _startPresence(oddserId);
 
       _safeSetState(AsyncValue.data(profile));
 
@@ -145,6 +212,7 @@ class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>
 
   /// Mark user as offline (on app close/logout)
   Future<void> goOffline(String oddserId) async {
+    stopPresence();
     try {
       await _repository.updateOnlineStatus(oddserId, ConnectionStatus.offline);
       _ref.read(currentPlayerIdProvider.notifier).state = null;
@@ -158,7 +226,14 @@ class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>
 final onlineProfileNotifierProvider =
     StateNotifierProvider<OnlineProfileNotifier, AsyncValue<OnlineUserProfile?>>((ref) {
   final repository = ref.watch(onlineGameRepositoryProvider);
-  return OnlineProfileNotifier(repository, ref);
+  final notifier = OnlineProfileNotifier(repository, ref);
+  // Signing out or deleting the account ends the profile the heartbeat
+  // writes to.
+  ref.listen<String?>(authProvider.select((auth) => auth.user?.uid),
+      (previous, next) {
+    if (previous != null && previous != next) notifier.stopPresence();
+  });
+  return notifier;
 });
 
 /// User tier name based on rating
