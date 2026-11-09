@@ -372,5 +372,7 @@
   "settingsDesc": "Account, sound, theme and notifications",
   "questCompleted": "Quest completed",
   "durationMinutes": "{minutes}m",
-  "durationHoursMinutes": "{hours}h {minutes}m"
+  "durationHoursMinutes": "{hours}h {minutes}m",
+  "chooseAccountName": "Choose your player name",
+  "chooseAccountNameDesc": "This name appears in online games, on leaderboards and in friend requests."
 }

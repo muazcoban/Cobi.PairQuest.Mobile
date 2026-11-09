@@ -9,6 +9,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../widgets/auth/account_name_dialog.dart';
 import '../auth/auth_screen.dart';
 import '../themes/theme_select_screen.dart';
 import 'blocked_players_screen.dart';
@@ -413,7 +414,7 @@ class SettingsScreen extends ConsumerWidget {
     AppLocalizations l10n,
   ) {
     if (authState.isAuthenticated && !authState.isAnonymous) {
-      // Signed in with Google
+      // Signed in with Google or Apple
       return Column(
         children: [
           ListTile(
@@ -426,6 +427,10 @@ class SettingsScreen extends ConsumerWidget {
                     child: Icon(Icons.person, color: AppColors.primaryText(context)),
                   ),
             title: Text(authState.displayName),
+            // An Apple account may have no name: tapping "Guest" sets one.
+            onTap: authState.hasAccountName
+                ? null
+                : () => ensureAccountName(context, ref),
             // HIG Sign in with Apple: show which sign-in is in use. The
             // e-mail may be a private relay address, so it is not shown.
             subtitle: Text(authState.isAppleLinked

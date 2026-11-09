@@ -1077,4 +1077,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String durationHoursMinutes(int hours, int minutes) {
     return '${hours}h ${minutes}m';
   }
+
+  @override
+  String get chooseAccountName => 'Choose your player name';
+
+  @override
+  String get chooseAccountNameDesc =>
+      'This name appears in online games, on leaderboards and in friend requests.';
 }

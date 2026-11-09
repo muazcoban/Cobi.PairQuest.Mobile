@@ -678,5 +678,7 @@
   "durationMinutes": "{minutes} dk",
   "durationHoursMinutes": "{hours} sa {minutes} dk",
   "@durationMinutes": {"placeholders": {"minutes": {"type": "int"}}},
-  "@durationHoursMinutes": {"placeholders": {"hours": {"type": "int"}, "minutes": {"type": "int"}}}
+  "@durationHoursMinutes": {"placeholders": {"hours": {"type": "int"}, "minutes": {"type": "int"}}},
+  "chooseAccountName": "Oyuncu adını seç",
+  "chooseAccountNameDesc": "Bu ad online oyunlarda, liderlik tablosunda ve arkadaş isteklerinde görünür."
 }

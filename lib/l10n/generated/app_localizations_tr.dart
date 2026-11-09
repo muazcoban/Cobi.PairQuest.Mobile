@@ -1078,4 +1078,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String durationHoursMinutes(int hours, int minutes) {
     return '$hours sa $minutes dk';
   }
+
+  @override
+  String get chooseAccountName => 'Oyuncu adını seç';
+
+  @override
+  String get chooseAccountNameDesc =>
+      'Bu ad online oyunlarda, liderlik tablosunda ve arkadaş isteklerinde görünür.';
 }

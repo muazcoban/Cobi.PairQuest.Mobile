@@ -6,6 +6,7 @@ import '../../../core/constants/app_links.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../widgets/auth/account_name_dialog.dart';
 import '../../widgets/auth/apple_sign_in_button.dart';
 import '../../widgets/auth/google_sign_in_button.dart';
 
@@ -124,6 +125,7 @@ class AuthScreen extends ConsumerWidget {
                               final success =
                                   await ref.read(authProvider.notifier).signInWithApple();
                               if (success && context.mounted) {
+                                await ensureAccountName(context, ref);
                                 await _usePlayerNameFromAccount(ref);
                                 if (context.mounted) Navigator.of(context).pop(true);
                               }
@@ -139,6 +141,7 @@ class AuthScreen extends ConsumerWidget {
                               final success =
                                   await ref.read(authProvider.notifier).signInWithGoogle();
                               if (success && context.mounted) {
+                                await ensureAccountName(context, ref);
                                 await _usePlayerNameFromAccount(ref);
                                 if (context.mounted) Navigator.of(context).pop(true);
                               }
@@ -201,9 +204,9 @@ class AuthScreen extends ConsumerWidget {
 
 /// Uses the account name as the leaderboard name; a guest keeps theirs.
 Future<void> _usePlayerNameFromAccount(WidgetRef ref) async {
-  final displayName = ref.read(authProvider).displayName;
-  if (displayName != 'Guest') {
-    await ref.read(settingsProvider.notifier).setPlayerName(displayName);
+  final auth = ref.read(authProvider);
+  if (auth.hasAccountName) {
+    await ref.read(settingsProvider.notifier).setPlayerName(auth.displayName);
   }
 }
 

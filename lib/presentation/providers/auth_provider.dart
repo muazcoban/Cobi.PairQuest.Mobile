@@ -26,13 +26,18 @@ class AuthState {
   bool get isAppleLinked =>
       user?.providerData.any((p) => p.providerId == 'apple.com') ?? false;
 
+  /// Whether the account has a name [displayName] can show. Sign in with
+  /// Apple shares the name only the first time someone signs in to the app,
+  /// and people can choose not to share it.
+  bool get hasAccountName {
+    final name = user?.displayName?.trim();
+    return name != null && name.isNotEmpty && NameFilter.isAllowed(name);
+  }
+
   /// The account name, public on the online profile, leaderboards, friend
   /// requests and invitations. Names the filter rejects are not used.
   String get displayName {
-    final name = user?.displayName;
-    if (name != null && name.isNotEmpty && NameFilter.isAllowed(name)) {
-      return name;
-    }
+    if (hasAccountName) return user!.displayName!.trim();
     // Not the e-mail address: this name is public on the online profile.
     return 'Guest';
   }
@@ -197,6 +202,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  /// Sets the account name for an account that has none, see
+  /// [AuthState.hasAccountName]. Returns false if the name is not allowed
+  /// or Firebase did not save it.
+  Future<bool> setAccountName(String name) async {
+    final user = _auth.currentUser;
+    final trimmed = name.trim();
+    if (user == null || trimmed.isEmpty || !NameFilter.isAllowed(trimmed)) {
+      return false;
+    }
+    try {
+      await user.updateDisplayName(trimmed);
+      await user.reload();
+      state = state.copyWith(user: _auth.currentUser);
+      return true;
+    } catch (e) {
+      debugPrint('AuthNotifier: could not set the account name: $e');
       return false;
     }
   }

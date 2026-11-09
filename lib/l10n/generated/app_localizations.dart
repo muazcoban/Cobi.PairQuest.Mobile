@@ -2113,6 +2113,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{hours} sa {minutes} dk'**
   String durationHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @chooseAccountName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu adını seç'**
+  String get chooseAccountName;
+
+  /// No description provided for @chooseAccountNameDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ad online oyunlarda, liderlik tablosunda ve arkadaş isteklerinde görünür.'**
+  String get chooseAccountNameDesc;
 }
 
 class _AppLocalizationsDelegate

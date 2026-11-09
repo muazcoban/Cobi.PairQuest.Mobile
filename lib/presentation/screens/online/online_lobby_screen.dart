@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/friends_provider.dart';
 import '../../providers/matchmaking_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../widgets/auth/account_name_dialog.dart';
 import '../../widgets/auth/apple_sign_in_button.dart';
 import '../../widgets/common/wallet_display.dart';
 import 'friends_screen.dart';
@@ -41,9 +42,12 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
     final user = authState.user;
     // Only initialize for non-anonymous users
     if (user != null && !authState.isAnonymous) {
+      // An Apple account may have no name; ask before it goes public.
+      await ensureAccountName(context, ref);
+      if (!mounted) return;
       await ref.read(onlineProfileNotifierProvider.notifier).initializeProfile(
             oddserId: user.uid,
-            displayName: authState.displayName,
+            displayName: ref.read(authProvider).displayName,
             photoUrl: user.photoURL,
           );
     }
