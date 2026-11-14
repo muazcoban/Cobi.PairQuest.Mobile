@@ -33,6 +33,28 @@ bilgisayarında yapılır.
 Doğrulanmayanlar: Google ile giriş (SHA parmak izi kaydı bekliyor), Android 15 ve 16'da
 kenardan kenara (edge-to-edge) görünüm, gerçek cihazda performans.
 
+## 0. Kişisel geliştirici hesabı aç
+
+Eski hesap (`muazc`, kimlik 8088743334225556686) 8 Nisan 2024'te kullanılmadığı için
+kapatıldı ve yeniden açılamıyor. Bu Google hesabıyla kayıt sayfası kapalı hesaba
+yönlendirdiği için yeni hesabı büyük olasılıkla ayrı bir Google hesabıyla açman gerekecek.
+Google'a göre eski hesabın kapatılması yeni hesap açmana engel değil.
+
+1. Kullanacağın Google hesabıyla `https://play.google.com/console/signup` adresini aç.
+2. Hesap türü olarak kişisel hesabı ("Yourself" / kendim için) seç.
+3. Geliştirici adını gir. Bu ad mağazada uygulamanın altında görünür ve yasal adından
+   farklı olabilir (örnek: "Cobi Studio").
+4. İletişim e-postası ve telefonunu gir ve doğrula.
+5. 25 $ kayıt ücretini öde.
+6. Kimliğini doğrula: yasal ad ve adres, ödeme profilindeki bilgilerle aynı olmalı.
+7. Play Console'da "Android mobil cihaza erişiminizi doğrulayın" görevini tamamla: QR kodu
+   bir Android telefonla okut, Play Console uygulamasında hesap sahibi olarak giriş yap ve
+   "Verify"a dokun. Bu adım için gerçek bir Android telefon gerekiyor (ödünç alınabilir;
+   aynı telefon birden çok hesabı doğrulayabilir).
+
+Kaynak: Play Console Help, "Verify that you have access to an Android mobile device"
+(answer/14316361) ve "Developer account types" (answer/13634885).
+
 ## 1. Yükleme anahtarını oluştur (bir kez)
 
 Play'e yüklenen paket bu anahtarla imzalanır. Parolayı kendin belirle ve parola
@@ -83,13 +105,22 @@ flutter build appbundle --release
 
 ## 4. Play Console
 
-### Hesap şartı
+### Kapalı test: 12 kişi, 14 gün
 
-Kişisel geliştirici hesabı 13 Kasım 2023'ten sonra açıldıysa, her yeni uygulama üretime
-çıkmadan önce kapalı testten geçmeli: en az 12 test kullanıcısı 14 gün boyunca testte
-kalmalı. Kuruluş (organization) hesaplarında bu şart yok. 14 günlük süre en uzun adım
-olduğu için kapalı testi isim kararı beklenmeden başlatmak mantıklı: kapalı testteki mağaza
-adı üretimden önce değiştirilebilir.
+Yeni kişisel hesapta her uygulama üretime çıkmadan önce kapalı testten geçmeli: en az 12
+test kullanıcısı 14 gün boyunca kesintisiz testte kalmalı. Süre en uzun adım olduğu için
+hesap açılır açılmaz başlat.
+
+1. Test edin ve yayınlayın → Kapalı test → yeni kanal oluştur, AAB'yi yükle.
+2. Test kullanıcılarını bir Google Grubu ya da e-posta listesi olarak ekle. Google Grubu
+   daha rahat: yeni kişi eklemek için listeyi düzenlemek gerekmiyor. En az 15-20 kişi
+   davet et; bazıları katılmayı unutuyor.
+3. Kanalı incelemeye gönder. Onaydan sonra "katılım bağlantısı" (opt-in URL) çıkar.
+4. Davet metnini bağlantıyla birlikte gönder (`docs/TESTER_INVITE.md`).
+5. 14 gün boyunca kanalı duraklatma. Üçüncü taraf kaynaklara göre kanalı durdurmak süreyi
+   sıfırlıyor; bir kullanıcının çıkması sıfırlamıyor.
+6. Süre dolunca Play Console'dan üretim erişimi iste. Formda testte ne bulduğunu ve neyi
+   düzelttiğini kısa yazman isteniyor; test sırasında gelen geri bildirimleri not al.
 
 ### Uygulama oluşturma
 

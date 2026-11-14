@@ -127,22 +127,29 @@ the search words. Android shows only Google sign-in, so the description says "Go
 
 ## Screenshots
 
-1. Online 1v1 match in progress (the feature most memory games do not have)
-2. Game board on a 4×4 grid
-3. Level selection with stars
-4. Win screen with stars and coins
-5. Ranked league and global leaderboard
-6. Daily rewards and quests
-7. Card themes
-8. Dark mode
+Ready for Google Play in `docs/store/screenshots/` (1080×1920 PNG, Turkish `tr_*` and
+English `en_*`), taken from the release build on an Android 14 emulator:
 
-Caption each screenshot in the store language; the App Store reads screenshot text.
+| File | Caption (TR / EN) |
+|---|---|
+| `*_1_board.png` | Kartları çevir, eşini bul / Flip cards, find the pairs |
+| `*_2_levels.png` | 20 seviye: 2×2'den 10×10'a / 20 levels: from 2×2 to 10×10 |
+| `*_3_win.png` | Yıldızları topla, altın kazan / Collect stars, earn coins |
+| `*_4_quests.png` | Her gün yeni görevler / New quests every day |
+| `*_5_achievements.png` | 20 başarımı aç / Unlock 20 achievements |
+| `*_6_multiplayer.png` | Arkadaşlarınla aynı cihazda yarış / Play friends on one device |
+
+Missing: an online 1v1 screenshot (the feature most memory games do not have). It needs
+a signed-in account, so take it on a device and put it first. The App Store needs its own
+iPhone sizes (6.9" and 6.5"); these Android images are not used there.
+
+Captions use Poppins ExtraBold (SIL Open Font License, the app's own font).
 
 ## Feature graphic (Google Play, 1024×500)
 
-- Memoko logo and the new icon
-- Two cards being flipped
-- Tagline: "Find the pair. Beat your friends." / "Eşini bul. Arkadaşlarını yen."
+`docs/store/feature_graphic_tr.png` and `docs/store/feature_graphic_en.png`: the Memo
+mascot, "Memoko" and the tagline "Eşini bul. Arkadaşlarını yen." / "Find the pair. Beat
+your friends."
 
 ## Category and rating
 
