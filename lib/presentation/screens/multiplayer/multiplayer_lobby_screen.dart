@@ -24,17 +24,19 @@ class _MultiplayerLobbyScreenState
   final List<TextEditingController> _nameControllers = [];
 
   @override
-  void initState() {
-    super.initState();
-    _initializeControllers();
-  }
-
-  void _initializeControllers() {
-    _nameControllers.clear();
-    for (int i = 0; i < 4; i++) {
-      _nameControllers.add(TextEditingController(text: 'Player ${i + 1}'));
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The default names need the app language, which initState cannot read.
+    if (_nameControllers.isEmpty) {
+      for (int i = 0; i < 4; i++) {
+        _nameControllers.add(TextEditingController(text: _defaultName(i)));
+      }
     }
   }
+
+  /// "Oyuncu 1" in Turkish, "Player 1" in English.
+  String _defaultName(int index) =>
+      '${AppLocalizations.of(context)!.player} ${index + 1}';
 
   @override
   void dispose() {
@@ -45,10 +47,12 @@ class _MultiplayerLobbyScreenState
   }
 
   void _startGame() {
-    final playerNames = _nameControllers
-        .take(_playerCount)
-        .map((c) => c.text.trim().isEmpty ? 'Player' : c.text.trim())
-        .toList();
+    final playerNames = [
+      for (int i = 0; i < _playerCount; i++)
+        _nameControllers[i].text.trim().isEmpty
+            ? _defaultName(i)
+            : _nameControllers[i].text.trim(),
+    ];
 
     final cardTheme = ref.read(settingsProvider).cardTheme;
 
@@ -211,7 +215,7 @@ class _MultiplayerLobbyScreenState
                 child: TextField(
                   controller: _nameControllers[index],
                   decoration: InputDecoration(
-                    hintText: 'Player ${index + 1}',
+                    hintText: _defaultName(index),
                     filled: true,
                     fillColor: AppColors.cardBackground(context),
                     border: OutlineInputBorder(

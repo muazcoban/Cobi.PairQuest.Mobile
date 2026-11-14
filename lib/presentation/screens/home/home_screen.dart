@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/game_config.dart';
 import '../../../domain/entities/daily_reward.dart';
 import '../../../domain/entities/game.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -9,6 +10,7 @@ import '../../providers/daily_reward_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/dialogs/daily_reward_dialog.dart';
@@ -311,18 +313,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _startGame(BuildContext context, GameMode mode) {
-    ref
-        .read(gameProvider.notifier)
-        .startGame(
-          level: 5, // Default 4x4
-          mode: mode,
-        );
+  /// Classic and Timed mode continue from the highest unlocked level, so a
+  /// new player starts on the 2x2 tutorial level instead of 4x4.
+  Future<void> _startGame(BuildContext context, GameMode mode) async {
+    await ref.read(progressProvider.notifier).ready;
+    if (!context.mounted) return;
+    final level = ref
+        .read(progressProvider)
+        .highestUnlockedLevel
+        .clamp(1, GameConfig.totalLevels)
+        .toInt();
+
+    ref.read(gameProvider.notifier).startGame(level: level, mode: mode);
 
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => GameScreen(
-          level: 5,
+          level: level,
           mode: mode == GameMode.timed ? 'timed' : 'classic',
         ),
       ),

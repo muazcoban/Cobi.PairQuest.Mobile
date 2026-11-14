@@ -90,8 +90,11 @@ class GameProgress {
 
   bool isLevelUnlocked(int level) {
     if (level == 1) return true;
-    // A level already completed stays open: Classic and Timed mode on the
-    // home screen start on level 5 directly.
+    // Up to the highest unlocked level everything is open. Before 2.3.0,
+    // Classic and Timed mode on the home screen started on level 5, which
+    // unlocked level 6 but left levels 2-4 locked.
+    if (level <= highestUnlockedLevel) return true;
+    // A level already completed stays open.
     if ((levels[level]?.stars ?? 0) >= 1) return true;
     // A level is unlocked if the previous level has at least 1 star
     final previousLevel = levels[level - 1];
@@ -111,6 +114,9 @@ class ProgressNotifier extends StateNotifier<GameProgress> {
   /// screen creates this notifier only when the game ends; writing before
   /// the load finished would save the empty state over the saved levels.
   late final Future<void> _ready;
+
+  /// Completes when the saved progress is loaded.
+  Future<void> get ready => _ready;
 
   Future<void> _loadProgress() async {
     final prefs = await SharedPreferences.getInstance();
