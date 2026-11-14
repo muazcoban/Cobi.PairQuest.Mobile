@@ -7,14 +7,19 @@
 -keep class io.flutter.plugins.** { *; }
 
 # Keep your application classes
--keep class com.cobi.pair_quest.** { *; }
+-keep class com.cobistudio.pairquest.** { *; }
 
 # Audioplayers
 -keep class xyz.luan.audioplayers.** { *; }
 
-# Gson (if used)
+# Gson: flutter_local_notifications caches scheduled notifications with it.
+# Without these rules R8 strips the generic types and cancelling or scheduling
+# a notification throws "TypeToken must be created with a type argument".
 -keepattributes Signature
 -keepattributes *Annotation*
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+-keep class com.dexterous.flutterlocalnotifications.** { *; }
 
 # SharedPreferences
 -keep class android.content.SharedPreferences { *; }
