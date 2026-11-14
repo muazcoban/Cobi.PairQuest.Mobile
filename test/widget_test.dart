@@ -10,6 +10,6 @@ void main() {
       ),
     );
 
-    expect(find.text('PairQuest'), findsOneWidget);
+    expect(find.text('Memoko'), findsOneWidget);
   });
 }

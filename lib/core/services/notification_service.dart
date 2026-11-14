@@ -223,8 +223,8 @@ class NotificationService {
       await androidPlugin.createNotificationChannel(
         const AndroidNotificationChannel(
           'pairquest_notifications',
-          'PairQuest Notifications',
-          description: 'General notifications from PairQuest',
+          'Memoko Notifications',
+          description: 'General notifications from Memoko',
           importance: Importance.high,
         ),
       );
@@ -234,7 +234,7 @@ class NotificationService {
         const AndroidNotificationChannel(
           'daily_reminder',
           'Daily Reminders',
-          description: 'Daily reminder to play PairQuest',
+          description: 'Daily reminder to play Memoko',
           importance: Importance.defaultImportance,
         ),
       );
@@ -260,7 +260,7 @@ class NotificationService {
   }) async {
     final androidDetails = AndroidNotificationDetails(
       channelId,
-      channelId == 'achievements' ? 'Achievements' : 'PairQuest Notifications',
+      channelId == 'achievements' ? 'Achievements' : 'Memoko Notifications',
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
@@ -367,7 +367,7 @@ class NotificationService {
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'pairquest_notifications',
-          'PairQuest Notifications',
+          'Memoko Notifications',
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
@@ -442,7 +442,7 @@ class NotificationService {
     // Show local notification for foreground messages
     if (message.notification != null) {
       showLocalNotification(
-        title: message.notification!.title ?? 'PairQuest',
+        title: message.notification!.title ?? 'Memoko',
         body: message.notification!.body ?? '',
         payload: message.data['route'],
       );

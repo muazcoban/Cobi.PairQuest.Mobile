@@ -9,10 +9,10 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
-  String get appTitle => 'PairQuest';
+  String get appTitle => 'Memoko';
 
   @override
-  String get appSubtitle => 'Hafıza Eşleştirme Oyunu';
+  String get appSubtitle => 'Hafıza Kartı Oyunu';
 
   @override
   String get classicMode => 'Klasik Mod';

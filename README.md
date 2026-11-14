@@ -1,4 +1,4 @@
-# PairQuest - Memory Card Matching Game
+# Memoko - Memory Card Matching Game (formerly PairQuest)
 
 A beautiful and addictive memory card matching game built with Flutter.
 

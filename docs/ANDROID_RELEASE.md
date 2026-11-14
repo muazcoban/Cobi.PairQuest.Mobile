@@ -12,7 +12,7 @@ bilgisayarında yapılır.
 | `targetSdk` / `compileSdk` | 36 | Play, 31 Ağustos 2026'dan beri yeni uygulamalarda API 36 istiyor. |
 | `minSdk` | 24 | Android 7.0 ve üstü. |
 | NDK | 28.2 | 16 KB bellek sayfası şartını karşılar. |
-| Sürüm | `pubspec.yaml` içindeki `version` | `2.2.0+6` → versionName 2.2.0, versionCode 6. Her yüklemede `+` sonrasındaki sayı artmalı. |
+| Sürüm | `pubspec.yaml` içindeki `version` | `2.3.0+7` → versionName 2.3.0, versionCode 7. Her yüklemede `+` sonrasındaki sayı artmalı. |
 | Giriş yöntemleri | Google ve misafir | Sign in with Apple Android'de gizli (`AppleSignInButton.isAvailable`). |
 
 ## Doğrulananlar (14 Kasım 2026)
@@ -94,7 +94,7 @@ adı üretimden önce değiştirilebilir.
 ### Uygulama oluşturma
 
 - Uygulama türü: Oyun. Ücretsiz.
-- Uygulama adı: yeni isim kararından sonra kesinleşir (30 karakter sınırı).
+- Uygulama adı: "Memoko: Memory Match Game" (İngilizce), "Memoko: Hafıza Kartı Oyunu" (Türkçe). Metinler `docs/STORE_LISTING.md` içinde.
 - Varsayılan dil: Türkçe ya da İngilizce; diğerini çeviri olarak ekle.
 
 ### Uygulama içeriği (App content) beyanları
@@ -138,4 +138,4 @@ değildir. Formu doldurmadan önce gizlilik politikasıyla karşılaştır.
 | Kısa açıklama | En fazla 80 karakter |
 | Tam açıklama | En fazla 4000 karakter |
 
-Simgede ve görsellerde "PairQuest" yazısı var; yeni isim seçilirse bunlar da değişmeli.
+Simgede "PairQuest" yazısı var; Memoko adıyla yayından önce yeni simge gerekiyor.

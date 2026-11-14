@@ -1,114 +1,150 @@
-# PairQuest - Store Listing
+# Memoko - Store Listing (formerly PairQuest)
 
-## App Name
-PairQuest - Memory Card Game
+Metadata for App Store Connect and Google Play Console. The limits in brackets are the
+store limits; the number after each line is its length. Name research:
+`reports/PairQuest için yeni uygulama adı.md` (kept outside git).
 
-## Short Description (80 characters)
-Train your brain with this fun memory card matching game! 10 levels, achievements & more.
+Rules for the keyword field: commas without spaces, no word that is already in the name
+or subtitle, no category names ("puzzle", "bulmaca"), no competitor names.
 
-## Full Description
+---
 
-**PairQuest** is a beautifully designed memory card matching game that will challenge your brain and keep you entertained for hours!
+## App Store: English (U.S.)
 
-### Features
+Use the same text for English (U.K.). The Turkish storefront also indexes the U.K.
+localization, so English searches in Turkey find the game too.
 
-**10 Difficulty Levels**
-Start easy with 2x2 grids and progress to challenging 8x8 layouts. Each level unlocks as you master the previous one.
+**Name** [30]: Memoko: Memory Match Game (25)
 
-**Multiple Game Modes**
-• Classic Mode - Take your time, no pressure
-• Timed Mode - Race against the clock for bonus points
+**Subtitle** [30]: Find Card Pairs, Duel Online (28)
 
-**8 Card Themes**
-Choose from Animals, Fruits, Flags, Sports, Nature, Transportation, Food, and Objects. Each theme brings fresh visuals to the game.
+**Keywords** [100]: `matching,concentration,multiplayer,pvp,brain,flip,versus,friends,leaderboard,classic,race,2 player` (98)
 
-**Gamification**
-• 20 unique achievements to unlock
-• Daily quests with rewards
-• Local leaderboard to track your progress
-• 7-day daily reward streak
-• Detailed statistics
+**Promotional text** [170]: PairQuest is now Memoko. Same game, new name. Challenge real players in online memory duels and climb the ranked leagues from Bronze to Master. (143)
 
-**Beautiful Design**
-• Smooth card flip animations
-• Combo effects for consecutive matches
-• Dark and Light mode support
-• Sound effects and background music
+**What's New in 2.3.0**:
 
-**Accessibility**
+PairQuest is now Memoko. Your progress, coins and online profile stay the same.
+• The game now asks for a rating only after a few won levels
+• Turkish name on the Home Screen and in the App Store
+
+**Description** [4000]:
+
+Memoko (formerly PairQuest) is a memory card matching game you can play alone or against real players online.
+
+Flip two cards, find the pair, clear the board. Start on a 2×2 grid and work up to a 10×10 board across 20 levels.
+
+PLAY YOUR WAY
+• Classic mode: no timer, take your time
+• Timed mode: race the clock for bonus points
+• Online 1v1: play real players and climb the ranked leagues from Bronze to Master
+• Friends: add friends and invite them to a duel
+• Local multiplayer: 2 to 4 players on one device
+
+8 CARD THEMES
+Animals, fruits, flags, sports, nature, travel, food and objects.
+
+KEEP COMING BACK
+• 20 achievements
+• Daily quests and a 7-day reward streak
+• Power-ups such as peek, hint and freeze the timer
+• Global leaderboard and detailed statistics
+
+FOR EVERYONE
+• Dark and light mode
 • Screen reader support
-• High contrast options
-• Multi-language support (English & Turkish)
+• English and Turkish
 
-Challenge yourself, beat your high scores, and become the ultimate memory master!
-
----
-
-## Keywords
-memory game, card matching, brain training, puzzle, memory cards, matching game, brain game, mind game, memory training, concentration
-
-## Category
-Games > Puzzle
-
-## Content Rating
-Everyone
+Online play needs a sign-in with Apple or Google. Single-player games work offline.
 
 ---
 
-## Turkish Version
+## App Store: Turkish
 
-### Uygulama Adı
-PairQuest - Hafıza Kartı Oyunu
+**Ad** [30]: Memoko: Hafıza Kartı Oyunu (26)
 
-### Kısa Açıklama (80 karakter)
-Eğlenceli hafıza kartı oyunuyla beynini geliştir! 10 seviye, başarılar ve daha fazlası.
+**Alt başlık** [30]: Kart Eşleştirme, Online Düello (30)
 
-### Tam Açıklama
+**Anahtar kelimeler** [100]: `oyunları,hafiza,eslestirme,kartları,eşleme,yarış,akıl,iki kişilik,beyin,zeka,konsantrasyon` (90 karakter, 97 bayt)
 
-**PairQuest**, beyninizi zorlayacak ve saatlerce eğlendirecek güzel tasarlanmış bir hafıza kartı eşleştirme oyunudur!
+ASCII yazımlar (`hafiza`, `eslestirme`) bilerek var: Türkiye mağazası "hafiza oyunu" ile
+"hafıza oyunu" aramalarına farklı sonuç döndürüyor. "Çift", "eşini bul" ve "çocuk" bilerek
+yok: ilk ikisi flört uygulamalarına gidiyor, üçüncüsü 9+ bir oyunda App Review 2.3.8'e takılabilir.
 
-### Özellikler
+**Promosyon metni** [170]: PairQuest artık Memoko! Oyun aynı, adı yeni. Online hafıza düellolarında gerçek oyunculara meydan oku, Bronz'dan Usta'ya liglerde yüksel. (137)
 
-**10 Zorluk Seviyesi**
-2x2 ızgaralarla kolay başlayın ve zorlu 8x8 düzenlerine ilerleyin. Her seviye, bir öncekini tamamladıkça açılır.
+**Yenilikler (2.3.0)**:
 
-**Çoklu Oyun Modları**
-• Klasik Mod - Acele etmeden oyna
-• Zamanlı Mod - Bonus puan için zamana karşı yarış
+PairQuest artık Memoko. İlerlemen, altınların ve online profilin olduğu gibi duruyor.
+• Oyun puan isteğini yalnızca birkaç kazanılmış seviyeden sonra gösteriyor
+• Ana ekranda ve App Store'da Türkçe görünüm
 
-**8 Kart Teması**
-Hayvanlar, Meyveler, Bayraklar, Sporlar, Doğa, Ulaşım, Yiyecekler ve Objeler arasından seçim yapın.
+**Açıklama** [4000]:
 
-**Gamification**
-• 20 benzersiz başarı
-• Ödüllü günlük görevler
-• Yerel liderlik tablosu
-• 7 günlük ödül serisi
-• Detaylı istatistikler
+Memoko (eski adıyla PairQuest), tek başına ya da online gerçek oyunculara karşı oynayabileceğin bir hafıza kartı eşleştirme oyunu.
 
-**Güzel Tasarım**
-• Akıcı kart çevirme animasyonları
-• Arka arkaya eşleşmeler için combo efektleri
-• Karanlık ve Aydınlık mod desteği
-• Ses efektleri ve arka plan müziği
+İki kartı çevir, eşini bul, tahtayı temizle. 2×2 tahtayla başla, 20 seviyede 10×10 tahtaya kadar ilerle.
 
-Kendinize meydan okuyun, en yüksek skorlarınızı geçin ve hafıza ustası olun!
+İSTEDİĞİN GİBİ OYNA
+• Klasik Mod: süre yok, acele etme
+• Zamanlı Mod: bonus puan için saate karşı yarış
+• Online 1v1: gerçek oyuncularla oyna, Bronz'dan Usta'ya liglerde yüksel
+• Arkadaşlar: arkadaş ekle, düelloya davet et
+• Yerel çok oyunculu: aynı cihazda 2-4 oyuncu
+
+8 KART TEMASI
+Hayvanlar, meyveler, bayraklar, sporlar, doğa, seyahat, yiyecekler ve nesneler.
+
+HER GÜN YENİ BİR HEDEF
+• 20 başarım
+• Günlük görevler ve 7 günlük ödül serisi
+• Kartlara göz atma, ipucu ve süreyi dondurma gibi güçlendiriciler
+• Dünya sıralaması ve ayrıntılı istatistikler
+
+HERKES İÇİN
+• Karanlık ve aydınlık mod
+• Ekran okuyucu desteği
+• Türkçe ve İngilizce
+
+Online oyun için Apple ya da Google ile giriş gerekir. Tek oyunculu oyunlar internetsiz çalışır.
 
 ---
 
-## Screenshots Required
+## Google Play
 
-1. Home screen with game modes
-2. Level selection screen
-3. Game in progress (4x4 grid)
-4. Game complete with stars
-5. Achievements screen
-6. Settings screen
-7. Daily rewards popup
-8. Leaderboard screen
+Google Play has no subtitle or keyword field; the title and the short description carry
+the search words. Android shows only Google sign-in, so the description says "Google".
 
-## Feature Graphic (1024x500)
-- Show PairQuest logo
-- Card flip animation representation
-- Colorful, engaging design
-- Tagline: "Challenge Your Memory"
+| Field | English (en-US) | Turkish (tr-TR) |
+|---|---|---|
+| Title [30] | Memoko: Memory Match Game (25) | Memoko: Hafıza Kartı Oyunu (26) |
+| Short description [80] | Flip cards, find pairs and beat friends in ranked online memory duels. (70) | Kartları çevir, eşleştir, arkadaşlarınla online hafıza düellosuna gir. (70) |
+
+**Full description** [4000]: the App Store description above, with the last line changed to
+"Online play needs a sign-in with Google." / "Online oyun için Google ile giriş gerekir."
+
+---
+
+## Screenshots
+
+1. Online 1v1 match in progress (the feature most memory games do not have)
+2. Game board on a 4×4 grid
+3. Level selection with stars
+4. Win screen with stars and coins
+5. Ranked league and global leaderboard
+6. Daily rewards and quests
+7. Card themes
+8. Dark mode
+
+Caption each screenshot in the store language; the App Store reads screenshot text.
+
+## Feature graphic (Google Play, 1024×500)
+
+- Memoko logo and the new icon
+- Two cards being flipped
+- Tagline: "Find the pair. Beat your friends." / "Eşini bul. Arkadaşlarını yen."
+
+## Category and rating
+
+- App Store: Games > Puzzle, secondary Card; age rating 9+
+- Google Play: Game > Puzzle; target audience 13+ (see `docs/ANDROID_RELEASE.md`)

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/game_config.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/review_prompt_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/entities/game.dart';
@@ -581,6 +582,9 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     // The first win is when the daily reminder starts to matter, so the
     // permission alert comes here instead of at launch.
     await NotificationService().requestPermissionAfterFirstWin();
+
+    // A finished level is a natural break; the service skips the first wins.
+    await ReviewPromptService().onLevelWon(stars: stars);
 
     if (!mounted) return;
 

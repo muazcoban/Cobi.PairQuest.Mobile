@@ -1,12 +1,12 @@
 {
   "@@locale": "tr",
 
-  "appTitle": "PairQuest",
+  "appTitle": "Memoko",
   "@appTitle": {
     "description": "Uygulama başlığı"
   },
 
-  "appSubtitle": "Hafıza Eşleştirme Oyunu",
+  "appSubtitle": "Hafıza Kartı Oyunu",
   "@appSubtitle": {
     "description": "Uygulama alt başlığı"
   },

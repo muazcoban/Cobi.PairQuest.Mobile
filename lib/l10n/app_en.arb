@@ -1,8 +1,8 @@
 {
   "@@locale": "en",
 
-  "appTitle": "PairQuest",
-  "appSubtitle": "Memory Matching Game",
+  "appTitle": "Memoko",
+  "appSubtitle": "Memory Match Game",
 
   "classicMode": "Classic Mode",
   "classicModeDesc": "Play without time limit",

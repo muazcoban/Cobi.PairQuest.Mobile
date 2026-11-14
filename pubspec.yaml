@@ -1,7 +1,7 @@
 name: pair_quest
-description: "PairQuest - Memory Card Matching Game"
+description: "Memoko - Memory Card Matching Game"
 publish_to: 'none'
-version: 2.2.0+6
+version: 2.3.0+7
 
 environment:
   sdk: ^3.8.0
@@ -52,6 +52,7 @@ dependencies:
   # Confetti Animation
   confetti: ^0.8.0
   url_launcher: ^6.3.2
+  in_app_review: ^2.0.12
   sign_in_with_apple: ^7.0.1
 
 dev_dependencies:

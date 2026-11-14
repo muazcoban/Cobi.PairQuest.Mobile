@@ -7,7 +7,7 @@
 ## English
 
 ### Introduction
-PairQuest ("we", "our", or "us") is a memory card game. This Privacy Policy explains which information the app stores, why, who can see it, and how you delete it.
+Memoko, formerly PairQuest ("we", "our", or "us"), is a memory card game. This Privacy Policy explains which information the app stores, why, who can see it, and how you delete it.
 
 ### Playing without signing in
 Single-player progress, settings, statistics, achievements, daily quests, coins and power-ups are stored **only on your device**. We do not receive this data. Deleting the app deletes it.
@@ -39,7 +39,7 @@ Daily reminders are scheduled on your device. The app uses Firebase Cloud Messag
 - **Google Sign-In** (Google LLC) signs you in when you choose it.
 - **Sign in with Apple** (Apple Inc.) signs you in when you choose it.
 
-PairQuest does not use advertising, analytics or tracking services. We do not sell or share your data for advertising.
+Memoko does not use advertising, analytics or tracking services. We do not sell or share your data for advertising.
 
 ### Deleting your account and data
 In the app, open **Settings → Account → Delete Account**. This permanently deletes:
@@ -77,7 +77,7 @@ We update this page when the app changes how it handles data. The date at the to
 ## Türkçe
 
 ### Giriş
-PairQuest ("biz") bir hafıza kartı oyunudur. Bu Gizlilik Politikası, uygulamanın hangi bilgileri sakladığını, neden sakladığını, bu bilgileri kimin görebildiğini ve nasıl silebileceğinizi açıklar.
+Memoko (eski adıyla PairQuest, "biz") bir hafıza kartı oyunudur. Bu Gizlilik Politikası, uygulamanın hangi bilgileri sakladığını, neden sakladığını, bu bilgileri kimin görebildiğini ve nasıl silebileceğinizi açıklar.
 
 ### Giriş yapmadan oynamak
 Tek oyunculu ilerleme, ayarlar, istatistikler, başarımlar, günlük görevler, jetonlar ve güçlendiriciler **yalnızca cihazınızda** saklanır. Bu veriler bize ulaşmaz. Uygulamayı silerseniz bu veriler de silinir.
@@ -109,7 +109,7 @@ Günlük hatırlatıcılar cihazınızda zamanlanır. Uygulama anlık bildirimle
 - **Google ile Giriş** (Google LLC), bu yöntemi seçtiğinizde girişinizi yapar.
 - **Apple ile Giriş** (Apple Inc.), bu yöntemi seçtiğinizde girişinizi yapar.
 
-PairQuest reklam, analitik ya da izleme hizmeti kullanmaz. Verilerinizi reklam amacıyla satmayız ve paylaşmayız.
+Memoko reklam, analitik ya da izleme hizmeti kullanmaz. Verilerinizi reklam amacıyla satmayız ve paylaşmayız.
 
 ### Hesabınızı ve verilerinizi silmek
 Uygulamada **Ayarlar → Hesap → Hesabı Sil** adımlarını izleyin. Bu işlem şunları kalıcı olarak siler:
@@ -144,4 +144,4 @@ Uygulamanın verileri işleme biçimi değiştiğinde bu sayfayı güncelleriz. 
 
 ---
 
-*© 2026 PairQuest. All rights reserved. / Tüm hakları saklıdır.*
+*© 2026 Memoko. All rights reserved. / Tüm hakları saklıdır.*

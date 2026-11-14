@@ -8,7 +8,7 @@
          Play allows exact alarms only for alarm and calendar apps. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove"/>
     <application
-        android:label="PairQuest"
+        android:label="Memoko"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">

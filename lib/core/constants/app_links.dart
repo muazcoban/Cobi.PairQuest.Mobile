@@ -13,7 +13,7 @@ class AppLinks {
   static final Uri contactEmail = Uri(
     scheme: 'mailto',
     path: 'muazcoban@gmail.com',
-    query: 'subject=PairQuest',
+    query: 'subject=Memoko',
   );
 
   /// Opens [uri] in an in-app browser, or a mailto link in the mail app;
