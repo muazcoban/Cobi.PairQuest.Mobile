@@ -138,4 +138,4 @@ değildir. Formu doldurmadan önce gizlilik politikasıyla karşılaştır.
 | Kısa açıklama | En fazla 80 karakter |
 | Tam açıklama | En fazla 4000 karakter |
 
-Simgede "PairQuest" yazısı var; Memoko adıyla yayından önce yeni simge gerekiyor.
+512×512 simge hazır: `docs/icon/play_store_512.png`. Öne çıkan grafik henüz yok.

@@ -70,21 +70,27 @@ dev_dependencies:
   fake_cloud_firestore: ^3.1.0
 
 flutter_launcher_icons:
+  # Memoko icon. Sources and generator: docs/icon/ (make_icon_assets.py).
   android: true
   ios: true
   remove_alpha_ios: true
-  image_path: "docs/app_icon1.png"
-  adaptive_icon_background: "#14B8A6"
-  adaptive_icon_foreground: "docs/app_icon1.png"
+  image_path: "docs/icon/app_icon.png"
+  image_path_ios: "docs/icon/app_icon_ios.png"
+  image_path_ios_dark_transparent: "docs/icon/app_icon_ios_dark.png"
+  image_path_ios_tinted_grayscale: "docs/icon/app_icon_ios_tinted.png"
+  desaturate_tinted_to_grayscale_ios: true
+  adaptive_icon_background: "docs/icon/adaptive_background.png"
+  adaptive_icon_foreground: "docs/icon/adaptive_foreground.png"
+  adaptive_icon_monochrome: "docs/icon/adaptive_monochrome.png"
   web:
     generate: true
-    image_path: "docs/app_icon1.png"
+    image_path: "docs/icon/app_icon.png"
   windows:
     generate: true
-    image_path: "docs/app_icon1.png"
+    image_path: "docs/icon/app_icon.png"
   macos:
     generate: true
-    image_path: "docs/app_icon1.png"
+    image_path: "docs/icon/app_icon.png"
 
 flutter:
   uses-material-design: true
