@@ -142,7 +142,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
 
     // Update daily quests
     final gameState = ref.read(gameProvider);
-    final completedQuests = ref.read(dailyQuestProvider.notifier).recordGameResult(
+    final completedQuests = await ref.read(dailyQuestProvider.notifier).recordGameResult(
           won: true,
           matches: game.matches,
           maxCombo: game.maxCombo,
@@ -211,7 +211,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     }
   }
 
-  void _saveGameLoss(Game game) {
+  Future<void> _saveGameLoss(Game game) async {
     final timeSpent = game.endTime != null && game.startTime != null
         ? game.endTime!.difference(game.startTime!).inSeconds
         : 0;
@@ -226,7 +226,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
 
     // Update daily quests
     final gameState = ref.read(gameProvider);
-    final completedQuests = ref.read(dailyQuestProvider.notifier).recordGameResult(
+    final completedQuests = await ref.read(dailyQuestProvider.notifier).recordGameResult(
           won: false,
           matches: game.matches,
           maxCombo: game.maxCombo,

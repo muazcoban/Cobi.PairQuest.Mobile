@@ -104,8 +104,13 @@ class ProgressNotifier extends StateNotifier<GameProgress> {
   static const _progressKey = 'game_progress';
 
   ProgressNotifier() : super(const GameProgress()) {
-    _loadProgress();
+    _ready = _loadProgress();
   }
+
+  /// Completes when the saved progress is loaded. Quick play from the home
+  /// screen creates this notifier only when the game ends; writing before
+  /// the load finished would save the empty state over the saved levels.
+  late final Future<void> _ready;
 
   Future<void> _loadProgress() async {
     final prefs = await SharedPreferences.getInstance();
@@ -183,6 +188,7 @@ class ProgressNotifier extends StateNotifier<GameProgress> {
     required int timeSpent,
     required bool isPerfectGame,
   }) async {
+    await _ready;
     final currentProgress = state.levels[level] ?? LevelProgress(level: level);
     final newStars = calculateStars(
       level: level,
@@ -232,6 +238,7 @@ class ProgressNotifier extends StateNotifier<GameProgress> {
 
   /// Record that a level was played (even if not completed)
   Future<void> recordLevelPlayed(int level) async {
+    await _ready;
     final currentProgress = state.levels[level] ?? LevelProgress(level: level);
     final updatedProgress = currentProgress.copyWith(
       timesPlayed: currentProgress.timesPlayed + 1,
@@ -246,6 +253,7 @@ class ProgressNotifier extends StateNotifier<GameProgress> {
 
   /// Reset all progress
   Future<void> resetProgress() async {
+    await _ready;
     state = const GameProgress();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_progressKey);
