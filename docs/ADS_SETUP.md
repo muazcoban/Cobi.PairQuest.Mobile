@@ -44,7 +44,9 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
 - **Kimlikler kodda:** Kimlikler `ad_config.dart`, `AndroidManifest.xml` ve `Info.plist` dosyalarına işlendi. Debug derlemesi yine test birimlerini kullanıyor.
 - **Uyarı:** Release ve TestFlight derlemeleri gerçek reklam isteyecek. Kendi cihazında gerçek reklama dokunma; AdMob bunu geçersiz trafik sayar.
 
-Aşağıdaki adımlar ilk kurulum içindi; kalanlar GDPR mesajı (7. madde) ve `app-ads.txt` (8. madde).
+- **GDPR mesajı:** "Avrupa tüzükleri" mesajı iki Memoko uygulaması için yayımlandı. Dil İngilizce; "İzin vermeyin" seçeneği tüm ülkelerde açık; gizlilik politikası bağlantısı girildi. Uygulama her kullanıcıyı rıza yaşının altında etiketlediği için mesaj gösterilmiyor.
+
+Aşağıdaki adımlar ilk kurulum içindi; yalnız `app-ads.txt` (8. madde) kaldı.
 
 
 1. AdMob hesabını aç, ödeme profilini doldur.
