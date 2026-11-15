@@ -67,18 +67,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _startupFlow() async {
     final ageNotifier = ref.read(ageGroupProvider.notifier);
     await ageNotifier.ready;
+
+    // The app store's age range, where it shares one (Texas and other US
+    // states with app store laws). It only makes the group stricter, and it
+    // replaces the age screen while the player has not answered it. Read on
+    // every start and kept in memory only.
+    final signal = await ref.read(ageSignalsSourceProvider).check();
     if (!mounted) return;
-    if (ref.read(ageGroupProvider) == null) {
+    ref.read(storeAgeSignalProvider.notifier).state = signal;
+
+    if (ref.read(effectiveAgeGroupProvider) == null) {
       await Navigator.of(context).push(
         MaterialPageRoute(fullscreenDialog: true, builder: (_) => const AgeScreen()),
       );
       if (!mounted) return;
-      // A child on a device that was already signed in: online features
-      // close, so the account signs out too. Progress on the device stays.
-      if (!ref.read(onlineAllowedProvider) && ref.read(authProvider).isAuthenticated) {
-        await ref.read(authProvider.notifier).signOut();
-        if (!mounted) return;
-      }
+    }
+    // A child on a device that was already signed in: online features
+    // close, so the account signs out too. Progress on the device stays.
+    if (!ref.read(onlineAllowedProvider) && ref.read(authProvider).isAuthenticated) {
+      await ref.read(authProvider.notifier).signOut();
+      if (!mounted) return;
     }
     // Nothing reaches an ad network before the age is known (COPPA 312.2).
     // Preloading here keeps the first "watch ad" button from waiting.

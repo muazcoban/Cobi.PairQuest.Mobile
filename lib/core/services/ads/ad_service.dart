@@ -50,9 +50,11 @@ class AdMobService implements AdService {
   AdMobService({
     required bool Function() adsRemoved,
     required AudioService audio,
+    bool Function()? adsBlocked,
     InterstitialPolicy policy = const InterstitialPolicy(),
     DateTime Function()? clock,
   })  : _adsRemoved = adsRemoved,
+        _adsBlocked = adsBlocked ?? _never,
         _audio = audio,
         _policy = policy,
         _now = clock ?? DateTime.now;
@@ -65,6 +67,11 @@ class AdMobService implements AdService {
   static const _loadTimeout = Duration(seconds: 8);
 
   final bool Function() _adsRemoved;
+
+  /// No ads at all for this user: a parent has not approved the update that
+  /// added them (Texas SB 2420 significant change).
+  final bool Function() _adsBlocked;
+  static bool _never() => false;
   final AudioService _audio;
   final InterstitialPolicy _policy;
   final DateTime Function() _now;
@@ -101,6 +108,7 @@ class AdMobService implements AdService {
       await MobileAds.instance.initialize();
       _canRequestAds = true;
 
+      if (_adsBlocked()) return;
       unawaited(_loadRewarded());
       if (!_adsRemoved()) unawaited(_loadInterstitial());
     } catch (e) {
@@ -155,7 +163,7 @@ class AdMobService implements AdService {
   @override
   Future<bool> showRewarded({bool Function()? beforeShow}) async {
     await initialize();
-    if (!_canRequestAds || _showing) return false;
+    if (!_canRequestAds || _showing || _adsBlocked()) return false;
 
     // Both test and real units answer "no fill" now and then; one more try
     // within the wait keeps a single miss from failing the button.
@@ -224,7 +232,7 @@ class AdMobService implements AdService {
   @override
   Future<void> showInterstitialIfAllowed() async {
     // Never wait for initialisation here: the player is moving on.
-    if (!_canRequestAds || _showing) return;
+    if (!_canRequestAds || _showing || _adsBlocked()) return;
 
     final prefs = await SharedPreferences.getInstance();
     final now = _now();

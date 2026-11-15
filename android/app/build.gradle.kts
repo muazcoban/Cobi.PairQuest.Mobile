@@ -81,4 +81,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // Google Play Age Signals: the store's age range for US state app store
+    // laws (Texas SB 2420). Bridged to Dart in MainActivity.kt.
+    implementation("com.google.android.play:age-signals:0.0.4")
 }

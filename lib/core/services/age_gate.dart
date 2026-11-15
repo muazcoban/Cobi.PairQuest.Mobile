@@ -29,4 +29,26 @@ class AgeGate {
   }
 
   static int firstYear(DateTime now) => now.year - yearsShown;
+
+  /// The group an app store age range points to, or null when the range
+  /// spans 13 (or is empty) and says nothing either way. A store that asks
+  /// the user to verify their age first gives the strictest group.
+  static AgeGroup? groupForStoreRange({
+    int? ageLower,
+    int? ageUpper,
+    bool verificationRequired = false,
+  }) {
+    if (verificationRequired) return AgeGroup.child;
+    if (ageUpper != null && ageUpper < minAgeForOnline) return AgeGroup.child;
+    if (ageLower != null && ageLower >= minAgeForOnline) return AgeGroup.teenOrAdult;
+    return null;
+  }
+
+  /// Combines the stored answer with the store's signal. The stricter one
+  /// wins: a store signal can turn a player into a child, never the other
+  /// way, because a child may be using a parent's phone and account.
+  static AgeGroup? combine({AgeGroup? stored, AgeGroup? store}) {
+    if (stored == AgeGroup.child || store == AgeGroup.child) return AgeGroup.child;
+    return stored ?? store;
+  }
 }

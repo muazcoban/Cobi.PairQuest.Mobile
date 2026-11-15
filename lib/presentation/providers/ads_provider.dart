@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/ad_config.dart';
 import '../../core/services/ads/ad_service.dart';
 import '../../core/services/audio_service.dart';
+import 'age_provider.dart';
 
 /// What the settings screen shows for the "remove ads" purchase.
 @immutable
@@ -188,6 +189,14 @@ final adPrivacyOptionsRequiredProvider = FutureProvider<bool>(
 final adServiceProvider = Provider<AdService>((ref) {
   return AdMobService(
     adsRemoved: () => ref.read(removeAdsProvider).adsRemoved,
+    adsBlocked: () => ref.read(parentApprovalPendingProvider),
     audio: ref.read(audioServiceProvider),
   );
 });
+
+/// Whether ad offers ("watch an ad for…") and the "remove ads" purchase
+/// show at all. Off while a parent has not approved the update that added
+/// them (Texas SB 2420 significant change).
+final adOffersAllowedProvider = Provider<bool>(
+  (ref) => !ref.watch(parentApprovalPendingProvider),
+);

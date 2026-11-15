@@ -83,6 +83,8 @@ For players under 13:
 - push messages are off, so the device gets no push token; daily reminders are scheduled on the device;
 - ads are child-directed, as they are for every player (see "Advertising").
 
+Where a US state law requires it (for example Texas), the Android app also asks Google Play for the user's age range and, for supervised minors, whether a parent approved the latest update. The app uses this only to apply the age rules above and to keep ads and purchases off until a parent approves. It keeps the answer in memory while the app is open, does not store it and does not send it anywhere.
+
 If a device that was signed in is set to "under 13", the app signs the account out. If you believe a child under 13 has given us personal data, contact us and we will delete it.
 
 ### Changes to this policy
@@ -172,6 +174,8 @@ Memoko'yu gençler ve yetişkinlerin yanında çocuklar da oynar. Uygulama ilk a
 - oyuncu hakkında bize hiçbir bilgi gelmez: ilerleme, ayarlar ve skorlar cihazda kalır;
 - anlık bildirimler kapalıdır, bu yüzden cihazda bildirim anahtarı (token) oluşmaz; günlük hatırlatıcılar cihazda zamanlanır;
 - reklamlar, tüm oyuncularda olduğu gibi çocuklara yönelik ayarla gösterilir ("Reklamlar" bölümüne bakın).
+
+ABD'de bir eyalet yasasının gerektirdiği yerlerde (örneğin Texas) Android uygulaması Google Play'den kullanıcının yaş aralığını da ister. Ebeveyn denetimindeki küçükler için son güncellemeyi bir ebeveynin onaylayıp onaylamadığını da sorar. Uygulama bu bilgiyi yalnızca yukarıdaki yaş kurallarını uygulamak ve ebeveyn onaylayana kadar reklamları ve satın almaları kapalı tutmak için kullanır. Bilgi uygulama açıkken bellekte tutulur; saklanmaz ve hiçbir yere gönderilmez.
 
 Daha önce giriş yapılmış bir cihazda "13 yaşından küçük" seçilirse uygulama hesaptan çıkış yapar. 13 yaşından küçük bir çocuğun bize kişisel veri verdiğini düşünüyorsanız bizimle iletişime geçin, bu veriyi sileriz.
 

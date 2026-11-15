@@ -633,7 +633,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
           isPerfectGame: game.isPerfectGame,
           hasNextLevel: game.level < GameConfig.totalLevels,
           coinsEarned: coinsToDouble,
-          onWatchAdForDoubleCoins: coinsToDouble > 0
+          onWatchAdForDoubleCoins: coinsToDouble > 0 && ref.read(adOffersAllowedProvider)
               ? () async {
                   final watched = await ads.showRewarded();
                   if (watched) {
@@ -707,7 +707,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
           totalPairs: game.gridSize.pairs,
           coinsEarned: partialCoins,
           continueSeconds: _continueSeconds,
-          onWatchAdToContinue: gameNotifier.canContinueAfterTimeUp
+          onWatchAdToContinue: gameNotifier.canContinueAfterTimeUp && ref.read(adOffersAllowedProvider)
               ? () async {
                   if (!await ads.showRewarded()) return false;
                   if (!gameNotifier.continueAfterTimeUp(_continueSeconds)) return false;

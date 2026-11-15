@@ -5,12 +5,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pair_quest/core/services/ads/ad_service.dart';
+import 'package:pair_quest/core/services/age_signals_service.dart';
 import 'package:pair_quest/core/services/audio_service.dart';
 import 'package:pair_quest/core/services/wallet_sync_service.dart';
 import 'package:pair_quest/domain/entities/game.dart';
 import 'package:pair_quest/domain/entities/power_up.dart';
 import 'package:pair_quest/l10n/generated/app_localizations.dart';
 import 'package:pair_quest/presentation/providers/ads_provider.dart';
+import 'package:pair_quest/presentation/providers/age_provider.dart';
 import 'package:pair_quest/presentation/providers/game_provider.dart';
 import 'package:pair_quest/presentation/providers/power_up_provider.dart';
 import 'package:pair_quest/presentation/providers/settings_provider.dart';
@@ -84,7 +86,12 @@ void main() {
 
   GameState? stateOf() => container.read(gameProvider).currentGame?.state;
 
-  Future<void> openGame(WidgetTester tester, {required String mode, bool fill = true}) async {
+  Future<void> openGame(
+    WidgetTester tester, {
+    required String mode,
+    bool fill = true,
+    StoreAgeSignal? signal,
+  }) async {
     tester.view.physicalSize = const Size(1290, 2796);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -95,6 +102,7 @@ void main() {
       audioServiceProvider.overrideWithValue(_SilentAudioService()),
       walletSyncServiceProvider.overrideWithValue(_GuestWalletSync()),
       adServiceProvider.overrideWithValue(ads),
+      storeAgeSignalProvider.overrideWith((ref) => signal),
     ]);
     ads.container = container;
     addTearDown(container.dispose);
@@ -175,6 +183,18 @@ void main() {
     expect(stateOf(), GameState.failed);
     expect(find.text('Watch an ad: +30 s'), findsNothing);
     expect(find.text('Try Again'), findsOneWidget);
+
+    container.read(gameProvider.notifier).endGame();
+  });
+
+  testWidgets('no ad offers while a parent has not approved the update', (tester) async {
+    await openGame(
+      tester,
+      mode: 'classic',
+      signal: const StoreAgeSignal(ageLower: 13, ageUpper: 15, significantChange: SignificantChange.pending),
+    );
+
+    expect(find.byTooltip('Free hint for watching an ad'), findsNothing);
 
     container.read(gameProvider.notifier).endGame();
   });

@@ -113,7 +113,48 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
    - **Content rating anketi:** Kullanıcılar etkileşime giriyor (online maç, arkadaşlık, görünen adlar) sorusuna "Yes" de. Raporlama ve engelleme var.
    - **Doğrulayamadığım:** Families politikası, oyunu kesen reklamların ödüllü olanlar dahil 5 saniye sonra kapatılabilmesini istiyor. Uygulama bu süreyi ayarlayamıyor. Sertifikalı SDK'nın çocuk isteklerinde bunu kendisinin sağladığını varsayıyorum, ama resmî bir cümle bulamadım.
 
-## 4. Test etme
+## 4. ABD eyalet yasaları (Texas SB 2420)
+
+**Durum (Kasım 2026):**
+- **Texas:** Yasa yürürlükte. Fifth Circuit ihtiyati tedbiri 4 Haziran 2026'da durdurdu, Supreme Court da 6 Temmuz 2026'da bu kararı bozmayı reddetti. Esas hakkında karar yok; dava sürüyor.
+- **Utah ve Louisiana:** Geliştirici yükümlülükleri Utah'ta 6 Mayıs 2027'ye, Louisiana'da 1 Temmuz 2027'ye ertelendi. Bu bilgi hukuk firması kaynaklarından; resmî meclis siteleri açılmadı.
+- **Kaynaklar:** capitol.texas.gov/tlodocs/89R/billtext/html/SB02420F.htm, ca5.uscourts.gov (26-50001), developer.apple.com/support/age-assurance, support.google.com/googleplay/android-developer/answer/16569691.
+
+**Yasanın geliştiriciden istedikleri:**
+- **§121.052:** Uygulamaya ve her uygulama içi satın almaya yaş derecesi vermek.
+- **§121.053:** "Önemli değişikliği" önceden mağazaya bildirmek. Yeni reklam ya da satın alma eklemek önemli değişiklik sayılıyor.
+- **§121.054:** Kullanıcının yaş kategorisini ve reşit olmayanlarda ebeveyn onayını mağaza verisiyle doğrulamak.
+- **§121.055:** Bu veriyi yalnız yaş kısıtlaması için kullanmak ve doğrulamadan sonra silmek.
+
+**Android'de yapılanlar (Google Play Age Signals, `age-signals` 0.0.4):**
+1. **Okuma:** Açılışta önce erişim isteniyor, sonra yaş aralığı okunuyor. Yasa olan eyaletlerde Play bunu ekran göstermeden yapıyor. Başka yerlerde Play kullanıcıya yaşını paylaşmak isteyip istemediğini sorabilir.
+2. **Birleştirme:** Mağaza aralığı yaş ekranı cevabıyla birleşiyor ve daha sıkı olan kazanıyor.
+   - 13 altı aralık çocuk modunu açıyor.
+   - Cevap yoksa mağaza aralığı yaş ekranının yerini alıyor.
+   - Mağaza 18+ dese bile çocuğun kendi cevabı ("13 altı") korunuyor, çünkü telefon ebeveynin olabilir.
+3. **Doğrulanmamış kullanıcı:** Play "doğrulama gerekli" derse, yani Texas'ta yaşını doğrulamamış bir kullanıcıysa, o oturumda çocuk modu uygulanıyor.
+4. **Ebeveyn onayı:** Onay beklemedeyse ya da reddedildiyse reklam teklifleri, reklamlar ve "Reklamları kaldır" o kullanıcıda gizleniyor.
+5. **Veri:** Mağaza verisi diske yazılmıyor, hiçbir yere gönderilmiyor; yalnız oturum boyunca bellekte duruyor. Install ID Kotlin tarafında kalıyor.
+6. **Sinyal olmayınca:** Mağaza sinyal vermezse (ABD dışı, paylaşmayan kullanıcı, mağaza dışı kurulum) yaş ekranı çalışıyor.
+
+**Play Console'da senin yapacakların:**
+- **Zorunlu (§121.052):** Monetize → Products → `remove_ads` → ABD yaş derecesi: EVERYONE.
+- **İlk sürümde önemli değişiklik bildirimi gerekmiyor:** Reklam ve satın alma ilk Android sürümünden beri uygulamanın parçası. Sonradan yeni bir para kazanma özelliği eklenirse önce şu adım gerekiyor:
+  - App content → Age signals sayfasına ileri bir yürürlük tarihi ve ebeveyne gösterilecek İngilizce açıklama gir.
+  - En fazla 90 gün önceden girilebiliyor. Uygulama onay durumunu kendisi okuyup özelliği kapatıyor.
+- **Ara sıra bakılacak yer:** Age signals sayfasındaki "Revoked app approvals" sekmesi. Uygulama install ID saklamadığı için bu listeyi kendisi okumuyor. Onayı geri çekilen kullanıcı bir sonraki açılışta "reddedildi" durumunu görüyor ve reklamlar kapanıyor.
+- **Test:** API, Play'den kurulmamış uygulamada `APP_NOT_OWNED` döndürüyor. Gerçek davranış ancak kapalı test kanalından kurulumla görülür. Emülatörde sideload edilen paket hata vermeden yaş ekranına düşüyor.
+
+**iOS'ta yapılmayanlar ve nedeni:**
+- **Gerekenler:** Apple'ın karşılığı Declared Age Range, PermissionKit `SignificantAppUpdateTopic` (ebeveyn onayı), App Store Server Notifications `RESCIND_CONSENT` ve `AppStore.ageRatingCode`.
+- **Engel:** Bunların hepsi iOS 26.2 SDK'sı, yani Xcode 26.2 istiyor. Bu Mac'te Xcode 16.4 var.
+- **Önemli değişiklik:** iOS uygulaması bugün reklamsız yayında. Reklam ve satın alma eklemek Texas'ta önemli değişiklik; Apple, ebeveyn onayı gelene kadar çocuğun yeni özelliğe erişmemesini istiyor.
+- **Sonuç:** Reklamlı iOS sürümü bu iş bitmeden Texas kurallarına uymaz. Reklamsız 2.3.0 (isim değişikliği) bu kapsama girmiyor.
+- **App Store Connect'te gerekenler:**
+  - App ID'de Declared Age Range capability'sini açmak.
+  - Server Notifications v2 adresi tanımlamak. Bunun için bir sunucu uç noktası gerekiyor; Firebase Cloud Functions olabilir.
+
+## 5. Test etme
 
 - **Test reklamları:**
   - Debug ve şimdiki release derlemesi "Test Ad" etiketli reklam gösterir.

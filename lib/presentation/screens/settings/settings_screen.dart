@@ -621,7 +621,7 @@ class _AdsSettings extends ConsumerWidget {
             leading: const Icon(Icons.check_circle_rounded, color: AppColors.successStrong),
             title: Text(l10n.adsRemoved),
           )
-        else
+        else if (ref.watch(adOffersAllowedProvider))
           ListTile(
             leading: const Icon(Icons.block_rounded),
             title: Text(l10n.removeAds),
