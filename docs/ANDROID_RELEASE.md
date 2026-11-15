@@ -125,7 +125,7 @@ hesap açılır açılmaz başlat.
 ### Uygulama oluşturma
 
 - Uygulama türü: Oyun. Ücretsiz.
-- Uygulama adı: "Memoko: Memory Match Game" (İngilizce), "Memoko: Hafıza Kartı Oyunu" (Türkçe). Metinler `docs/STORE_LISTING.md` içinde.
+- Uygulama adı: "Memoko: Memory Card Game" (İngilizce), "Memoko: Hafıza Kartı Oyunu" (Türkçe). Metinler `docs/STORE_LISTING.md` içinde.
 - Varsayılan dil: Türkçe ya da İngilizce; diğerini çeviri olarak ekle.
 
 ### Uygulama içeriği (App content) beyanları
