@@ -87,7 +87,8 @@ class NotificationService {
       // Listen to token refresh
       _messaging.onTokenRefresh.listen((token) {
         _fcmToken = token;
-        debugPrint('FCM Token refreshed: $token');
+        // Never log the token itself: debugPrint also writes to release logs.
+        debugPrint('FCM token refreshed');
       });
 
       // Handle foreground messages
@@ -173,7 +174,7 @@ class NotificationService {
 
       // Get FCM token
       _fcmToken = await _messaging.getToken();
-      debugPrint('FCM Token: $_fcmToken');
+      debugPrint('FCM token received: ${_fcmToken != null}');
     } catch (e) {
       debugPrint('Error getting FCM token: $e');
       // Token will be available via onTokenRefresh listener
@@ -388,25 +389,6 @@ class NotificationService {
   /// Cancel all notifications
   Future<void> cancelAllNotifications() async {
     await _localNotifications.cancelAll();
-  }
-
-  /// Get next instance of a specific time
-  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-
-    if (scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
-
-    return scheduled;
   }
 
   /// Next [weekday] at [hour]:[minute]. Built from the date, not by adding

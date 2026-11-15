@@ -1013,7 +1013,6 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
   Widget _buildGameAbandoned(AppLocalizations l10n, OnlineGame game, String? myId) {
     // Check if I won (opponent left) or I lost (I left)
     final isWinner = game.winnerId == myId;
-    final isDraw = game.winnerId == null;
 
     return Center(
       child: SingleChildScrollView(
