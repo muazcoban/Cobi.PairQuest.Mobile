@@ -702,5 +702,6 @@
   "@watchAdContinue": {"placeholders": {"seconds": {"type": "int"}}},
   "ageScreenTitle": "Hangi yıl doğdun?",
   "ageScreenBody": "Oyunu sana göre ayarlamak için soruyoruz. Yalnız sonuç bu cihazda kalır.",
-  "ageScreenContinue": "Devam"
+  "ageScreenContinue": "Devam",
+  "significantUpdateAds": "Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor."
 }

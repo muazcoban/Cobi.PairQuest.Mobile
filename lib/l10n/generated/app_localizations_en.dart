@@ -1153,4 +1153,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ageScreenContinue => 'Continue';
+
+  @override
+  String get significantUpdateAds =>
+      'This update adds ads and an optional one-time purchase that removes the ads between levels.';
 }

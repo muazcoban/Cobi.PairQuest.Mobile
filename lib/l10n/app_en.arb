@@ -395,5 +395,6 @@
   "adPrivacyOptions": "Ad privacy choices",
   "ageScreenTitle": "What year were you born?",
   "ageScreenBody": "We use it to set up the game for you. Only the result stays on this device.",
-  "ageScreenContinue": "Continue"
+  "ageScreenContinue": "Continue",
+  "significantUpdateAds": "This update adds ads and an optional one-time purchase that removes the ads between levels."
 }

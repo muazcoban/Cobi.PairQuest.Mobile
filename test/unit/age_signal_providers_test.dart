@@ -54,4 +54,16 @@ void main() {
     expect(c.read(effectiveAgeGroupProvider), AgeGroup.child);
     expect(c.read(parentApprovalPendingProvider), isFalse);
   });
+
+  test('iOS: where parental consent is required, a minor gets no ads or purchase', () async {
+    final minor = await container(
+      signal: const StoreAgeSignal(ageLower: 13, ageUpper: 15, parentalConsentRequired: true),
+    );
+    expect(minor.read(parentApprovalPendingProvider), isTrue);
+
+    final adult = await container(
+      signal: const StoreAgeSignal(ageLower: 18, parentalConsentRequired: true),
+    );
+    expect(adult.read(parentApprovalPendingProvider), isFalse);
+  });
 }

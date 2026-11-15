@@ -2251,6 +2251,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Devam'**
   String get ageScreenContinue;
+
+  /// No description provided for @significantUpdateAds.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor.'**
+  String get significantUpdateAds;
 }
 
 class _AppLocalizationsDelegate

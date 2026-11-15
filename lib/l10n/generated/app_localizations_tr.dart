@@ -1152,4 +1152,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get ageScreenContinue => 'Devam';
+
+  @override
+  String get significantUpdateAds =>
+      'Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor.';
 }
