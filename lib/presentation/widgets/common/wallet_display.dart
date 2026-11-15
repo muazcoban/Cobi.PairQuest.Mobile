@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/wallet_provider.dart';
 
 /// Compact wallet display showing coins and gems with auto-animation
@@ -197,6 +198,7 @@ class WalletDisplayLarge extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallet = ref.watch(walletProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -222,7 +224,7 @@ class WalletDisplayLarge extends ConsumerWidget {
               icon: Icons.monetization_on_rounded,
               color: Colors.amber,
               amount: wallet.coins,
-              label: 'Coins',
+              label: l10n.coins,
               onAdd: onAddCoins,
             ),
           ),
@@ -236,7 +238,7 @@ class WalletDisplayLarge extends ConsumerWidget {
               icon: Icons.diamond_rounded,
               color: Colors.purple,
               amount: wallet.gems,
-              label: 'Gems',
+              label: l10n.gems,
               onAdd: onAddGems,
             ),
           ),

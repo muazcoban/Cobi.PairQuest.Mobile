@@ -101,13 +101,13 @@ abstract class AppLocalizations {
   /// Uygulama başlığı
   ///
   /// In tr, this message translates to:
-  /// **'PairQuest'**
+  /// **'Memoko'**
   String get appTitle;
 
   /// Uygulama alt başlığı
   ///
   /// In tr, this message translates to:
-  /// **'Hafıza Eşleştirme Oyunu'**
+  /// **'Hafıza Kartı Oyunu'**
   String get appSubtitle;
 
   /// Klasik mod butonu

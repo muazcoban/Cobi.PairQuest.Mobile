@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/game_config.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/review_prompt_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/entities/game.dart';
@@ -141,7 +142,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
 
     // Update daily quests
     final gameState = ref.read(gameProvider);
-    final completedQuests = ref.read(dailyQuestProvider.notifier).recordGameResult(
+    final completedQuests = await ref.read(dailyQuestProvider.notifier).recordGameResult(
           won: true,
           matches: game.matches,
           maxCombo: game.maxCombo,
@@ -210,7 +211,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     }
   }
 
-  void _saveGameLoss(Game game) {
+  Future<void> _saveGameLoss(Game game) async {
     final timeSpent = game.endTime != null && game.startTime != null
         ? game.endTime!.difference(game.startTime!).inSeconds
         : 0;
@@ -225,7 +226,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
 
     // Update daily quests
     final gameState = ref.read(gameProvider);
-    final completedQuests = ref.read(dailyQuestProvider.notifier).recordGameResult(
+    final completedQuests = await ref.read(dailyQuestProvider.notifier).recordGameResult(
           won: false,
           matches: game.matches,
           maxCombo: game.maxCombo,
@@ -312,11 +313,18 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     });
 
     return PopScope(
+      // A running game pauses instead of closing, so a stray back press does
+      // not throw away the board. The pause dialog offers Quit and Resume.
+      canPop: game?.state != GameState.inProgress,
       // The back swipe and the Android back button skip the in-game buttons
       // that call endGame(), which left the timer and music running on the
       // home screen. Ending the game here covers every way of leaving.
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop) ref.read(gameProvider.notifier).endGame();
+        if (didPop) {
+          ref.read(gameProvider.notifier).endGame();
+        } else {
+          _pauseAndAsk();
+        }
       },
       child: Scaffold(
         backgroundColor: AppColors.background(context),
@@ -484,6 +492,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
             tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
+              if (game?.state == GameState.inProgress) {
+                _pauseAndAsk();
+                return;
+              }
               ref.read(gameProvider.notifier).endGame();
               Navigator.of(context).pop();
             },
@@ -509,10 +521,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
                 IconButton(
                   tooltip: AppLocalizations.of(context)!.pause,
                   icon: const Icon(Icons.pause),
-                  onPressed: () {
-                    ref.read(gameProvider.notifier).pauseGame();
-                    _showPauseDialog();
-                  },
+                  onPressed: _pauseAndAsk,
                 ),
               IconButton(
                 tooltip: AppLocalizations.of(context)!.restart,
@@ -528,37 +537,52 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     );
   }
 
+  void _pauseAndAsk() {
+    ref.read(gameProvider.notifier).pauseGame();
+    _showPauseDialog();
+  }
+
   void _showPauseDialog() {
     final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(l10n.gamePaused),
-        content: Text(l10n.continueQuestion),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              ref.read(gameProvider.notifier).endGame();
-              Navigator.of(context).pop();
-            },
-            child: Text(l10n.quit),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              ref.read(gameProvider.notifier).resumeGame();
-              Navigator.of(dialogContext).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      // Back on the dialog means "never mind": without this the back button
+      // closed the dialog and left the game paused with no Resume button.
+      builder: (dialogContext) => PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          ref.read(gameProvider.notifier).resumeGame();
+          Navigator.of(dialogContext).pop();
+        },
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(l10n.gamePaused),
+          content: Text(l10n.continueQuestion),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                ref.read(gameProvider.notifier).endGame();
+                Navigator.of(context).pop();
+              },
+              child: Text(l10n.quit),
             ),
-            child: Text(l10n.resume),
-          ),
-        ],
+            ElevatedButton(
+              onPressed: () {
+                ref.read(gameProvider.notifier).resumeGame();
+                Navigator.of(dialogContext).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: Text(l10n.resume),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -581,6 +605,9 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     // The first win is when the daily reminder starts to matter, so the
     // permission alert comes here instead of at launch.
     await NotificationService().requestPermissionAfterFirstWin();
+
+    // A finished level is a natural break; the service skips the first wins.
+    await ReviewPromptService().onLevelWon(stars: stars);
 
     if (!mounted) return;
 

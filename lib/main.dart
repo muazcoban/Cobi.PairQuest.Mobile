@@ -41,7 +41,7 @@ class PairQuestApp extends ConsumerWidget {
 
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'PairQuest',
+      title: 'Memoko',
       debugShowCheckedModeBanner: false,
 
       // Theme

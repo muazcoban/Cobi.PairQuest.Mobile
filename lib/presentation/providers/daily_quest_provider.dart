@@ -32,8 +32,14 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
           date: DateTime.now(),
           quests: const [],
         )) {
-    _loadQuests();
+    _ready = _loadQuests();
   }
+
+  /// Completes when the saved quests are loaded or new ones are generated.
+  /// The provider is often created by the first finished game, so a result
+  /// recorded before this completes went into an empty quest list and the
+  /// load then reset the counters: the first game after launch was lost.
+  late final Future<void> _ready;
 
   /// Load quests from local storage
   Future<void> _loadQuests() async {
@@ -175,8 +181,8 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
   }
 
   /// Update quest progress after a game. Returns the ids of the quests this
-  /// game completed.
-  List<String> recordGameResult({
+  /// game completed. Waits for the saved quests to load first.
+  Future<List<String>> recordGameResult({
     required bool won,
     required int matches,
     required int maxCombo,
@@ -184,7 +190,10 @@ class DailyQuestNotifier extends StateNotifier<DailyQuestsData> {
     required int starsEarned,
     int powerUpsUsed = 0,
     bool isTimedMode = false,
-  }) {
+  }) async {
+    await _ready;
+    if (!mounted) return const [];
+
     // New day: start fresh quests, then count this game toward them
     // (returning here dropped the first game played after midnight)
     if (state.needsRefresh) {

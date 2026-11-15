@@ -1,9 +1,9 @@
-# PairQuest - Support / Destek
+# Memoko - Support / Destek
 
 ## English
 
 ### Contact Us
-If you have any questions, feedback, or issues with PairQuest, please reach out to us:
+If you have any questions, feedback, or issues with Memoko (formerly PairQuest), please reach out to us:
 
 - **Email:** muazcoban@gmail.com
 - **GitHub Issues:** [Report a Bug](https://github.com/muazcoban/Cobi.PairQuest.Mobile/issues)
@@ -27,7 +27,7 @@ A: Open the app every day to claim your daily reward. Consecutive days increase 
 ## Türkçe
 
 ### Bize Ulaşın
-PairQuest hakkında sorularınız, geri bildirimleriniz veya sorunlarınız varsa lütfen bizimle iletişime geçin:
+Memoko (eski adıyla PairQuest) hakkında sorularınız, geri bildirimleriniz veya sorunlarınız varsa lütfen bizimle iletişime geçin:
 
 - **E-posta:** muazcoban@gmail.com
 - **GitHub Issues:** [Hata Bildir](https://github.com/muazcoban/Cobi.PairQuest.Mobile/issues)
@@ -50,9 +50,9 @@ C: Günlük ödülünüzü almak için her gün uygulamayı açın. Ardışık g
 
 ## Privacy Policy / Gizlilik Politikası
 
-PairQuest does not collect any personal data. All game progress is stored locally on your device.
+Single-player progress is stored on your device. Online features store some data on our servers; the [Privacy Policy](PRIVACY.md) lists what we store and how to delete it.
 
-PairQuest herhangi bir kişisel veri toplamaz. Tüm oyun ilerlemesi cihazınızda yerel olarak saklanır.
+Tek oyunculu ilerleme cihazınızda saklanır. Online özellikler bazı verileri sunucularımızda saklar; neleri sakladığımızı ve nasıl silebileceğinizi [Gizlilik Politikası](PRIVACY.md) anlatır.
 
 ---
 

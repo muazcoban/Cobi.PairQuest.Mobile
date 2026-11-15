@@ -9,10 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'PairQuest';
+  String get appTitle => 'Memoko';
 
   @override
-  String get appSubtitle => 'Memory Matching Game';
+  String get appSubtitle => 'Memory Match Game';
 
   @override
   String get classicMode => 'Classic Mode';

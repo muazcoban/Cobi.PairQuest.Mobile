@@ -543,7 +543,6 @@ class _InvitationWaitingDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final invitationAsync = ref.watch(watchInvitationProvider(invitationId));
 
     // Listen for invitation status changes
     ref.listen<AsyncValue<GameInvitation?>>(
