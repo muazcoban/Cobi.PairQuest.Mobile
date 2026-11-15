@@ -27,4 +27,11 @@ void main() {
 
     expect(reminders.map((r) => r.body), isNot(contains(tr.reminderSignInBody)));
   });
+
+  test('players under 13 get no sign-in reminder', () {
+    final reminders = tr.weeklyReminders(signedIn: false, onlineAllowed: false);
+    expect(reminders, hasLength(7));
+    expect(reminders.map((r) => r.body), isNot(contains(tr.reminderSignInBody)));
+    expect(reminders.where((r) => r.payload == 'leaderboard'), isEmpty);
+  });
 }

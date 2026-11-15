@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/game_config.dart';
 import '../../../domain/entities/daily_reward.dart';
 import '../../../domain/entities/game.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../../core/services/age_signals_service.dart';
+import '../../../core/services/notification_service.dart';
+import '../../providers/ads_provider.dart';
+import '../../providers/age_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../onboarding/age_screen.dart';
 import '../../providers/daily_reward_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/leaderboard_provider.dart';
@@ -39,8 +46,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     // Check for daily reward on app start
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkDailyReward();
+      _startupFlow();
       _syncPendingScores();
+      // The store replays unfinished purchases at start; listen right away.
+      ref.read(removeAdsProvider);
       // Schedules the daily reminder now, so its text follows the language
       // and sign-in state without the settings screen being opened.
       ref.read(notificationSettingsProvider);
@@ -54,6 +63,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // Sync in background - don't block UI
     leaderboardNotifier.syncPending();
+  }
+
+  /// The one-time age screen comes first, then the daily reward.
+  Future<void> _startupFlow() async {
+    final ageNotifier = ref.read(ageGroupProvider.notifier);
+    await ageNotifier.ready;
+
+    // The app store's age range, where it shares one (Texas and other US
+    // states with app store laws). It only makes the group stricter, and it
+    // replaces the age screen while the player has not answered it. Read on
+    // every start and kept in memory only.
+    final signal = await ref.read(ageSignalsSourceProvider).check();
+    if (!mounted) return;
+    ref.read(storeAgeSignalProvider.notifier).state = signal;
+    if (signal != null && signal.adultNotificationRequired && signal.isAdult) {
+      await _acknowledgeAdsUpdate();
+      if (!mounted) return;
+    }
+
+    if (ref.read(effectiveAgeGroupProvider) == null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(fullscreenDialog: true, builder: (_) => const AgeScreen()),
+      );
+      if (!mounted) return;
+    }
+    // A child on a device that was already signed in: online features
+    // close, so the account signs out too. Progress on the device stays.
+    if (!ref.read(onlineAllowedProvider) && ref.read(authProvider).isAuthenticated) {
+      await ref.read(authProvider.notifier).signOut();
+      if (!mounted) return;
+    }
+    // Nothing reaches an ad network before the age is known (COPPA 312.2).
+    // Preloading here keeps the first "watch ad" button from waiting.
+    ref.read(adServiceProvider).initialize();
+    // Push messages only for 13+; a child's device gets no push token.
+    if (ref.read(onlineAllowedProvider)) {
+      NotificationService().enableRemoteMessaging();
+    }
+    await _checkDailyReward();
+  }
+
+  /// The update that added ads and the purchase is a "significant change"
+  /// under Texas SB 2420; where the law asks for it, Apple's sheet tells
+  /// adults about it once.
+  Future<void> _acknowledgeAdsUpdate() async {
+    const key = 'significant_update_ack';
+    const change = 'ads-and-remove-ads-2026';
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getString(key) == change || !mounted) return;
+    final shown = await acknowledgeSignificantUpdate(AppLocalizations.of(context)!.significantUpdateAds);
+    if (shown) await prefs.setString(key, change);
   }
 
   Future<void> _checkDailyReward() async {
@@ -96,6 +156,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
     final settings = ref.watch(settingsProvider);
     final musicEnabled = settings.musicEnabled;
+    final onlineAllowed = ref.watch(onlineAllowedProvider);
 
     // White status bar icons on the teal gradient
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -178,8 +239,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Only for players who have not signed in
-                        const SignInPromptCard(),
+                        // Only for players who have not signed in, 13+
+                        if (onlineAllowed) const SignInPromptCard(),
 
                         // Play Button - Classic Mode
                         _MenuButton(
@@ -199,18 +260,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        // Online Multiplayer Mode Button
-                        _MenuButton(
-                          icon: Icons.public,
-                          label: l10n.onlineMultiplayer,
-                          sublabel: l10n.onlineMultiplayerDesc,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const OnlineLobbyScreen(),
+                        // Online Multiplayer Mode Button: 13+ only, since it
+                        // needs an account and pairs players with strangers
+                        if (onlineAllowed) ...[
+                          _MenuButton(
+                            icon: Icons.public,
+                            label: l10n.onlineMultiplayer,
+                            sublabel: l10n.onlineMultiplayerDesc,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const OnlineLobbyScreen(),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 12),
+                        ],
 
                         // Local Multiplayer Mode Button
                         _MenuButton(

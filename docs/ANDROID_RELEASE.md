@@ -136,7 +136,7 @@ hesap açılır açılmaz başlat.
 | Uygulama erişimi | Özel erişim gerekmiyor: online özellikler herhangi bir Google hesabıyla açılıyor. |
 | Reklamlar | Şimdilik "Hayır". Reklamlı sürümle birlikte "Evet" yapılmalı. |
 | İçerik derecelendirmesi (IARC) | Oyun. Kullanıcılar etkileşimde bulunuyor: online oyun, görünen adlar, arkadaşlık istekleri. Konum paylaşımı yok. Dijital satın alma yok (mağaza yalnız oyun içi jeton ve elmasla). |
-| Hedef kitle | Karar bekliyor: 13 yaş altını seçmek Aileler politikasını devreye sokar ve reklam SDK'sı seçimini kısıtlar. Reklam araştırmasıyla birlikte karar verilecek. |
+| Hedef kitle | 6–8, 9–12, 13–15, 16–17, 18+ (karma kitle, Families politikası). Uygulamada nötr yaş ekranı var; 13 altında giriş, online oyun ve push kapalı. Ayrıntı: `docs/ADS_SETUP.md`, bölüm 3. |
 | Hesap silme | Uygulama içi silme var (Ayarlar → Hesap → Hesabı Sil). Web bağlantısı: `https://github.com/muazcoban/Cobi.PairQuest.Mobile/blob/master/docs/PRIVACY.md#deleting-your-account-and-data` |
 | Veri güvenliği | Aşağıdaki taslak. |
 

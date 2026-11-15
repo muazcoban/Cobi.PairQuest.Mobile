@@ -14,6 +14,7 @@ import '../../../l10n/achievement_l10n.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../l10n/quest_l10n.dart';
 import '../../providers/achievement_provider.dart';
+import '../../providers/ads_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/leaderboard_provider.dart';
@@ -81,6 +82,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     // kept running in the background and a timed game could be lost there
     if (state != AppLifecycleState.hidden && state != AppLifecycleState.paused) return;
     if (ref.read(gameProvider).currentGame?.state != GameState.inProgress) return;
+    // Android reports a full-screen ad as the app going to the background.
+    if (ref.read(adServiceProvider).isShowingFullScreenAd) return;
 
     ref.read(gameProvider.notifier).pauseGame();
     _showPauseDialog();
@@ -307,7 +310,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
         }
       } else if (next.currentGame?.state == GameState.failed &&
           previous?.currentGame?.state != GameState.failed) {
-        _saveGameLoss(next.currentGame!);
         _showGameOverDialog();
       }
     });
@@ -609,7 +611,11 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     // A finished level is a natural break; the service skips the first wins.
     await ReviewPromptService().onLevelWon(stars: stars);
 
+    final ads = ref.read(adServiceProvider);
+    await ads.recordGameFinished();
+
     if (!mounted) return;
+    final coinsToDouble = _lastCoinsEarned;
 
     showDialog(
       context: context,
@@ -626,20 +632,35 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
           maxCombo: game.maxCombo,
           isPerfectGame: game.isPerfectGame,
           hasNextLevel: game.level < GameConfig.totalLevels,
-          coinsEarned: _lastCoinsEarned,
-          onMainMenu: () {
+          coinsEarned: coinsToDouble,
+          onWatchAdForDoubleCoins: coinsToDouble > 0 && ref.read(adOffersAllowedProvider)
+              ? () async {
+                  final watched = await ads.showRewarded();
+                  if (watched) {
+                    await ref.read(walletProvider.notifier).addCoins(coinsToDouble);
+                  }
+                  return watched;
+                }
+              : null,
+          onMainMenu: () async {
             Navigator.of(dialogContext).pop();
             ref.read(gameProvider.notifier).endGame();
+            await ads.showInterstitialIfAllowed();
+            if (!mounted) return;
             // The game can be opened from level select; "Main menu" goes home.
             Navigator.of(context).popUntil((route) => route.isFirst);
           },
-          onPlayAgain: () {
+          onPlayAgain: () async {
             Navigator.of(dialogContext).pop();
+            await ads.showInterstitialIfAllowed();
+            if (!mounted) return;
             ref.read(gameProvider.notifier).resetGame();
           },
           onNextLevel: game.level < GameConfig.totalLevels
-              ? () {
+              ? () async {
                   Navigator.of(dialogContext).pop();
+                  await ads.showInterstitialIfAllowed();
+                  if (!mounted) return;
                   final cardTheme = ref.read(settingsProvider).cardTheme;
                   ref.read(gameProvider.notifier).startGame(
                         level: game.level + 1,
@@ -653,14 +674,26 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     );
   }
 
+  /// Seconds a rewarded ad adds to a timed game that ran out of time.
+  static const _continueSeconds = 30;
+
   void _showGameOverDialog() {
     final game = ref.read(gameProvider).currentGame;
     if (game == null) return;
 
     // Partial completion coins: 5 coins per matched pair
     final partialCoins = game.matches * 5;
-    if (partialCoins > 0) {
-      ref.read(walletProvider.notifier).addCoins(partialCoins);
+    final ads = ref.read(adServiceProvider);
+    final gameNotifier = ref.read(gameProvider.notifier);
+
+    // The loss counts only once the player gives up: until then a rewarded
+    // ad can put the game back in play.
+    Future<void> giveUp() async {
+      if (partialCoins > 0) {
+        await ref.read(walletProvider.notifier).addCoins(partialCoins);
+      }
+      await _saveGameLoss(game);
+      await ads.recordGameFinished();
     }
 
     showDialog(
@@ -673,14 +706,29 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
           matchedPairs: game.matches,
           totalPairs: game.gridSize.pairs,
           coinsEarned: partialCoins,
-          onMainMenu: () {
+          continueSeconds: _continueSeconds,
+          onWatchAdToContinue: gameNotifier.canContinueAfterTimeUp && ref.read(adOffersAllowedProvider)
+              ? () async {
+                  if (!await ads.showRewarded()) return false;
+                  if (!gameNotifier.continueAfterTimeUp(_continueSeconds)) return false;
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  return true;
+                }
+              : null,
+          onMainMenu: () async {
             Navigator.of(dialogContext).pop();
+            await giveUp();
             ref.read(gameProvider.notifier).endGame();
+            await ads.showInterstitialIfAllowed();
+            if (!mounted) return;
             // The game can be opened from level select; "Main menu" goes home.
             Navigator.of(context).popUntil((route) => route.isFirst);
           },
-          onTryAgain: () {
+          onTryAgain: () async {
             Navigator.of(dialogContext).pop();
+            await giveUp();
+            await ads.showInterstitialIfAllowed();
+            if (!mounted) return;
             ref.read(gameProvider.notifier).resetGame();
           },
         ),

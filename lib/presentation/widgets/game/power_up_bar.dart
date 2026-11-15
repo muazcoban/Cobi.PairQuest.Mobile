@@ -6,6 +6,7 @@ import '../../../domain/entities/game.dart';
 import '../../../domain/entities/power_up.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../l10n/power_up_l10n.dart';
+import '../../providers/ads_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/power_up_provider.dart';
 
@@ -26,6 +27,7 @@ class PowerUpBar extends ConsumerStatefulWidget {
 
 class _PowerUpBarState extends ConsumerState<PowerUpBar> {
   Timer? _activeTimer;
+  bool _loadingAdHint = false;
 
   @override
   void dispose() {
@@ -58,7 +60,13 @@ class _PowerUpBarState extends ConsumerState<PowerUpBar> {
       return true;
     }).toList();
 
-    if (availablePowerUps.isEmpty) {
+    // Out of hints: one more for watching a rewarded ad, within the hint's
+    // per-game limit.
+    final offerAdHint = !inventory.has(PowerUpType.hint) &&
+        gameUsage.canUse(PowerUpType.hint) &&
+        ref.watch(adOffersAllowedProvider);
+
+    if (availablePowerUps.isEmpty && !offerAdHint) {
       return const SizedBox.shrink();
     }
 
@@ -93,9 +101,47 @@ class _PowerUpBarState extends ConsumerState<PowerUpBar> {
               ),
             );
           }),
+
+          if (offerAdHint)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: _AdHintButton(
+                loading: _loadingAdHint,
+                onTap: _loadingAdHint ? null : _watchAdForHint,
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  /// Shows a rewarded ad, then grants and uses one hint. The game pauses
+  /// only while the ad is on screen, so the clock does not run under it.
+  Future<void> _watchAdForHint() async {
+    final gameNotifier = ref.read(gameProvider.notifier);
+    setState(() => _loadingAdHint = true);
+    var paused = false;
+    final watched = await ref.read(adServiceProvider).showRewarded(beforeShow: () {
+      // The clock may have run out while the ad loaded.
+      if (ref.read(gameProvider).currentGame?.state != GameState.inProgress) return false;
+      gameNotifier.pauseGame();
+      paused = true;
+      return true;
+    });
+    if (paused) gameNotifier.resumeGame();
+    if (!mounted) return;
+    setState(() => _loadingAdHint = false);
+    if (ref.read(gameProvider).currentGame?.state != GameState.inProgress) return;
+
+    if (!watched) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context)!.adNotAvailable),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
+    await ref.read(powerUpInventoryProvider.notifier).addPowerUp(PowerUpType.hint, 1);
+    await _usePowerUp(PowerUps.all.firstWhere((p) => p.type == PowerUpType.hint));
   }
 
   Future<void> _usePowerUp(PowerUp powerUp) async {
@@ -152,6 +198,73 @@ class _PowerUpBarState extends ConsumerState<PowerUpBar> {
         ),
       );
     }
+  }
+}
+
+/// The hint button shown when the player has no hints left: a play badge
+/// instead of the count says that it costs one ad.
+class _AdHintButton extends StatelessWidget {
+  const _AdHintButton({required this.loading, this.onTap});
+
+  final bool loading;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final hint = PowerUps.all.firstWhere((p) => p.type == PowerUpType.hint);
+
+    return Semantics(
+      label: l10n.watchAdHint,
+      button: true,
+      enabled: onTap != null,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: l10n.watchAdHint,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceColor(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.accentStrong),
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          hint.icon,
+                          textScaler: TextScaler.noScaling,
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                ),
+                Positioned(
+                  right: 2,
+                  bottom: 2,
+                  child: Container(
+                    padding: const EdgeInsets.all(1),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentStrong,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.play_arrow_rounded, size: 14, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

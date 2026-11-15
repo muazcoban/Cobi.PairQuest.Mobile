@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/notification_service.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../l10n/reminder_l10n.dart';
+import 'age_provider.dart';
 import 'auth_provider.dart';
 import 'settings_provider.dart';
 
@@ -110,6 +111,7 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
       (_, __) => _applySettings(),
     );
     _ref.listen(authProvider.select(_isSignedIn), (_, __) => _applySettings());
+    _ref.listen(onlineAllowedProvider, (_, _) => _applySettings());
   }
 
   static bool _isSignedIn(AuthState auth) =>
@@ -157,6 +159,7 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
           minute: state.reminderMinute,
           messages: _l10n.weeklyReminders(
             signedIn: _isSignedIn(_ref.read(authProvider)),
+            onlineAllowed: _ref.read(onlineAllowedProvider),
           ),
         );
       } else {

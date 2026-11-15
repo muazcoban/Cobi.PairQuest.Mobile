@@ -100,6 +100,10 @@ class AudioService {
     await _musicPlayer.pause();
   }
 
+  /// Whether the background music is playing now; a full-screen ad pauses
+  /// it and resumes only what was playing.
+  bool get isMusicPlaying => _musicPlayer.state == PlayerState.playing;
+
   /// Resume background music
   Future<void> resumeBackgroundMusic() async {
     if (!_musicEnabled) return;

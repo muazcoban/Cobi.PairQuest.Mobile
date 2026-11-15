@@ -13,4 +13,10 @@ void main() {
     expect(names.length, greaterThan(40));
     expect(names.every(NameFilter.isAllowed), isTrue);
   });
+
+  test('no default name trips the name filter, including digit lookalikes', () {
+    expect(NameFilter.isAllowed('Oyuncu 7175'), isFalse, reason: '7175 reads as a slur');
+    final names = [for (var i = 0; i < 5000; i++) SettingsNotifier.defaultPlayerName('en')];
+    expect(names.every(NameFilter.isAllowed), isTrue);
+  });
 }

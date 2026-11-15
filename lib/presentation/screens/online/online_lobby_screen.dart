@@ -40,9 +40,11 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
 
     final authState = ref.read(authProvider);
     final user = authState.user;
-    // Only initialize for non-anonymous users
-    if (user != null && !authState.isAnonymous) {
-      // An Apple account may have no name; ask before it goes public.
+    // Guests play online too: Google Play's rule for apps that children
+    // also use says no feature may require a Google account.
+    if (user != null) {
+      // A guest or an Apple account may have no name; ask before it goes
+      // public.
       await ensureAccountName(context, ref);
       if (!mounted) return;
       await ref.read(onlineProfileNotifierProvider.notifier).initializeProfile(
@@ -58,11 +60,10 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authProvider);
     final user = authState.user;
-    final isAnonymous = authState.isAnonymous;
     final profileAsync = ref.watch(onlineProfileNotifierProvider);
 
-    // Online features require Google login (not anonymous)
-    final needsLogin = user == null || isAnonymous;
+    // Any account will do, a guest one included.
+    final needsLogin = user == null;
 
     final scaffold = Scaffold(
       backgroundColor: AppColors.background(context),
@@ -158,6 +159,19 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
                 minimumSize: const Size(280, 56),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
+            ),
+            const SizedBox(height: 12),
+            // No Google or Apple account needed (Play user data policy).
+            TextButton(
+              onPressed: () async {
+                await ref.read(authProvider.notifier).signInAnonymously();
+                if (mounted && ref.read(authProvider).isAuthenticated) {
+                  _initialized = false;
+                  _initializeProfile();
+                }
+              },
+              style: TextButton.styleFrom(minimumSize: const Size(280, 48)),
+              child: Text(l10n.continueAsGuest),
             ),
           ],
         ),

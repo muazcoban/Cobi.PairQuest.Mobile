@@ -21,7 +21,7 @@ We use Google Firebase as our server. What we store depends on how you use the a
 | You sign in with Google | Your Google account name, e-mail address, profile photo link and account ID, kept by Firebase Authentication | Only us |
 | You sign in with Apple | Your name, if you share it, and an Apple account ID, kept by Firebase Authentication. The app does not ask Apple for your e-mail address | Only us |
 | You submit a score to the global leaderboard | The player name you set in the app, score, stars, moves, level, time and your user ID | All signed-in players |
-| You open online play (Google sign-in) | A profile with your display name, profile photo link, rating, win/loss statistics, online status and last seen time. Your e-mail address is **not** part of this profile | All signed-in players |
+| You open online play (13 or older; Google, Apple or guest account) | A profile with your display name, your profile photo link if you signed in with Google, rating, win/loss statistics, online status and last seen time. Your e-mail address is **not** part of this profile | All signed-in players |
 | You play an online game | The game record: card moves, scores, your display name, profile photo link and rating | The players of that game |
 | You add friends or send invitations | The friendship or invitation with both user IDs, display names and the sender's profile photo link | The two players involved |
 | You look for an opponent | A temporary matchmaking entry with your display name, profile photo link and rating. It is deleted when a match is found or the search ends | All signed-in players |
@@ -38,8 +38,20 @@ Daily reminders are scheduled on your device. The app uses Firebase Cloud Messag
 - **Firebase Authentication, Cloud Firestore and Cloud Messaging** (Google LLC) store and process the data above. See [Firebase Privacy and Security](https://firebase.google.com/support/privacy).
 - **Google Sign-In** (Google LLC) signs you in when you choose it.
 - **Sign in with Apple** (Apple Inc.) signs you in when you choose it.
+- **Google AdMob** (Google LLC) shows the ads described below.
+- **App Store and Google Play** handle the optional "Remove ads" purchase. We do not receive your payment details.
 
-Memoko does not use advertising, analytics or tracking services. We do not sell or share your data for advertising.
+### Advertising
+Memoko shows ads from Google AdMob: reward videos that play only when you choose to watch one, and a full-screen ad between levels at most once every few minutes. Online and local multiplayer games show no full-screen ads. Children play the game, so every ad request asks for child treatment and family-friendly (G-rated) ads only:
+- no personalised ads and no remarketing,
+- the advertising ID is not used: the Android app does not request it, and the iOS app never asks for tracking permission,
+- only Google's own ads; no other ad networks.
+
+To show and count ads, the Google Mobile Ads SDK processes data such as the device's IP address (for approximate location), ad views and taps, and crash and performance data. For every player, including players under 13, this data is used only to show contextual ads, limit how often they appear, measure them and prevent fraud; it is not used to build a profile of the player or to contact them. See [How Google uses information from sites or apps that use its services](https://policies.google.com/technologies/partner-sites).
+
+The one-time "Remove ads" purchase turns off the ads between levels; reward videos stay available if you want them. To report an ad you think is inappropriate, open **Settings → Ads → Report an inappropriate ad**.
+
+Memoko does not use analytics services. We do not sell your data or share it for advertising.
 
 ### Deleting your account and data
 In the app, open **Settings → Account → Delete Account**. This permanently deletes:
@@ -63,7 +75,17 @@ You can also ask us by e-mail to delete your data or to send you a copy of it.
 We keep the data above while your account exists and delete it when you delete your account. A guest account's leaderboard scores stay until you delete the account in the app.
 
 ### Children's privacy
-Online features require signing in with Google or Apple, and both apply their own age requirements. If you believe a child has given us personal data, contact us and we will delete it.
+Memoko is played by children as well as teenagers and adults. The first time the app opens, it asks for the year of birth. The app keeps only the result, "under 13" or "13 or older", on the device. The year itself is not stored and is not sent anywhere. The question is asked once.
+
+For players under 13:
+- sign-in, online play, friends and the global leaderboard are not available, and the menu does not show them;
+- we receive no information about the player: progress, settings and scores stay on the device;
+- push messages are off, so the device gets no push token; daily reminders are scheduled on the device;
+- ads are child-directed, as they are for every player (see "Advertising").
+
+Where a US state law requires it (for example Texas), the Android app also asks Google Play for the user's age range and, for supervised minors, whether a parent approved the latest update. The app uses this only to apply the age rules above and to keep ads and purchases off until a parent approves. It keeps the answer in memory while the app is open, does not store it and does not send it anywhere.
+
+If a device that was signed in is set to "under 13", the app signs the account out. If you believe a child under 13 has given us personal data, contact us and we will delete it.
 
 ### Changes to this policy
 We update this page when the app changes how it handles data. The date at the top shows the last change.
@@ -91,7 +113,7 @@ Sunucu olarak Google Firebase kullanıyoruz. Ne sakladığımız, uygulamayı na
 | Google ile giriş yaptığınızda | Google hesap adınız, e-posta adresiniz, profil fotoğrafı bağlantınız ve hesap kimliğiniz; bunları Firebase Authentication saklar | Yalnızca biz |
 | Apple ile giriş yaptığınızda | Paylaşırsanız adınız ve bir Apple hesap kimliği; bunları Firebase Authentication saklar. Uygulama Apple'dan e-posta adresinizi istemez | Yalnızca biz |
 | Global skor tablosuna skor gönderdiğinizde | Uygulamada belirlediğiniz oyuncu adı, skor, yıldız, hamle sayısı, seviye, süre ve kullanıcı kimliğiniz | Giriş yapmış tüm oyuncular |
-| Çevrim içi oyunu açtığınızda (Google girişi) | Görünen adınız, profil fotoğrafı bağlantınız, puanınız, galibiyet/mağlubiyet istatistikleriniz, çevrim içi durumunuz ve son görülme zamanınızdan oluşan profil. E-posta adresiniz bu profilde **yer almaz** | Giriş yapmış tüm oyuncular |
+| Çevrim içi oyunu açtığınızda (13 yaş ve üstü; Google, Apple ya da misafir hesabı) | Görünen adınız, Google ile girdiyseniz profil fotoğrafı bağlantınız, puanınız, galibiyet/mağlubiyet istatistikleriniz, çevrim içi durumunuz ve son görülme zamanınızdan oluşan profil. E-posta adresiniz bu profilde **yer almaz** | Giriş yapmış tüm oyuncular |
 | Çevrim içi oyun oynadığınızda | Oyun kaydı: kart hamleleri, skorlar, görünen adınız, profil fotoğrafı bağlantınız ve puanınız | O oyunun oyuncuları |
 | Arkadaş eklediğinizde ya da davet gönderdiğinizde | İki kullanıcının kimliklerini, görünen adlarını ve gönderenin profil fotoğrafı bağlantısını içeren arkadaşlık ya da davet kaydı | İlgili iki oyuncu |
 | Rakip aradığınızda | Görünen adınızı, profil fotoğrafı bağlantınızı ve puanınızı içeren geçici eşleştirme kaydı. Rakip bulunduğunda ya da arama bittiğinde silinir | Giriş yapmış tüm oyuncular |
@@ -108,8 +130,20 @@ Günlük hatırlatıcılar cihazınızda zamanlanır. Uygulama anlık bildirimle
 - **Firebase Authentication, Cloud Firestore ve Cloud Messaging** (Google LLC) yukarıdaki verileri saklar ve işler. Ayrıntı için [Firebase Gizlilik ve Güvenlik](https://firebase.google.com/support/privacy) sayfasına bakın.
 - **Google ile Giriş** (Google LLC), bu yöntemi seçtiğinizde girişinizi yapar.
 - **Apple ile Giriş** (Apple Inc.), bu yöntemi seçtiğinizde girişinizi yapar.
+- **Google AdMob** (Google LLC), aşağıda anlatılan reklamları gösterir.
+- **App Store ve Google Play**, isteğe bağlı "Reklamları kaldır" satın almasını yürütür. Ödeme bilgileriniz bize ulaşmaz.
 
-Memoko reklam, analitik ya da izleme hizmeti kullanmaz. Verilerinizi reklam amacıyla satmayız ve paylaşmayız.
+### Reklamlar
+Memoko, Google AdMob reklamları gösterir: yalnızca siz izlemeyi seçtiğinizde oynayan ödüllü videolar ve seviye aralarında en fazla birkaç dakikada bir tam ekran reklam. Çevrim içi ve yerel çok oyunculu oyunlarda tam ekran reklam çıkmaz. Oyunu çocuklar da oynadığı için her reklam isteği çocuk muamelesi ve yalnızca aile dostu (G dereceli) reklam ister:
+- kişiselleştirilmiş reklam ve yeniden pazarlama yoktur,
+- reklam kimliği kullanılmaz: Android uygulaması bu kimliği istemez, iOS uygulaması izleme izni sormaz,
+- yalnızca Google'ın kendi reklamları gösterilir; başka reklam ağı kullanılmaz.
+
+Reklamları göstermek ve saymak için Google Mobile Ads SDK; cihazın IP adresi (yaklaşık konum için), reklam görüntüleme ve dokunmaları, çökme ve performans verileri gibi bilgileri işler. 13 yaşından küçükler dahil her oyuncuda bu veriler yalnızca bağlama dayalı reklam göstermek, reklamların ne sıklıkla çıktığını sınırlamak, reklamları ölçmek ve dolandırıcılığı önlemek için kullanılır; oyuncunun profilini çıkarmak ya da onunla iletişime geçmek için kullanılmaz. Ayrıntı için [Google'ın, hizmetlerini kullanan site ve uygulamalardaki bilgileri nasıl kullandığı](https://policies.google.com/technologies/partner-sites?hl=tr) sayfasına bakın.
+
+Tek seferlik "Reklamları kaldır" satın alması seviye aralarındaki reklamları kapatır; ödüllü videolar isterseniz kullanılabilir kalır. Uygunsuz bulduğunuz bir reklamı **Ayarlar → Reklamlar → Uygunsuz reklamı bildir** adımlarıyla bize bildirebilirsiniz.
+
+Memoko analitik hizmeti kullanmaz. Verilerinizi satmayız ve reklam amacıyla paylaşmayız.
 
 ### Hesabınızı ve verilerinizi silmek
 Uygulamada **Ayarlar → Hesap → Hesabı Sil** adımlarını izleyin. Bu işlem şunları kalıcı olarak siler:
@@ -133,7 +167,17 @@ Verilerinizin silinmesini ya da bir kopyasının size gönderilmesini e-postayla
 Yukarıdaki verileri hesabınız var olduğu sürece saklarız ve hesabınızı sildiğinizde sileriz. Misafir hesabın skor tablosundaki skorları, hesabı uygulamada silene kadar kalır.
 
 ### Çocukların gizliliği
-Çevrim içi özellikler Google ya da Apple ile giriş gerektirir ve ikisi de kendi yaş koşullarını uygular. Bir çocuğun bize kişisel veri verdiğini düşünüyorsanız bizimle iletişime geçin, bu veriyi sileriz.
+Memoko'yu gençler ve yetişkinlerin yanında çocuklar da oynar. Uygulama ilk açıldığında doğum yılını sorar. Cihazda yalnız sonuç, yani "13 yaşından küçük" ya da "13 yaş ve üstü" bilgisi saklanır. Doğum yılının kendisi saklanmaz ve hiçbir yere gönderilmez. Soru bir kez sorulur.
+
+13 yaşından küçük oyuncular için:
+- giriş, çevrim içi oyun, arkadaşlar ve global skor tablosu kullanılamaz, menüde de görünmez;
+- oyuncu hakkında bize hiçbir bilgi gelmez: ilerleme, ayarlar ve skorlar cihazda kalır;
+- anlık bildirimler kapalıdır, bu yüzden cihazda bildirim anahtarı (token) oluşmaz; günlük hatırlatıcılar cihazda zamanlanır;
+- reklamlar, tüm oyuncularda olduğu gibi çocuklara yönelik ayarla gösterilir ("Reklamlar" bölümüne bakın).
+
+ABD'de bir eyalet yasasının gerektirdiği yerlerde (örneğin Texas) Android uygulaması Google Play'den kullanıcının yaş aralığını da ister. Ebeveyn denetimindeki küçükler için son güncellemeyi bir ebeveynin onaylayıp onaylamadığını da sorar. Uygulama bu bilgiyi yalnızca yukarıdaki yaş kurallarını uygulamak ve ebeveyn onaylayana kadar reklamları ve satın almaları kapalı tutmak için kullanır. Bilgi uygulama açıkken bellekte tutulur; saklanmaz ve hiçbir yere gönderilmez.
+
+Daha önce giriş yapılmış bir cihazda "13 yaşından küçük" seçilirse uygulama hesaptan çıkış yapar. 13 yaşından küçük bir çocuğun bize kişisel veri verdiğini düşünüyorsanız bizimle iletişime geçin, bu veriyi sileriz.
 
 ### Bu politikadaki değişiklikler
 Uygulamanın verileri işleme biçimi değiştiğinde bu sayfayı güncelleriz. En üstteki tarih son değişikliği gösterir.

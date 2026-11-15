@@ -11,6 +11,17 @@
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Memoko</string>
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<false/>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-5547492389514605~8616105504</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

@@ -71,13 +71,28 @@ class NotificationService {
         debugPrint('Timezone fallback to Europe/Istanbul: $e');
       }
 
-      // Initialize local notifications first (this is safe)
+      // Local notifications only. Push (FCM) starts later through
+      // enableRemoteMessaging, once the age screen says the player is 13+.
       await _initializeLocalNotifications();
-
-      // Setup FCM listeners (non-blocking)
-      _setupFCMListeners();
     } catch (e) {
       debugPrint('NotificationService initialization error: $e');
+    }
+  }
+
+  bool _remoteMessagingEnabled = false;
+
+  /// Turns on push messages (Firebase Cloud Messaging) for players aged 13
+  /// or older. FCM auto-init is off in the Android manifest and Info.plist,
+  /// so no push token exists on a child's device; daily reminders are local
+  /// notifications and work without it.
+  Future<void> enableRemoteMessaging() async {
+    if (_remoteMessagingEnabled) return;
+    _remoteMessagingEnabled = true;
+    try {
+      await _messaging.setAutoInitEnabled(true);
+      _setupFCMListeners();
+    } catch (e) {
+      debugPrint('FCM enable error: $e');
     }
   }
 

@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../data/repositories/moderation_repository.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../providers/age_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../auth/auth_screen.dart';
@@ -39,6 +40,28 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    // Under 13 there is no account, and the global board shows names other
+    // players typed: only this device's scores.
+    if (!ref.watch(onlineAllowedProvider)) {
+      return Scaffold(
+        backgroundColor: AppColors.background(context),
+        appBar: AppBar(
+          title: Text(l10n.localLeaderboard),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          titleTextStyle: AppTheme.onPrimaryTitleStyle,
+          iconTheme: AppTheme.onPrimaryIconTheme,
+          elevation: 0,
+        ),
+        body: Column(
+          children: [
+            _buildLevelFilter(context, l10n),
+            Expanded(child: _buildLocalTab(context, l10n)),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background(context),

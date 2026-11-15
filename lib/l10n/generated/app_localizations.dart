@@ -2125,6 +2125,150 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu ad online oyunlarda, liderlik tablosunda ve arkadaş isteklerinde görünür.'**
   String get chooseAccountNameDesc;
+
+  /// No description provided for @watchAdDoubleCoins.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklam izle: 2× altın'**
+  String get watchAdDoubleCoins;
+
+  /// No description provided for @coinsDoubled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Altınlar ikiye katlandı'**
+  String get coinsDoubled;
+
+  /// No description provided for @watchAdContinue.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklam izle: +{seconds} sn'**
+  String watchAdContinue(int seconds);
+
+  /// No description provided for @watchAdDoubleReward.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklam izle: 2× altın'**
+  String get watchAdDoubleReward;
+
+  /// No description provided for @watchAdHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklam izleyene bedava ipucu'**
+  String get watchAdHint;
+
+  /// No description provided for @adNotAvailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an reklam yok. Biraz sonra tekrar dene.'**
+  String get adNotAvailable;
+
+  /// No description provided for @adsSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklamlar'**
+  String get adsSection;
+
+  /// No description provided for @removeAds.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklamları kaldır'**
+  String get removeAds;
+
+  /// No description provided for @removeAdsDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek seferlik satın alma. Seviye aralarındaki reklamlar kalkar; isteğe bağlı ödüllü videolar kalır.'**
+  String get removeAdsDesc;
+
+  /// No description provided for @adsRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklamlar kaldırıldı. Teşekkürler!'**
+  String get adsRemoved;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alımları geri yükle'**
+  String get restorePurchases;
+
+  /// No description provided for @restoreNothing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha önce yapılmış bir satın alma bulunamadı.'**
+  String get restoreNothing;
+
+  /// No description provided for @restoreDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alma geri yüklendi, reklamlar kapalı.'**
+  String get restoreDone;
+
+  /// No description provided for @purchaseFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alma tamamlanamadı. Ücret alınmadı.'**
+  String get purchaseFailed;
+
+  /// No description provided for @storeUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mağaza şu an kullanılamıyor.'**
+  String get storeUnavailable;
+
+  /// No description provided for @reportAd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygunsuz reklamı bildir'**
+  String get reportAd;
+
+  /// No description provided for @reportAdDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ne gördüğünü yaz, o reklamı engelleyelim.'**
+  String get reportAdDesc;
+
+  /// No description provided for @adPrivacyOptions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklam gizlilik tercihleri'**
+  String get adPrivacyOptions;
+
+  /// No description provided for @ageScreenTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seni tanıyalım!'**
+  String get ageScreenTitle;
+
+  /// No description provided for @ageScreenBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi yıl doğdun? Oyunu sana göre ayarlamak için soruyoruz; yalnız sonuç bu cihazda kalır.'**
+  String get ageScreenBody;
+
+  /// No description provided for @ageScreenContinue.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam'**
+  String get ageScreenContinue;
+
+  /// No description provided for @significantUpdateAds.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor.'**
+  String get significantUpdateAds;
+
+  /// No description provided for @ageScreenPickYear.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yılını seç'**
+  String get ageScreenPickYear;
+
+  /// No description provided for @termsOfUse.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanım Şartları'**
+  String get termsOfUse;
 }
 
 class _AppLocalizationsDelegate

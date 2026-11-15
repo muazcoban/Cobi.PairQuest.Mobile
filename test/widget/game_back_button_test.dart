@@ -31,6 +31,8 @@ class _SilentAudioService implements AudioService {
   @override
   Future<void> resumeBackgroundMusic() async {}
   @override
+  bool get isMusicPlaying => false;
+  @override
   void dispose() {}
 }
 

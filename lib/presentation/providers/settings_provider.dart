@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/moderation/name_filter.dart';
 
 /// Settings state
 class SettingsState {
@@ -64,7 +65,13 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   /// made different people look like one player listed many times.
   static String defaultPlayerName(String languageCode) {
     final word = languageCode == 'tr' ? 'Oyuncu' : 'Player';
-    return '$word ${1000 + Random().nextInt(9000)}';
+    final random = Random();
+    // The name filter reads digits as letters (7175 -> "tits"), so a number
+    // the filter rejects is drawn again.
+    while (true) {
+      final name = '$word ${1000 + random.nextInt(9000)}';
+      if (NameFilter.isAllowed(name)) return name;
+    }
   }
 
   Future<void> _loadSettings() async {

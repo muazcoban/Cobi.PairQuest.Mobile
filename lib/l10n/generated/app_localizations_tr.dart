@@ -1085,4 +1085,81 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get chooseAccountNameDesc =>
       'Bu ad online oyunlarda, liderlik tablosunda ve arkadaş isteklerinde görünür.';
+
+  @override
+  String get watchAdDoubleCoins => 'Reklam izle: 2× altın';
+
+  @override
+  String get coinsDoubled => 'Altınlar ikiye katlandı';
+
+  @override
+  String watchAdContinue(int seconds) {
+    return 'Reklam izle: +$seconds sn';
+  }
+
+  @override
+  String get watchAdDoubleReward => 'Reklam izle: 2× altın';
+
+  @override
+  String get watchAdHint => 'Reklam izleyene bedava ipucu';
+
+  @override
+  String get adNotAvailable => 'Şu an reklam yok. Biraz sonra tekrar dene.';
+
+  @override
+  String get adsSection => 'Reklamlar';
+
+  @override
+  String get removeAds => 'Reklamları kaldır';
+
+  @override
+  String get removeAdsDesc =>
+      'Tek seferlik satın alma. Seviye aralarındaki reklamlar kalkar; isteğe bağlı ödüllü videolar kalır.';
+
+  @override
+  String get adsRemoved => 'Reklamlar kaldırıldı. Teşekkürler!';
+
+  @override
+  String get restorePurchases => 'Satın alımları geri yükle';
+
+  @override
+  String get restoreNothing => 'Daha önce yapılmış bir satın alma bulunamadı.';
+
+  @override
+  String get restoreDone => 'Satın alma geri yüklendi, reklamlar kapalı.';
+
+  @override
+  String get purchaseFailed => 'Satın alma tamamlanamadı. Ücret alınmadı.';
+
+  @override
+  String get storeUnavailable => 'Mağaza şu an kullanılamıyor.';
+
+  @override
+  String get reportAd => 'Uygunsuz reklamı bildir';
+
+  @override
+  String get reportAdDesc => 'Ne gördüğünü yaz, o reklamı engelleyelim.';
+
+  @override
+  String get adPrivacyOptions => 'Reklam gizlilik tercihleri';
+
+  @override
+  String get ageScreenTitle => 'Seni tanıyalım!';
+
+  @override
+  String get ageScreenBody =>
+      'Hangi yıl doğdun? Oyunu sana göre ayarlamak için soruyoruz; yalnız sonuç bu cihazda kalır.';
+
+  @override
+  String get ageScreenContinue => 'Devam';
+
+  @override
+  String get significantUpdateAds =>
+      'Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor.';
+
+  @override
+  String get ageScreenPickYear => 'Yılını seç';
+
+  @override
+  String get termsOfUse => 'Kullanım Şartları';
 }
