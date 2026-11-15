@@ -151,6 +151,12 @@ Captions use Poppins ExtraBold (SIL Open Font License, the app's own font).
 mascot, "Memoko" and the tagline "Eşini bul. Arkadaşlarını yen." / "Find the pair. Beat
 your friends."
 
+## URLs
+
+- Marketing URL (App Store) and website (Google Play): `https://muazcoban.github.io` — the developer site that serves `app-ads.txt` for AdMob.
+- Privacy policy: `https://github.com/muazcoban/Cobi.PairQuest.Mobile/blob/master/docs/PRIVACY.md`
+- Terms of use: `https://github.com/muazcoban/Cobi.PairQuest.Mobile/blob/master/docs/TERMS.md` (live once `feat/ads` is merged)
+
 ## Category and rating
 
 - App Store: Games > Puzzle, secondary Card; age rating 9+

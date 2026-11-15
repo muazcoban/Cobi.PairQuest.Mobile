@@ -40,13 +40,17 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
 
 - **İçerik ve kategori:** İki uygulamada da uygulama düzeyinde içerik derecesi G yapıldı ve 13 hassas kategorinin hepsi engellendi. Cobi Paint'in ayarlarına dokunulmadı.
 - **Android mağaza bağlantısı:** Uygulama Play'de listelenmemiş olarak eklendi. Yayımlanınca AdMob'da "Mağaza ekle" ile bağlanacak.
-- **iOS doğrulaması:** `app-ads.txt` dosyası olmadığı için iOS uygulaması doğrulanamadı. Dosyaya girecek satır şu: `google.com, pub-5547492389514605, DIRECT, f08c47fec0942fa0`
+- **iOS doğrulaması (`app-ads.txt`):**
+  - Dosya `https://muazcoban.github.io/app-ads.txt` adresinde yayında. Kaynağı `muazcoban/muazcoban.github.io` deposunda (GitHub Pages, `main` dalı).
+  - AdMob, App Store sayfasındaki geliştirici sitesine bakıyor. Bu yüzden App Store Connect'te pazarlama adresinin (Marketing URL) `https://muazcoban.github.io` olması ve bu adresi taşıyan sürümün yayında olması gerekiyor; ondan sonra AdMob'da "Güncellemeleri kontrol edin" denir.
+  - Play'de de mağaza kaydındaki web sitesi aynı adres olacak.
+  - Cobi Paint aynı yayıncı kimliğini kullandığı için pazarlama adresi bu siteye çevrilirse o da doğrulanır.
 - **Kimlikler kodda:** Kimlikler `ad_config.dart`, `AndroidManifest.xml` ve `Info.plist` dosyalarına işlendi. Debug derlemesi yine test birimlerini kullanıyor.
 - **Uyarı:** Release ve TestFlight derlemeleri gerçek reklam isteyecek. Kendi cihazında gerçek reklama dokunma; AdMob bunu geçersiz trafik sayar.
 
 - **GDPR mesajı:** "Avrupa tüzükleri" mesajı iki Memoko uygulaması için yayımlandı. Dil İngilizce; "İzin vermeyin" seçeneği tüm ülkelerde açık; gizlilik politikası bağlantısı girildi. Uygulama her kullanıcıyı rıza yaşının altında etiketlediği için mesaj gösterilmiyor.
 
-Aşağıdaki adımlar ilk kurulum içindi; yalnız `app-ads.txt` (8. madde) kaldı.
+Aşağıdaki adımlar ilk kurulum içindi; `app-ads.txt` için yalnız pazarlama adresinin yayına çıkması kaldı.
 
 
 1. AdMob hesabını aç, ödeme profilini doldur.
