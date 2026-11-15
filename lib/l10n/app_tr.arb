@@ -704,5 +704,6 @@
   "ageScreenBody": "Hangi yıl doğdun? Oyunu sana göre ayarlamak için soruyoruz; yalnız sonuç bu cihazda kalır.",
   "ageScreenContinue": "Devam",
   "significantUpdateAds": "Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor.",
-  "ageScreenPickYear": "Yılını seç"
+  "ageScreenPickYear": "Yılını seç",
+  "termsOfUse": "Kullanım Şartları"
 }

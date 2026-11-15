@@ -9,6 +9,11 @@ class AppLinks {
     'https://github.com/muazcoban/Cobi.PairQuest.Mobile/blob/master/docs/PRIVACY.md',
   );
 
+  /// Terms of use; also the terms link Google Play asks traders for.
+  static final Uri termsOfUse = Uri.parse(
+    'https://github.com/muazcoban/Cobi.PairQuest.Mobile/blob/master/docs/TERMS.md',
+  );
+
   /// Support address, also in the privacy policy.
   static final Uri contactEmail = Uri(
     scheme: 'mailto',

@@ -397,5 +397,6 @@
   "ageScreenBody": "What year were you born? We ask to set up the game for you; only the result stays on this device.",
   "ageScreenContinue": "Continue",
   "significantUpdateAds": "This update adds ads and an optional one-time purchase that removes the ads between levels.",
-  "ageScreenPickYear": "Pick your year"
+  "ageScreenPickYear": "Pick your year",
+  "termsOfUse": "Terms of Use"
 }

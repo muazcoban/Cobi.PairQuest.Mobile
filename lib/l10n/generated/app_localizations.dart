@@ -2263,6 +2263,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yılını seç'**
   String get ageScreenPickYear;
+
+  /// No description provided for @termsOfUse.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanım Şartları'**
+  String get termsOfUse;
 }
 
 class _AppLocalizationsDelegate

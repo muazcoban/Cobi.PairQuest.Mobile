@@ -47,6 +47,12 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.open_in_new_rounded),
             onTap: () => AppLinks.open(AppLinks.privacyPolicy),
           ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(l10n.termsOfUse),
+            trailing: const Icon(Icons.open_in_new_rounded),
+            onTap: () => AppLinks.open(AppLinks.termsOfUse),
+          ),
           // App Review 1.2: published contact information
           ListTile(
             leading: const Icon(Icons.mail_outline_rounded),

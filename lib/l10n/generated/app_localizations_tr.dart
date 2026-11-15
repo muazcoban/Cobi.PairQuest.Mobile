@@ -1159,4 +1159,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get ageScreenPickYear => 'Yılını seç';
+
+  @override
+  String get termsOfUse => 'Kullanım Şartları';
 }

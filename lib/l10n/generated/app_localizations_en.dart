@@ -1160,4 +1160,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ageScreenPickYear => 'Pick your year';
+
+  @override
+  String get termsOfUse => 'Terms of Use';
 }

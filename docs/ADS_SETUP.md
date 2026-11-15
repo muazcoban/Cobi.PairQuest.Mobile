@@ -104,6 +104,13 @@ Aşağıdaki adımlar ilk kurulum içindi; kalanlar GDPR mesajı (7. madde) ve `
 
 ## 3. Google Play Console
 
+**Geliştirici hesabı (15 Kasım 2026):**
+- **Hesap:** `cobistudio44@gmail.com` ile kişisel hesap açıldı; hesap kimliği `6559163290636255355`. Eski kapatılan hesap kayıt formunda beyan edildi.
+- **Uygulama oluşturma:** Önce kimlik doğrulaması, Android cihaz doğrulaması ve telefon doğrulaması bitmeli.
+- **Satıcı statüsü:** "Tacir" seçildi. Play'de herkese açık görünecekler: e-posta, ödeme profilindeki yasal ad ve adres, doğrulanan telefon numarası.
+- **Kullanım şartları:** Tacir olarak her uygulama için kullanım şartları bağlantısı isteniyor: `https://github.com/muazcoban/Cobi.PairQuest.Mobile/blob/master/docs/TERMS.md`. Bu bağlantı `feat/ads` dalı `master`'a birleşince çalışır; Play'e göndermeden önce birleşmiş olmalı.
+
+
 1. **Monetize → Products → One-time products:**
    - Product ID `remove_ads`, fiyat ve Türkçe ile İngilizce açıklama gir.
    - Bunun için Play'de bir ödeme profili gerekiyor.
