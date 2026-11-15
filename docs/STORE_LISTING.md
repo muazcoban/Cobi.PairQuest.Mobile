@@ -14,19 +14,26 @@ or subtitle, no category names ("puzzle", "bulmaca"), no competitor names.
 Use the same text for English (U.K.). The Turkish storefront also indexes the U.K.
 localization, so English searches in Turkey find the game too.
 
-**Name** [30]: Memoko: Memory Match Game (25)
+**Name** [30]: Memoko: Memory Card Game (24)
+
+App Store Connect rejected "Memoko: Memory Match Game" in November 2026 as a name already
+in use by another app, so both stores use "Memory Card Game". The in-app subtitle
+(`appSubtitle`) still reads "Memory Match Game"; it is not a store field.
 
 **Subtitle** [30]: Find Card Pairs, Duel Online (28)
 
-**Keywords** [100]: `matching,concentration,multiplayer,pvp,brain,flip,versus,friends,leaderboard,classic,race,2 player` (98)
+**Keywords** [100]: `matching,concentration,multiplayer,pvp,brain,flip,versus,friends,leaderboard,classic,match,2 player` (99)
 
 **Promotional text** [170]: PairQuest is now Memoko. Same game, new name. Challenge real players in online memory duels and climb the ranked leagues from Bronze to Master. (143)
 
 **What's New in 2.3.0**:
 
 PairQuest is now Memoko. Your progress, coins and online profile stay the same.
-• The game now asks for a rating only after a few won levels
-• Turkish name on the Home Screen and in the App Store
+• New icon: a winking Memo
+• The back gesture during a game now pauses it instead of closing it
+• Quick Play starts from the highest level you have unlocked
+• The game asks for a rating only after a few won levels
+• The App Store now lists Turkish support
 
 **Description** [4000]:
 
@@ -76,8 +83,11 @@ yok: ilk ikisi flört uygulamalarına gidiyor, üçüncüsü 9+ bir oyunda App R
 **Yenilikler (2.3.0)**:
 
 PairQuest artık Memoko. İlerlemen, altınların ve online profilin olduğu gibi duruyor.
-• Oyun puan isteğini yalnızca birkaç kazanılmış seviyeden sonra gösteriyor
-• Ana ekranda ve App Store'da Türkçe görünüm
+• Yeni simge: göz kırpan Memo
+• Oyun sırasında geri hareketi artık oyunu kapatmıyor, duraklatıyor
+• Hızlı oyun, açtığın en yüksek seviyeden başlıyor
+• Puan isteği yalnızca birkaç kazanılmış seviyeden sonra geliyor
+• App Store artık Türkçe desteğini gösteriyor
 
 **Açıklama** [4000]:
 
@@ -117,7 +127,7 @@ the search words. Android shows only Google sign-in, so the description says "Go
 
 | Field | English (en-US) | Turkish (tr-TR) |
 |---|---|---|
-| Title [30] | Memoko: Memory Match Game (25) | Memoko: Hafıza Kartı Oyunu (26) |
+| Title [30] | Memoko: Memory Card Game (24) | Memoko: Hafıza Kartı Oyunu (26) |
 | Short description [80] | Flip cards, find pairs and beat friends in ranked online memory duels. (70) | Kartları çevir, eşleştir, arkadaşlarınla online hafıza düellosuna gir. (70) |
 
 **Full description** [4000]: the App Store description above, with the last line changed to
