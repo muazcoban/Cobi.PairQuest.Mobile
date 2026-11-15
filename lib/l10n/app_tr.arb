@@ -700,8 +700,9 @@
   "reportAdDesc": "Ne gördüğünü yaz, o reklamı engelleyelim.",
   "adPrivacyOptions": "Reklam gizlilik tercihleri",
   "@watchAdContinue": {"placeholders": {"seconds": {"type": "int"}}},
-  "ageScreenTitle": "Hangi yıl doğdun?",
-  "ageScreenBody": "Oyunu sana göre ayarlamak için soruyoruz. Yalnız sonuç bu cihazda kalır.",
+  "ageScreenTitle": "Seni tanıyalım!",
+  "ageScreenBody": "Hangi yıl doğdun? Oyunu sana göre ayarlamak için soruyoruz; yalnız sonuç bu cihazda kalır.",
   "ageScreenContinue": "Devam",
-  "significantUpdateAds": "Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor."
+  "significantUpdateAds": "Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor.",
+  "ageScreenPickYear": "Yılını seç"
 }

@@ -1145,11 +1145,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adPrivacyOptions => 'Ad privacy choices';
 
   @override
-  String get ageScreenTitle => 'What year were you born?';
+  String get ageScreenTitle => 'Let\'s get to know you!';
 
   @override
   String get ageScreenBody =>
-      'We use it to set up the game for you. Only the result stays on this device.';
+      'What year were you born? We ask to set up the game for you; only the result stays on this device.';
 
   @override
   String get ageScreenContinue => 'Continue';
@@ -1157,4 +1157,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get significantUpdateAds =>
       'This update adds ads and an optional one-time purchase that removes the ads between levels.';
+
+  @override
+  String get ageScreenPickYear => 'Pick your year';
 }

@@ -2237,13 +2237,13 @@ abstract class AppLocalizations {
   /// No description provided for @ageScreenTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Hangi yıl doğdun?'**
+  /// **'Seni tanıyalım!'**
   String get ageScreenTitle;
 
   /// No description provided for @ageScreenBody.
   ///
   /// In tr, this message translates to:
-  /// **'Oyunu sana göre ayarlamak için soruyoruz. Yalnız sonuç bu cihazda kalır.'**
+  /// **'Hangi yıl doğdun? Oyunu sana göre ayarlamak için soruyoruz; yalnız sonuç bu cihazda kalır.'**
   String get ageScreenBody;
 
   /// No description provided for @ageScreenContinue.
@@ -2257,6 +2257,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor.'**
   String get significantUpdateAds;
+
+  /// No description provided for @ageScreenPickYear.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yılını seç'**
+  String get ageScreenPickYear;
 }
 
 class _AppLocalizationsDelegate

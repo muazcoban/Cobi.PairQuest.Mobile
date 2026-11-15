@@ -1144,11 +1144,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adPrivacyOptions => 'Reklam gizlilik tercihleri';
 
   @override
-  String get ageScreenTitle => 'Hangi yıl doğdun?';
+  String get ageScreenTitle => 'Seni tanıyalım!';
 
   @override
   String get ageScreenBody =>
-      'Oyunu sana göre ayarlamak için soruyoruz. Yalnız sonuç bu cihazda kalır.';
+      'Hangi yıl doğdun? Oyunu sana göre ayarlamak için soruyoruz; yalnız sonuç bu cihazda kalır.';
 
   @override
   String get ageScreenContinue => 'Devam';
@@ -1156,4 +1156,7 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get significantUpdateAds =>
       'Bu güncelleme reklam ve seviye aralarındaki reklamları kaldıran isteğe bağlı, tek seferlik bir satın alma ekliyor.';
+
+  @override
+  String get ageScreenPickYear => 'Yılını seç';
 }

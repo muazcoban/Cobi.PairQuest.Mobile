@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,18 +49,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Spins the wheel to [year]; row 0 is the "pick your year" prompt and
+  /// the years follow newest first.
   Future<void> pickYear(WidgetTester tester, int year) async {
-    await tester.scrollUntilVisible(
-      find.text('$year'),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.text('$year'));
-    await tester.pump();
+    final picker = tester.widget<CupertinoPicker>(find.byType(CupertinoPicker));
+    picker.scrollController!.jumpToItem(1 + now.year - year);
+    await tester.pumpAndSettle();
   }
 
   testWidgets('nothing is preselected and the screen cannot be skipped', (tester) async {
     await openAgeScreen(tester);
+    expect(find.text('Pick your year'), findsOneWidget, reason: 'the wheel starts on the prompt');
 
     final button = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'Continue'));
     expect(button.onPressed, isNull, reason: 'no default year');
@@ -103,5 +103,17 @@ void main() {
 
     await restarted.read(ageGroupProvider.notifier).ready;
     expect(restarted.read(ageGroupProvider), AgeGroup.child);
+  });
+
+  testWidgets('spinning back to the prompt row disables Continue again', (tester) async {
+    await openAgeScreen(tester);
+    await pickYear(tester, 2001);
+    expect(tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'Continue')).onPressed,
+        isNotNull);
+
+    tester.widget<CupertinoPicker>(find.byType(CupertinoPicker)).scrollController!.jumpToItem(0);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'Continue')).onPressed,
+        isNull);
   });
 }
