@@ -30,6 +30,23 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
 
 ## 1. AdMob konsolu (admob.google.com)
 
+**Durum (15 Kasım 2026):** Hesap (`pub-5547492389514605`) var, ödeme profili tamam, hesap onayı bekleniyor. Onay gelene kadar reklam istekleri "Account not approved yet" yanıtı alıyor. Memoko için yapılanlar:
+
+| | Android | iOS |
+|---|---|---|
+| Uygulama kimliği | `ca-app-pub-5547492389514605~4676860498` | `ca-app-pub-5547492389514605~8616105504` |
+| `memoko_rewarded` | `…/4470131881` | `…/2035365228` |
+| `memoko_interstitial` | `…/9610777928` | `…/5783038542` |
+
+- **İçerik ve kategori:** İki uygulamada da uygulama düzeyinde içerik derecesi G yapıldı ve 13 hassas kategorinin hepsi engellendi. Cobi Paint'in ayarlarına dokunulmadı.
+- **Android mağaza bağlantısı:** Uygulama Play'de listelenmemiş olarak eklendi. Yayımlanınca AdMob'da "Mağaza ekle" ile bağlanacak.
+- **iOS doğrulaması:** `app-ads.txt` dosyası olmadığı için iOS uygulaması doğrulanamadı. Dosyaya girecek satır şu: `google.com, pub-5547492389514605, DIRECT, f08c47fec0942fa0`
+- **Kimlikler kodda:** Kimlikler `ad_config.dart`, `AndroidManifest.xml` ve `Info.plist` dosyalarına işlendi. Debug derlemesi yine test birimlerini kullanıyor.
+- **Uyarı:** Release ve TestFlight derlemeleri gerçek reklam isteyecek. Kendi cihazında gerçek reklama dokunma; AdMob bunu geçersiz trafik sayar.
+
+Aşağıdaki adımlar ilk kurulum içindi; kalanlar GDPR mesajı (7. madde) ve `app-ads.txt` (8. madde).
+
+
 1. AdMob hesabını aç, ödeme profilini doldur.
 2. **Uygulamaları ekle:**
    - iOS: App Store'daki Memoko'yu seç.

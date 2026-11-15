@@ -15,11 +15,11 @@ class AdConfig {
   /// Same product ID in App Store Connect and Google Play Console.
   static const String removeAdsProductId = 'remove_ads';
 
-  // Real ad units from the AdMob console. Leave empty until they exist.
-  static const String _androidRewarded = '';
-  static const String _androidInterstitial = '';
-  static const String _iosRewarded = '';
-  static const String _iosInterstitial = '';
+  // Real ad units from the AdMob console (publisher pub-5547492389514605).
+  static const String _androidRewarded = 'ca-app-pub-5547492389514605/4470131881';
+  static const String _androidInterstitial = 'ca-app-pub-5547492389514605/9610777928';
+  static const String _iosRewarded = 'ca-app-pub-5547492389514605/2035365228';
+  static const String _iosInterstitial = 'ca-app-pub-5547492389514605/5783038542';
 
   // Google's public test units:
   // https://developers.google.com/admob/android/test-ads

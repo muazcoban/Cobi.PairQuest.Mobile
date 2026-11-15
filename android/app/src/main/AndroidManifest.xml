@@ -44,11 +44,10 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- AdMob app ID. This is Google's test ID: replace it with the real
-             one from the AdMob console before release (docs/ADS_SETUP.md). -->
+        <!-- AdMob app ID ("Memoko: Memory Match Game", Android). -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="ca-app-pub-5547492389514605~4676860498"/>
 
         <!-- No push token until the age screen says 13+; see
              NotificationService.enableRemoteMessaging. -->
