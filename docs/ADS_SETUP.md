@@ -91,7 +91,10 @@ Aşağıdaki adımlar ilk kurulum içindi; `app-ads.txt` için yalnız pazarlama
 ## 2. App Store Connect
 
 1. **Agreements, Tax, and Banking:** Paid Apps Agreement'ı imzala; banka ve vergi bilgilerini gir. Bunlar olmadan uygulama içi satın alma çalışmaz.
-   - **Durum (16 Kasım 2026):** imzalanmadı, Business sayfasında "New" görünüyor.
+   - **Durum (16 Kasım 2026):** sözleşme "Pending User Info".
+     - Banka hesabı (Kuveyt Türk, TRY) girildi; Apple 24 saat içinde işliyor.
+     - W-8BEN gönderildi ve "Active". Satır 10'da ABD–Türkiye anlaşması Madde 7(1) (ticari kazanç) ile %0 kesinti talep edildi.
+     - Apple'ın "U.S. Certificate of Foreign Status of Beneficial Owner" beyanı ayrıca imzalanmalı.
 2. **In-App Purchases:**
    - Tür Non-Consumable, Product ID `remove_ads`. Bu ID'yi değiştirme; kodda aynı ID var.
    - Türkçe ve İngilizce ad ile açıklamayı gir, fiyat seviyesini seç.
