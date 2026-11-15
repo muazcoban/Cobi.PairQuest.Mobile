@@ -91,10 +91,16 @@ Aşağıdaki adımlar ilk kurulum içindi; `app-ads.txt` için yalnız pazarlama
 ## 2. App Store Connect
 
 1. **Agreements, Tax, and Banking:** Paid Apps Agreement'ı imzala; banka ve vergi bilgilerini gir. Bunlar olmadan uygulama içi satın alma çalışmaz.
+   - **Durum (16 Kasım 2026):** imzalanmadı, Business sayfasında "New" görünüyor.
 2. **In-App Purchases:**
    - Tür Non-Consumable, Product ID `remove_ads`. Bu ID'yi değiştirme; kodda aynı ID var.
    - Türkçe ve İngilizce ad ile açıklamayı gir, fiyat seviyesini seç.
    - İnceleme için Ayarlar ekranının bir görüntüsünü ekle.
+   - **Durum (16 Kasım 2026):** oluşturuldu, Apple ID `6835227875`, "Prepare for Submission".
+     - Fiyat: taban ülke ABD, 1,99 $. Türkiye'de Apple'ın karşılığı ₺99,99. 175 ülkenin hepsinde satışta.
+     - Family Sharing açık. Apple bu ayarı bir kez açılınca kapatmıyor.
+     - Adlar: "Reklamları Kaldır" (Türkçe), "Remove Ads" (U.S. ve U.K.).
+     - İnceleme görüntüsü ve notu eklendi. Görüntü, simülatördeki İngilizce Ayarlar → Ads bölümü.
 3. Satın almayı ilk reklamlı sürümle birlikte incelemeye gönder.
 4. **App Privacy:** Google'ın listesine göre şunları ekle:
    - Device ID
