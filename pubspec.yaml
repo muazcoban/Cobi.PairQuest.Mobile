@@ -1,7 +1,7 @@
 name: pair_quest
 description: "Memoko - Memory Card Matching Game"
 publish_to: 'none'
-version: 2.3.0+7
+version: 2.4.0+8
 
 environment:
   sdk: ^3.8.0
