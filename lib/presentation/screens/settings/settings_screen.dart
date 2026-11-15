@@ -6,6 +6,7 @@ import '../../../core/constants/app_links.dart';
 import '../../../core/moderation/name_filter.dart';
 import '../../../core/utils/card_shuffle.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../providers/ads_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -203,6 +204,10 @@ class SettingsScreen extends ConsumerWidget {
               ref.read(notificationSettingsProvider.notifier).setQuestNotifications(value);
             },
           ),
+
+          const SizedBox(height: 24),
+          _buildSectionHeader(context, l10n.adsSection),
+          const _AdsSettings(),
         ],
       ),
     );
@@ -580,5 +585,81 @@ class SettingsScreen extends ConsumerWidget {
             time.minute,
           );
     }
+  }
+}
+
+/// "Remove ads" purchase, restore, ad report and privacy choices.
+class _AdsSettings extends ConsumerWidget {
+  const _AdsSettings();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final removeAds = ref.watch(removeAdsProvider);
+    final notifier = ref.read(removeAdsProvider.notifier);
+
+    void report(PurchaseOutcome outcome, {required bool restoring}) {
+      final message = switch (outcome) {
+        PurchaseOutcome.success => restoring ? l10n.restoreDone : l10n.adsRemoved,
+        PurchaseOutcome.nothingToRestore => l10n.restoreNothing,
+        PurchaseOutcome.failed => l10n.purchaseFailed,
+        PurchaseOutcome.storeUnavailable => l10n.storeUnavailable,
+        PurchaseOutcome.canceled => null,
+      };
+      if (message == null || !context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      );
+    }
+
+    return Column(
+      children: [
+        if (removeAds.adsRemoved)
+          ListTile(
+            leading: const Icon(Icons.check_circle_rounded, color: AppColors.successStrong),
+            title: Text(l10n.adsRemoved),
+          )
+        else
+          ListTile(
+            leading: const Icon(Icons.block_rounded),
+            title: Text(l10n.removeAds),
+            subtitle: Text(l10n.removeAdsDesc),
+            trailing: removeAds.busy
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : removeAds.price == null
+                    ? null
+                    : Text(
+                        removeAds.price!,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+            onTap: removeAds.busy
+                ? null
+                : () async => report(await notifier.buy(), restoring: false),
+          ),
+        ListTile(
+          leading: const Icon(Icons.restore_rounded),
+          title: Text(l10n.restorePurchases),
+          onTap: removeAds.busy
+              ? null
+              : () async => report(await notifier.restore(), restoring: true),
+        ),
+        ListTile(
+          leading: const Icon(Icons.flag_outlined),
+          title: Text(l10n.reportAd),
+          subtitle: Text(l10n.reportAdDesc),
+          onTap: () => AppLinks.open(AppLinks.reportAdEmail),
+        ),
+        if (ref.watch(adPrivacyOptionsRequiredProvider).valueOrNull ?? false)
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(l10n.adPrivacyOptions),
+            onTap: () => ref.read(adServiceProvider).showPrivacyOptions(),
+          ),
+      ],
+    );
   }
 }

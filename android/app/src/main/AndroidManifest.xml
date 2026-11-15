@@ -7,6 +7,10 @@
     <!-- No SCHEDULE_EXACT_ALARM: reminders use inexact scheduling, and Google
          Play allows exact alarms only for alarm and calendar apps. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove"/>
+    <!-- No advertising ID: every ad request gets child treatment, which sends
+         no AAID anyway, and Play's Advertising ID declaration can say "No".
+         The Google Mobile Ads SDK adds this permission unless removed. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>
     <application
         android:label="Memoko"
         android:name="${applicationName}"
@@ -39,6 +43,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- AdMob app ID. This is Google's test ID: replace it with the real
+             one from the AdMob console before release (docs/ADS_SETUP.md). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
 
         <!-- FCM Default Notification Channel -->
         <meta-data

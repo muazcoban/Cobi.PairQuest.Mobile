@@ -1084,4 +1084,63 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chooseAccountNameDesc =>
       'This name appears in online games, on leaderboards and in friend requests.';
+
+  @override
+  String get watchAdDoubleCoins => 'Watch an ad: 2× coins';
+
+  @override
+  String get coinsDoubled => 'Coins doubled';
+
+  @override
+  String watchAdContinue(int seconds) {
+    return 'Watch an ad: +$seconds s';
+  }
+
+  @override
+  String get watchAdDoubleReward => 'Watch an ad: 2× coins';
+
+  @override
+  String get watchAdHint => 'Free hint for watching an ad';
+
+  @override
+  String get adNotAvailable =>
+      'No ad is available right now. Try again in a moment.';
+
+  @override
+  String get adsSection => 'Ads';
+
+  @override
+  String get removeAds => 'Remove ads';
+
+  @override
+  String get removeAdsDesc =>
+      'One-time purchase. Ads between levels stop; the optional reward videos stay.';
+
+  @override
+  String get adsRemoved => 'Ads removed. Thank you!';
+
+  @override
+  String get restorePurchases => 'Restore purchases';
+
+  @override
+  String get restoreNothing => 'No earlier purchase was found.';
+
+  @override
+  String get restoreDone => 'Purchase restored. Ads are off.';
+
+  @override
+  String get purchaseFailed =>
+      'The purchase did not go through. You were not charged.';
+
+  @override
+  String get storeUnavailable => 'The store is not available right now.';
+
+  @override
+  String get reportAd => 'Report an inappropriate ad';
+
+  @override
+  String get reportAdDesc => 'Tell us what you saw and we will block it.';
+
+  @override
+  String get adPrivacyOptions => 'Ad privacy choices';
 }

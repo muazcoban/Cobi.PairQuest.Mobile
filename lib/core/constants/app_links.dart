@@ -16,6 +16,15 @@ class AppLinks {
     query: 'subject=Memoko',
   );
 
+  /// Report of an inappropriate ad, required next to ads by App Review 2.5.18.
+  /// The subject is encoded by hand: queryParameters would turn spaces into
+  /// "+", which some mail apps show as is.
+  static final Uri reportAdEmail = Uri(
+    scheme: 'mailto',
+    path: 'muazcoban@gmail.com',
+    query: 'subject=${Uri.encodeComponent('Memoko - inappropriate ad')}',
+  );
+
   /// Opens [uri] in an in-app browser, or a mailto link in the mail app;
   /// returns false if it could not open.
   static Future<bool> open(Uri uri) async {

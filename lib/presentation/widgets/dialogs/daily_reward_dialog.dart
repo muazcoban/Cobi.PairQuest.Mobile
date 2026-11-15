@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../domain/entities/daily_reward.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../providers/ads_provider.dart';
 import '../../providers/daily_reward_provider.dart';
+import '../../providers/wallet_provider.dart';
+import '../common/watch_ad_button.dart';
 
 /// Dialog for claiming daily rewards
 class DailyRewardDialog extends ConsumerWidget {
@@ -179,6 +182,32 @@ class DailyRewardDialog extends ConsumerWidget {
                 ),
               ),
             ),
+
+            // Optional: claim with the coins doubled for watching an ad.
+            if (canClaim && todaysReward.coins > 0) ...[
+              const SizedBox(height: 10),
+              WatchAdButton(
+                label: l10n.watchAdDoubleReward,
+                onWatch: () async {
+                  if (!await ref.read(adServiceProvider).showRewarded()) return false;
+                  final reward = await ref.read(dailyRewardProvider.notifier).claimReward();
+                  if (reward == null) return false;
+                  await ref.read(walletProvider.notifier).addCoins(reward.coins);
+                  if (context.mounted) {
+                    // The home screen's message shows what was received.
+                    Navigator.of(context).pop(DailyReward(
+                      day: reward.day,
+                      type: reward.type,
+                      coins: reward.coins * 2,
+                      gems: reward.gems,
+                      powerUpId: reward.powerUpId,
+                      icon: reward.icon,
+                    ));
+                  }
+                  return true;
+                },
+              ),
+            ],
           ],
         ),
       ),

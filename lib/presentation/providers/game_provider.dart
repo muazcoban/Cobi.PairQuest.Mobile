@@ -718,6 +718,36 @@ class GameNotifier extends StateNotifier<GameStateData> {
     }
   }
 
+  /// The game that already used its time-up continue; one per game.
+  String? _continuedGameId;
+
+  /// A timed game that just ran out of time can come back once, after the
+  /// player watches a rewarded ad.
+  bool get canContinueAfterTimeUp {
+    final game = state.currentGame;
+    return game != null &&
+        game.mode == GameMode.timed &&
+        game.state == GameState.failed &&
+        game.id != _continuedGameId;
+  }
+
+  /// Puts a timed game that ran out of time back in play with [seconds] on
+  /// the clock. Returns false when [canContinueAfterTimeUp] is false.
+  bool continueAfterTimeUp(int seconds) {
+    if (!canContinueAfterTimeUp) return false;
+    final game = state.currentGame!;
+    _continuedGameId = game.id;
+
+    state = state.copyWith(
+      currentGame: game.copyWith(
+        state: GameState.inProgress,
+        timeRemaining: seconds,
+      ),
+    );
+    _startTimer();
+    return true;
+  }
+
   /// Resets the current game
   Future<void> resetGame() async {
     final game = state.currentGame;

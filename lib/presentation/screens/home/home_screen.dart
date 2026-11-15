@@ -6,6 +6,7 @@ import '../../../core/constants/game_config.dart';
 import '../../../domain/entities/daily_reward.dart';
 import '../../../domain/entities/game.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../providers/ads_provider.dart';
 import '../../providers/daily_reward_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../providers/leaderboard_provider.dart';
@@ -41,6 +42,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkDailyReward();
       _syncPendingScores();
+      // The store replays unfinished purchases at start; listen right away.
+      ref.read(removeAdsProvider);
+      // Preloads ads so the first "watch ad" button does not wait.
+      ref.read(adServiceProvider).initialize();
       // Schedules the daily reminder now, so its text follows the language
       // and sign-in state without the settings screen being opened.
       ref.read(notificationSettingsProvider);

@@ -26,6 +26,8 @@ class _SilentAudioService implements AudioService {
   @override
   Future<void> resumeBackgroundMusic() async {}
   @override
+  bool get isMusicPlaying => false;
+  @override
   void dispose() {}
 }
 
@@ -211,5 +213,38 @@ void main() {
     expect(_game(c).timeRemaining!, lessThan(before));
 
     n.endGame(); // stop the countdown timer before the test ends
+  });
+
+  testWidgets('a timed game that ran out of time can continue once with extra seconds',
+      (tester) async {
+    final c = await _createContainer(tester);
+    final n = await _startLevel(tester, c, level: 1, mode: GameMode.timed);
+
+    expect(n.canContinueAfterTimeUp, isFalse, reason: 'still running');
+
+    // Run the clock out.
+    await tester.pump(Duration(seconds: _game(c).timeRemaining! + 1));
+    expect(_game(c).state, GameState.failed);
+    expect(n.canContinueAfterTimeUp, isTrue);
+
+    expect(n.continueAfterTimeUp(30), isTrue);
+    expect(_game(c).state, GameState.inProgress);
+    expect(_game(c).timeRemaining, 30);
+    await tester.pump(const Duration(seconds: 2));
+    expect(_game(c).timeRemaining, lessThan(30), reason: 'the clock runs again');
+
+    // The second time-up ends the game for good.
+    await tester.pump(const Duration(seconds: 30));
+    expect(_game(c).state, GameState.failed);
+    expect(n.canContinueAfterTimeUp, isFalse);
+    expect(n.continueAfterTimeUp(30), isFalse);
+
+    // A new game gets its own continue.
+    await n.resetGame();
+    await _waitUntilInProgress(tester, c);
+    await tester.pump(Duration(seconds: _game(c).timeRemaining! + 1));
+    expect(n.canContinueAfterTimeUp, isTrue);
+
+    n.endGame();
   });
 }

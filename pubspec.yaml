@@ -54,6 +54,8 @@ dependencies:
   url_launcher: ^6.3.2
   in_app_review: ^2.0.12
   sign_in_with_apple: ^7.0.1
+  google_mobile_ads: ^9.2.0
+  in_app_purchase: ^3.3.1
 
 dev_dependencies:
   flutter_test:

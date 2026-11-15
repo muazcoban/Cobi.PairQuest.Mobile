@@ -38,8 +38,20 @@ Daily reminders are scheduled on your device. The app uses Firebase Cloud Messag
 - **Firebase Authentication, Cloud Firestore and Cloud Messaging** (Google LLC) store and process the data above. See [Firebase Privacy and Security](https://firebase.google.com/support/privacy).
 - **Google Sign-In** (Google LLC) signs you in when you choose it.
 - **Sign in with Apple** (Apple Inc.) signs you in when you choose it.
+- **Google AdMob** (Google LLC) shows the ads described below.
+- **App Store and Google Play** handle the optional "Remove ads" purchase. We do not receive your payment details.
 
-Memoko does not use advertising, analytics or tracking services. We do not sell or share your data for advertising.
+### Advertising
+Memoko shows ads from Google AdMob: reward videos that play only when you choose to watch one, and a full-screen ad between levels at most once every few minutes. Online and local multiplayer games show no full-screen ads. Children play the game, so every ad request asks for child treatment and family-friendly (G-rated) ads only:
+- no personalised ads and no remarketing,
+- the advertising ID is not used: the Android app does not request it, and the iOS app never asks for tracking permission,
+- only Google's own ads; no other ad networks.
+
+To show and count ads, the Google Mobile Ads SDK processes data such as the device's IP address (for approximate location), ad views and taps, and crash and performance data. See [How Google uses information from sites or apps that use its services](https://policies.google.com/technologies/partner-sites).
+
+The one-time "Remove ads" purchase turns off the ads between levels; reward videos stay available if you want them. To report an ad you think is inappropriate, open **Settings → Ads → Report an inappropriate ad**.
+
+Memoko does not use analytics services. We do not sell your data or share it for advertising.
 
 ### Deleting your account and data
 In the app, open **Settings → Account → Delete Account**. This permanently deletes:
@@ -108,8 +120,20 @@ Günlük hatırlatıcılar cihazınızda zamanlanır. Uygulama anlık bildirimle
 - **Firebase Authentication, Cloud Firestore ve Cloud Messaging** (Google LLC) yukarıdaki verileri saklar ve işler. Ayrıntı için [Firebase Gizlilik ve Güvenlik](https://firebase.google.com/support/privacy) sayfasına bakın.
 - **Google ile Giriş** (Google LLC), bu yöntemi seçtiğinizde girişinizi yapar.
 - **Apple ile Giriş** (Apple Inc.), bu yöntemi seçtiğinizde girişinizi yapar.
+- **Google AdMob** (Google LLC), aşağıda anlatılan reklamları gösterir.
+- **App Store ve Google Play**, isteğe bağlı "Reklamları kaldır" satın almasını yürütür. Ödeme bilgileriniz bize ulaşmaz.
 
-Memoko reklam, analitik ya da izleme hizmeti kullanmaz. Verilerinizi reklam amacıyla satmayız ve paylaşmayız.
+### Reklamlar
+Memoko, Google AdMob reklamları gösterir: yalnızca siz izlemeyi seçtiğinizde oynayan ödüllü videolar ve seviye aralarında en fazla birkaç dakikada bir tam ekran reklam. Çevrim içi ve yerel çok oyunculu oyunlarda tam ekran reklam çıkmaz. Oyunu çocuklar da oynadığı için her reklam isteği çocuk muamelesi ve yalnızca aile dostu (G dereceli) reklam ister:
+- kişiselleştirilmiş reklam ve yeniden pazarlama yoktur,
+- reklam kimliği kullanılmaz: Android uygulaması bu kimliği istemez, iOS uygulaması izleme izni sormaz,
+- yalnızca Google'ın kendi reklamları gösterilir; başka reklam ağı kullanılmaz.
+
+Reklamları göstermek ve saymak için Google Mobile Ads SDK; cihazın IP adresi (yaklaşık konum için), reklam görüntüleme ve dokunmaları, çökme ve performans verileri gibi bilgileri işler. Ayrıntı için [Google'ın, hizmetlerini kullanan site ve uygulamalardaki bilgileri nasıl kullandığı](https://policies.google.com/technologies/partner-sites?hl=tr) sayfasına bakın.
+
+Tek seferlik "Reklamları kaldır" satın alması seviye aralarındaki reklamları kapatır; ödüllü videolar isterseniz kullanılabilir kalır. Uygunsuz bulduğunuz bir reklamı **Ayarlar → Reklamlar → Uygunsuz reklamı bildir** adımlarıyla bize bildirebilirsiniz.
+
+Memoko analitik hizmeti kullanmaz. Verilerinizi satmayız ve reklam amacıyla paylaşmayız.
 
 ### Hesabınızı ve verilerinizi silmek
 Uygulamada **Ayarlar → Hesap → Hesabı Sil** adımlarını izleyin. Bu işlem şunları kalıcı olarak siler:

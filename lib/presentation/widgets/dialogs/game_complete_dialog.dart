@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../common/watch_ad_button.dart';
 
 /// Modern game completion dialog
 class GameCompleteDialog extends StatelessWidget {
@@ -16,6 +17,9 @@ class GameCompleteDialog extends StatelessWidget {
   final VoidCallback onPlayAgain;
   final VoidCallback? onNextLevel;
 
+  /// Shows a rewarded ad and pays the coins once more; null hides the offer.
+  final Future<bool> Function()? onWatchAdForDoubleCoins;
+
   const GameCompleteDialog({
     super.key,
     required this.level,
@@ -29,6 +33,7 @@ class GameCompleteDialog extends StatelessWidget {
     required this.onMainMenu,
     required this.onPlayAgain,
     this.onNextLevel,
+    this.onWatchAdForDoubleCoins,
   });
 
   @override
@@ -232,6 +237,14 @@ class GameCompleteDialog extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (onWatchAdForDoubleCoins != null) ...[
+                      const SizedBox(height: 8),
+                      WatchAdButton(
+                        label: l10n.watchAdDoubleCoins,
+                        doneLabel: l10n.coinsDoubled,
+                        onWatch: onWatchAdForDoubleCoins!,
+                      ),
+                    ],
                     const SizedBox(height: 16),
                   ],
 
