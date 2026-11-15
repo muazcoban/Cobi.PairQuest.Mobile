@@ -699,5 +699,8 @@
   "reportAd": "Uygunsuz reklamı bildir",
   "reportAdDesc": "Ne gördüğünü yaz, o reklamı engelleyelim.",
   "adPrivacyOptions": "Reklam gizlilik tercihleri",
-  "@watchAdContinue": {"placeholders": {"seconds": {"type": "int"}}}
+  "@watchAdContinue": {"placeholders": {"seconds": {"type": "int"}}},
+  "ageScreenTitle": "Hangi yıl doğdun?",
+  "ageScreenBody": "Oyunu sana göre ayarlamak için soruyoruz. Yalnız sonuç bu cihazda kalır.",
+  "ageScreenContinue": "Devam"
 }

@@ -39,10 +39,9 @@ class _GlobalInvitationListenerState
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final user = authState.user;
-    final isAnonymous = authState.isAnonymous;
 
-    // Only listen for logged-in non-anonymous users
-    if (user != null && !isAnonymous) {
+    // Any signed-in player, guests included: guests can play online.
+    if (user != null) {
       ref.listen<AsyncValue<List<GameInvitation>>>(
         pendingInvitationsProvider(user.uid),
         (previous, next) {

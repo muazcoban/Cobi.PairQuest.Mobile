@@ -1143,4 +1143,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adPrivacyOptions => 'Ad privacy choices';
+
+  @override
+  String get ageScreenTitle => 'What year were you born?';
+
+  @override
+  String get ageScreenBody =>
+      'We use it to set up the game for you. Only the result stays on this device.';
+
+  @override
+  String get ageScreenContinue => 'Continue';
 }

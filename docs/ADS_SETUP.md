@@ -99,10 +99,19 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
    - Device or other IDs
 
    Amaç Advertising or marketing ve Analytics.
-5. **Target audience:** 13+.
-   - **Risk:** Play, mağaza sayfası çocuklara hitap ediyor derse 13+ beyanını reddedebilir; örnek olarak çizgi film karakter ve maskot sayılıyor. İnceleme en fazla 7 gün sürebilir.
-   - **Reddederse iki yol var:** İşaretlenen öğeleri değiştirmek ya da kitleye 13 yaş altını eklemek.
-   - İkinci yol Families politikasını devreye sokar. Reklam tarafı buna hazır (çocuk muamelesi, G derecesi, reklam kimliği yok). Online giriş ve arkadaş özellikleri ise ayrıca değerlendirilmeli.
+5. **Target audience and content:** 6–8, 9–12, 13–15, 16–17 ve 18+ yaş gruplarını seç. Bu karma kitle (mixed audience) beyanıdır ve Families politikasını devreye sokar.
+   - **Neden 13+ değil:** Maskot ve çizgi film görünümü yüzünden Play 13+ beyanını "çocuklara hitap ediyor" diye reddedebilir. Oyunu çocuklar da oynadığı için doğru beyan bu.
+   - **Ads adımı:** Hem "Families Self-Certified Ads SDK kullanıyorum" hem de "nötr yaş ekranı var" seçeneklerini işaretle.
+     - Google AdMob (`play-services-ads`) bu listede, 19.0.0 ve sonrası için; uygulama 25.5.0 kullanıyor.
+     - Kaynak: support.google.com/googleplay/android-developer/answer/12289447.
+   - **Uygulamanın karşıladıkları:**
+     - **Nötr yaş ekranı:** İlk açılışta doğum yılı soruluyor. Varsayılan yıl yok; hangi yaşın neyi açtığı söylenmiyor; cevap değiştirilemiyor. Cihazda yalnız "13 altı / 13 ve üstü" sonucu tutuluyor.
+     - **13 altında kapalı olanlar:** giriş, online oyun, arkadaşlar, global skor tablosu ve push token. Cuma hatırlatması da girişe çağırmıyor. Daha önce giriş yapılmış cihazda hesaptan çıkılıyor.
+     - **Yaş ekranından önce ağa çıkan bir şey yok:** AdMob ve push yaş ekranından sonra başlıyor.
+     - **Reklamlar:** Her oyuncuda çocuk muamelesi ve G derecesi var. Uygulama açılışında geçiş reklamı yok, sayfa başına tek reklam var, reklam kimliği gönderilmiyor.
+     - **Google hesabı zorunlu değil:** Online oyun misafir hesabıyla da oynanıyor. Google'ın kullanıcı verisi politikası karma kitlede hiçbir özelliğin Google girişine bağlanmamasını istiyor.
+   - **Content rating anketi:** Kullanıcılar etkileşime giriyor (online maç, arkadaşlık, görünen adlar) sorusuna "Yes" de. Raporlama ve engelleme var.
+   - **Doğrulayamadığım:** Families politikası, oyunu kesen reklamların ödüllü olanlar dahil 5 saniye sonra kapatılabilmesini istiyor. Uygulama bu süreyi ayarlayamıyor. Sertifikalı SDK'nın çocuk isteklerinde bunu kendisinin sağladığını varsayıyorum, ama resmî bir cümle bulamadım.
 
 ## 4. Test etme
 

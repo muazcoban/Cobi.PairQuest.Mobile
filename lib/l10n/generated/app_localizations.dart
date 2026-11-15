@@ -2233,6 +2233,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Reklam gizlilik tercihleri'**
   String get adPrivacyOptions;
+
+  /// No description provided for @ageScreenTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi yıl doğdun?'**
+  String get ageScreenTitle;
+
+  /// No description provided for @ageScreenBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyunu sana göre ayarlamak için soruyoruz. Yalnız sonuç bu cihazda kalır.'**
+  String get ageScreenBody;
+
+  /// No description provided for @ageScreenContinue.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam'**
+  String get ageScreenContinue;
 }
 
 class _AppLocalizationsDelegate

@@ -1142,4 +1142,14 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get adPrivacyOptions => 'Reklam gizlilik tercihleri';
+
+  @override
+  String get ageScreenTitle => 'Hangi yıl doğdun?';
+
+  @override
+  String get ageScreenBody =>
+      'Oyunu sana göre ayarlamak için soruyoruz. Yalnız sonuç bu cihazda kalır.';
+
+  @override
+  String get ageScreenContinue => 'Devam';
 }

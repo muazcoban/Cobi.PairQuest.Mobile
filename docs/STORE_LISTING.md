@@ -154,4 +154,5 @@ your friends."
 ## Category and rating
 
 - App Store: Games > Puzzle, secondary Card; age rating 9+
-- Google Play: Game > Puzzle; target audience 13+ (see `docs/ANDROID_RELEASE.md`)
+- Google Play: Game > Puzzle; target audience 6–8, 9–12, 13–15, 16–17 and 18+ (mixed audience, Families policy; see `docs/ADS_SETUP.md`)
+- App Review 2.3.8: the app is not in the Kids category, so the listing must not say that children are the main audience. "FOR EVERYONE" in the description is fine.

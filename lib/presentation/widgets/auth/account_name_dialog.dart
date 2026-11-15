@@ -15,7 +15,8 @@ import '../../providers/settings_provider.dart';
 /// one tap.
 Future<void> ensureAccountName(BuildContext context, WidgetRef ref) async {
   final auth = ref.read(authProvider);
-  if (!auth.isAuthenticated || auth.isAnonymous || auth.hasAccountName) return;
+  // Guests too: they can play online, where the name is public.
+  if (!auth.isAuthenticated || auth.hasAccountName) return;
 
   final name = await showDialog<String>(
     context: context,

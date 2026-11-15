@@ -7,6 +7,7 @@ import '../../../core/moderation/name_filter.dart';
 import '../../../core/utils/card_shuffle.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/ads_provider.dart';
+import '../../providers/age_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -36,9 +37,10 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Account Section
+          // Account Section; no sign-in under 13
           _buildSectionHeader(context, l10n.account),
-          _buildAccountTile(context, ref, authState, l10n),
+          if (ref.watch(onlineAllowedProvider) || authState.isAuthenticated)
+            _buildAccountTile(context, ref, authState, l10n),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
             title: Text(l10n.privacyPolicy),

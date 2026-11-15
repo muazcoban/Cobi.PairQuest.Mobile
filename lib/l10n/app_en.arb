@@ -392,5 +392,8 @@
   "storeUnavailable": "The store is not available right now.",
   "reportAd": "Report an inappropriate ad",
   "reportAdDesc": "Tell us what you saw and we will block it.",
-  "adPrivacyOptions": "Ad privacy choices"
+  "adPrivacyOptions": "Ad privacy choices",
+  "ageScreenTitle": "What year were you born?",
+  "ageScreenBody": "We use it to set up the game for you. Only the result stays on this device.",
+  "ageScreenContinue": "Continue"
 }
