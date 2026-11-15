@@ -145,14 +145,20 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
 - **Ara sıra bakılacak yer:** Age signals sayfasındaki "Revoked app approvals" sekmesi. Uygulama install ID saklamadığı için bu listeyi kendisi okumuyor. Onayı geri çekilen kullanıcı bir sonraki açılışta "reddedildi" durumunu görüyor ve reklamlar kapanıyor.
 - **Test:** API, Play'den kurulmamış uygulamada `APP_NOT_OWNED` döndürüyor. Gerçek davranış ancak kapalı test kanalından kurulumla görülür. Emülatörde sideload edilen paket hata vermeden yaş ekranına düşüyor.
 
-**iOS'ta yapılmayanlar ve nedeni:**
-- **Gerekenler:** Apple'ın karşılığı Declared Age Range, PermissionKit `SignificantAppUpdateTopic` (ebeveyn onayı), App Store Server Notifications `RESCIND_CONSENT` ve `AppStore.ageRatingCode`.
-- **Engel:** Bunların hepsi iOS 26.2 SDK'sı, yani Xcode 26.2 istiyor. Bu Mac'te Xcode 16.4 var.
-- **Önemli değişiklik:** iOS uygulaması bugün reklamsız yayında. Reklam ve satın alma eklemek Texas'ta önemli değişiklik; Apple, ebeveyn onayı gelene kadar çocuğun yeni özelliğe erişmemesini istiyor.
-- **Sonuç:** Reklamlı iOS sürümü bu iş bitmeden Texas kurallarına uymaz. Reklamsız 2.3.0 (isim değişikliği) bu kapsama girmiyor.
-- **App Store Connect'te gerekenler:**
-  - App ID'de Declared Age Range capability'sini açmak.
-  - Server Notifications v2 adresi tanımlamak. Bunun için bir sunucu uç noktası gerekiyor; Firebase Cloud Functions olabilir.
+**iOS'ta yapılanlar (Apple Declared Age Range, `AppDelegate.swift`):**
+1. **Zorunluluk kontrolü:** Uygulama önce iOS'a, ekran göstermeden, kullanıcının eyaletinde yaş aralığının zorunlu olup olmadığını soruyor. iOS 26.4'te `requiredRegulatoryFeatures`, 26.2'de uygunluk kontrolü kullanılıyor.
+2. **Paylaşım istemi:** Yalnız zorunluysa Apple'ın "yaşını paylaş" istemi çıkıyor. Yaş sınırları 13, 16 ve 18; bunlar Texas'ın yaş kategorileri.
+3. **Ebeveyn onayı:** Ebeveyn denetimi önemli değişikliklerde onay istiyorsa ya da yasa reşit olmayanlar için ebeveyn onayı istiyorsa, o kullanıcıda reklam ve "Reklamları kaldır" kapalı kalıyor. Uygulama PermissionKit ile onay istemiyor; değişiklik o çocuğa hiç uygulanmıyor.
+4. **Yetişkin bildirimi:** Yasanın istediği yerde Apple'ın "bu güncelleme reklam ve satın alma ekliyor" penceresi yetişkinlere bir kez gösteriliyor (iOS 26.4+).
+5. **Derleme koşulu:** Kod koşullu derlemeyle yazıldı. Xcode 26.2'den eski bir sürümle derlenirse yaş sinyali vermiyor ve yaş ekranı çalışıyor. Xcode Cloud workflow'u Xcode 26.6 kullanıyor.
+
+**Yapılan konsol ayarları (15 Kasım 2026):**
+- **App ID:** `com.cobi.pairQuest` App ID'sinde Declared Age Range yetkisi açıldı. Otomatik imzalama profilleri kendisi yeniliyor.
+- **Xcode Cloud:** "Default" workflow'una "Manual Start - Any Branches" koşulu eklendi. Elle başlatılan derlemede her dal seçilebiliyor; otomatik derleme yine yalnız `master` için tetikleniyor.
+
+**Kalan:**
+- **`RESCIND_CONSENT` bildirimi:** Ebeveyn izni geri çektiğinde Apple, App Store Server Notifications v2 ile bunu bildiriyor. Bunu karşılayacak bir sunucu uç noktası yok; Firebase Cloud Functions olabilir. Apple izni geri çekilen çocukta uygulamanın açılmasını kendisi engelliyor. Uç nokta, sunucudaki hesap verisini temizlemek için gerekli.
+- **Gerçek cihaz testi:** Apple'ın test aracı yok. Davranış ancak iOS 26.2+ cihazda, Texas'ta açılmış bir sandbox hesapla görülebilir.
 
 ## 5. Test etme
 
