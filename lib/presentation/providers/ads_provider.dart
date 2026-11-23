@@ -200,3 +200,21 @@ final adServiceProvider = Provider<AdService>((ref) {
 final adOffersAllowedProvider = Provider<bool>(
   (ref) => !ref.watch(parentApprovalPendingProvider),
 );
+
+/// Whether a rewarded ad is loaded right now. Follows
+/// [AdService.rewardedReady] and rebuilds its readers when it changes.
+final rewardedAdReadyProvider = Provider<bool>((ref) {
+  final ready = ref.watch(adServiceProvider).rewardedReady;
+  void changed() => ref.invalidateSelf();
+  ready.addListener(changed);
+  ref.onDispose(() => ready.removeListener(changed));
+  return ready.value;
+});
+
+/// Whether a "watch an ad for…" offer shows: offers are allowed and an ad
+/// can play at once. Child-safe requests often get no ad, and the account
+/// gets none at all while AdMob reviews it, so an offer without a loaded ad
+/// would mostly end in "no ad available".
+final rewardedOfferProvider = Provider<bool>(
+  (ref) => ref.watch(adOffersAllowedProvider) && ref.watch(rewardedAdReadyProvider),
+);

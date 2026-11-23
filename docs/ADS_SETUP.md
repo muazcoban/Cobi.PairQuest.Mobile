@@ -16,6 +16,11 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
 | Banner, açılış reklamı | Yok | |
 | Çok oyunculu maç | Yok | |
 
+Ödüllü video teklifleri yalnız reklam önceden yüklendiyse görünür. Çocuk güvenli isteklerde reklam
+sık gelmiyor, hesap incelemedeyken de hiç gelmiyor. Teklif yüklü reklam olmadan gösterilse oyuncu
+düğmeye basıp "Şu an reklam yok" uyarısı alırdı. Yükleme başarısız olursa servis 30 saniye sonra
+yeniden dener. Bu süre her başarısızlıkta ikiye katlanır, en fazla 10 dakika olur.
+
 **Çocuk güvenli ayarlar (her istekte):**
 - `ageRestrictedTreatment: child`: Kişiselleştirilmiş reklam, remarketing ve üçüncü taraf reklam sunucuları kapalı. Reklam kimliği (AAID, IDFA) gönderilmiyor.
 - `maxAdContentRating: G`: Yalnız tüm yaşlara uygun reklam geliyor.
@@ -30,7 +35,7 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
 
 ## 1. AdMob konsolu (admob.google.com)
 
-**Durum (15 Kasım 2026):** Hesap (`pub-5547492389514605`) var, ödeme profili tamam, hesap onayı bekleniyor. Onay gelene kadar reklam istekleri "Account not approved yet" yanıtı alıyor. Memoko için yapılanlar:
+**Durum (23 Kasım 2026):** Hesap (`pub-5547492389514605`) Play Console'dan ayrı bir Google hesabında. AdMob ilk incelemede hesabı reddetti: "Girdiğiniz hesap bilgileri yanlış veya eksik." Ödeme profilinde ad alanında soyad yoktu. Adreste il yerine bölge yazıyordu, posta kodu da mahalleyle uyuşmuyordu. Profili düzelttik ve hesabı 23 Kasım'da yeniden incelemeye gönderdik. Google'a göre inceleme genelde 24 saat sürüyor. Onay gelene kadar reklam istekleri doldurulmuyor. Memoko için yapılanlar:
 
 | | Android | iOS |
 |---|---|---|
@@ -39,8 +44,8 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
 | `memoko_interstitial` | `…/9610777928` | `…/5783038542` |
 
 - **İçerik ve kategori:** İki uygulamada da uygulama düzeyinde içerik derecesi G yapıldı ve 13 hassas kategorinin hepsi engellendi. Cobi Paint'in ayarlarına dokunulmadı.
-- **Android mağaza bağlantısı:** Uygulama Play'de listelenmemiş olarak eklendi. Yayımlanınca AdMob'da "Mağaza ekle" ile bağlanacak.
-- **iOS doğrulaması (`app-ads.txt`):**
+- **Android mağaza bağlantısı:** Uygulama Play'de listelenmemiş olarak eklendi. Onay durumu "İnceleme gerekli". Yayımlanınca AdMob'da "Mağaza ekle" ile bağlanacak.
+- **iOS doğrulaması (`app-ads.txt`):** AdMob'da "Doğrulandı" (23 Kasım 2026). Onay durumu hesap onayını bekliyor ("Hazırlanıyor").
   - Dosya `https://muazcoban.github.io/app-ads.txt` adresinde yayında. Kaynağı `muazcoban/muazcoban.github.io` deposunda (GitHub Pages, `main` dalı).
   - AdMob, App Store sayfasındaki geliştirici sitesine bakıyor. Bu yüzden App Store Connect'te pazarlama adresinin (Marketing URL) `https://muazcoban.github.io` olması ve bu adresi taşıyan sürümün yayında olması gerekiyor; ondan sonra AdMob'da "Güncellemeleri kontrol edin" denir.
   - Play'de de mağaza kaydındaki web sitesi aynı adres olacak.
@@ -50,7 +55,7 @@ Gerçek kimlikleri bana verirsen koda ben işlerim; bu kimlikler gizli değil.
 
 - **GDPR mesajı:** "Avrupa tüzükleri" mesajı iki Memoko uygulaması için yayımlandı. Dil İngilizce; "İzin vermeyin" seçeneği tüm ülkelerde açık; gizlilik politikası bağlantısı girildi. Uygulama her kullanıcıyı rıza yaşının altında etiketlediği için mesaj gösterilmiyor.
 
-Aşağıdaki adımlar ilk kurulum içindi; `app-ads.txt` için yalnız pazarlama adresinin yayına çıkması kaldı.
+Aşağıdaki adımlar ilk kurulum içindi ve hepsi yapıldı.
 
 
 1. AdMob hesabını aç, ödeme profilini doldur.

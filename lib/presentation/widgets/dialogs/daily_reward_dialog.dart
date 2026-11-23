@@ -184,7 +184,7 @@ class DailyRewardDialog extends ConsumerWidget {
             ),
 
             // Optional: claim with the coins doubled for watching an ad.
-            if (canClaim && todaysReward.coins > 0 && ref.watch(adOffersAllowedProvider)) ...[
+            if (canClaim && todaysReward.coins > 0 && ref.watch(rewardedOfferProvider)) ...[
               const SizedBox(height: 10),
               WatchAdButton(
                 label: l10n.watchAdDoubleReward,
