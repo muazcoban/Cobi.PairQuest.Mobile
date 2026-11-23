@@ -61,10 +61,12 @@ class _PowerUpBarState extends ConsumerState<PowerUpBar> {
     }).toList();
 
     // Out of hints: one more for watching a rewarded ad, within the hint's
-    // per-game limit.
+    // per-game limit. The button shows only with an ad loaded, and stays
+    // while its ad plays so the bar does not jump under it.
+    final adReady = ref.watch(rewardedOfferProvider);
     final offerAdHint = !inventory.has(PowerUpType.hint) &&
         gameUsage.canUse(PowerUpType.hint) &&
-        ref.watch(adOffersAllowedProvider);
+        (adReady || _loadingAdHint);
 
     if (availablePowerUps.isEmpty && !offerAdHint) {
       return const SizedBox.shrink();

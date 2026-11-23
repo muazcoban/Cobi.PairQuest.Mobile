@@ -1,5 +1,6 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,10 +50,12 @@ class _GuestWalletSync extends WalletSyncService {
 }
 
 /// Stands in for AdMob: "shows" a rewarded ad at once, or has none.
+/// [ready] is whether an ad is loaded; [fill] whether showing it works.
 class _FakeAds implements AdService {
-  _FakeAds({required this.fill});
+  _FakeAds({required this.fill, bool ready = true}) : ready = ValueNotifier(ready);
 
   bool fill;
+  final ValueNotifier<bool> ready;
   int rewardedShown = 0;
   GameState? stateWhileShowing;
   late ProviderContainer container;
@@ -62,9 +65,12 @@ class _FakeAds implements AdService {
   @override
   Future<void> initialize() async {}
   @override
+  ValueListenable<bool> get rewardedReady => ready;
+  @override
   Future<bool> showRewarded({bool Function()? beforeShow}) async {
     if (!fill) return false;
     if (beforeShow != null && !beforeShow()) return false;
+    ready.value = false; // like AdMob: a shown ad is used up
     rewardedShown++;
     stateWhileShowing = container.read(gameProvider).currentGame?.state;
     return true;
@@ -90,6 +96,7 @@ void main() {
     WidgetTester tester, {
     required String mode,
     bool fill = true,
+    bool ready = true,
     StoreAgeSignal? signal,
   }) async {
     tester.view.physicalSize = const Size(1290, 2796);
@@ -97,7 +104,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     SharedPreferences.setMockInitialValues({});
-    ads = _FakeAds(fill: fill);
+    ads = _FakeAds(fill: fill, ready: ready);
     container = ProviderContainer(overrides: [
       audioServiceProvider.overrideWithValue(_SilentAudioService()),
       walletSyncServiceProvider.overrideWithValue(_GuestWalletSync()),
@@ -147,7 +154,19 @@ void main() {
     container.read(gameProvider.notifier).endGame();
   });
 
-  testWidgets('with no ad available the game keeps running and says so', (tester) async {
+  testWidgets('the hint ad offer waits until an ad is loaded', (tester) async {
+    await openGame(tester, mode: 'classic', ready: false);
+    expect(find.byTooltip('Free hint for watching an ad'), findsNothing);
+
+    ads.ready.value = true;
+    await tester.pump();
+    expect(find.byTooltip('Free hint for watching an ad'), findsOneWidget);
+
+    container.read(gameProvider.notifier).endGame();
+  });
+
+  testWidgets('a loaded ad that fails to play leaves the game running and says so', (tester) async {
+    // Loaded but not shown, e.g. the ad expired.
     await openGame(tester, mode: 'classic', fill: false);
 
     await tester.tap(find.byTooltip('Free hint for watching an ad'));
@@ -179,6 +198,18 @@ void main() {
 
     // The second time-up offers no continue.
     await tester.pump(const Duration(seconds: 31));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(stateOf(), GameState.failed);
+    expect(find.text('Watch an ad: +30 s'), findsNothing);
+    expect(find.text('Try Again'), findsOneWidget);
+
+    container.read(gameProvider.notifier).endGame();
+  });
+
+  testWidgets('time up without a loaded ad offers no continue', (tester) async {
+    await openGame(tester, mode: 'timed', ready: false);
+
+    await tester.pump(Duration(seconds: container.read(gameProvider).currentGame!.timeRemaining! + 1));
     await tester.pump(const Duration(milliseconds: 500));
     expect(stateOf(), GameState.failed);
     expect(find.text('Watch an ad: +30 s'), findsNothing);

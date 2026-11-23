@@ -18,6 +18,10 @@ abstract class AdService {
   /// Starts AdMob once; later calls return the same future.
   Future<void> initialize();
 
+  /// True while a rewarded ad is loaded and can play at once. "Watch an
+  /// ad" offers show only then, so a tap does not end in "no ad available".
+  ValueListenable<bool> get rewardedReady;
+
   /// Shows a rewarded ad. True only when the player watched it to the end;
   /// false when no ad was available or the player closed it early.
   /// [beforeShow] runs right before the ad covers the screen, after any
@@ -66,6 +70,13 @@ class AdMobService implements AdService {
   /// How long a tap on "watch ad" waits for an ad that was not preloaded.
   static const _loadTimeout = Duration(seconds: 8);
 
+  /// Wait before loading a rewarded ad again after a failed load. It
+  /// doubles on each failure up to [_maxRetryDelay], so a long outage (no
+  /// network, no fill, account under review) does not send a request every
+  /// few seconds.
+  static const _minRetryDelay = Duration(seconds: 30);
+  static const _maxRetryDelay = Duration(minutes: 10);
+
   final bool Function() _adsRemoved;
 
   /// No ads at all for this user: a parent has not approved the update that
@@ -82,11 +93,17 @@ class AdMobService implements AdService {
 
   RewardedAd? _rewarded;
   Future<RewardedAd?>? _rewardedLoading;
+  final ValueNotifier<bool> _rewardedReady = ValueNotifier(false);
+  Duration _retryDelay = _minRetryDelay;
+  Timer? _retryTimer;
   InterstitialAd? _interstitial;
   Future<InterstitialAd?>? _interstitialLoading;
 
   @override
   bool get isShowingFullScreenAd => _showing;
+
+  @override
+  ValueListenable<bool> get rewardedReady => _rewardedReady;
 
   @override
   Future<void> initialize() => _init ??= _initialize();
@@ -148,16 +165,28 @@ class AdMobService implements AdService {
         rewardedAdLoadCallback: RewardedAdLoadCallback(
           onAdLoaded: (ad) {
             _rewarded = ad;
+            _rewardedReady.value = true;
+            _retryDelay = _minRetryDelay;
             result.complete(ad);
           },
           onAdFailedToLoad: (error) {
             debugPrint('Rewarded ad failed to load: ${error.message}');
             result.complete(null);
+            _scheduleRewardedRetry();
           },
         ),
       );
       return result.future.whenComplete(() => _rewardedLoading = null);
     }();
+  }
+
+  void _scheduleRewardedRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer(_retryDelay, () {
+      if (_rewarded == null && !_adsBlocked()) unawaited(_loadRewarded());
+    });
+    final doubled = _retryDelay * 2;
+    _retryDelay = doubled > _maxRetryDelay ? _maxRetryDelay : doubled;
   }
 
   @override
@@ -177,6 +206,7 @@ class AdMobService implements AdService {
     if (ad == null) return false;
     if (beforeShow != null && !beforeShow()) return false;
     _rewarded = null;
+    _rewardedReady.value = false;
 
     var earned = false;
     final closed = Completer<void>();
