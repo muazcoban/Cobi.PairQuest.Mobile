@@ -13,11 +13,13 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   addDoc,
+  arrayUnion,
   collection,
   deleteDoc,
   deleteField,
   doc,
   documentId,
+  getCountFromServer,
   getDoc,
   getDocs,
   limit,
@@ -57,6 +59,9 @@ beforeEach(async () => {
 
 const db = (uid) => testEnv.authenticatedContext(uid).firestore();
 const guestDb = () => testEnv.unauthenticatedContext().firestore();
+// A "Continue as guest" player: Firebase anonymous auth.
+const anonymousDb = (uid) =>
+  testEnv.authenticatedContext(uid, { firebase: { sign_in_provider: 'anonymous' } }).firestore();
 
 async function seed(docs) {
   await testEnv.withSecurityRulesDisabled(async (context) => {
@@ -168,6 +173,63 @@ describe('users', () => {
     await assertSucceeds(getDocs(query(users, where('status', '==', 'online'))));
   });
 
+  it('a new guest reads its missing profile, creates it and keeps presence (OnlineLobbyScreen._initializeProfile)', async () => {
+    const guest = anonymousDb('guest');
+    const ref = doc(guest, 'users/guest');
+    await assertSucceeds(getDoc(ref));
+    // OnlineUserProfile.toFirestore() for a new profile
+    await assertSucceeds(setDoc(ref, {
+      displayName: 'Player 5291',
+      photoUrl: null,
+      rating: 1200,
+      rankedWins: 0,
+      rankedLosses: 0,
+      rankedGames: 0,
+      casualWins: 0,
+      casualLosses: 0,
+      casualGames: 0,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      totalGames: 0,
+      status: 'offline',
+      createdAt: Timestamp.now(),
+      lastSeenAt: Timestamp.now(),
+      currentGameId: null,
+    }));
+    await assertSucceeds(updateDoc(ref, { status: 'online', lastSeenAt: serverTimestamp(), currentGameId: null }));
+    await assertSucceeds(getDocs(query(collection(guest, 'invitations'), where('toUserId', '==', 'guest'), where('status', '==', 'pending'))));
+    await assertSucceeds(getDocs(collection(guest, 'users/guest/blocked')));
+  });
+
+  it('an old profile gets its ranked counters and flag from its owner (getOrCreateProfile)', async () => {
+    await seed({ 'users/alice': { displayName: 'Alice', rating: 1216, totalGames: 7, casualGames: 6 } });
+    await assertSucceeds(updateDoc(doc(db(ALICE), 'users/alice'), {
+      displayName: 'Alice',
+      lastSeenAt: serverTimestamp(),
+      rankedGames: 1,
+      rankedWins: 1,
+      rankedLosses: 0,
+      isRanked: true,
+    }));
+  });
+
+  it('allows the ranking queries and counts (globalLeaderboardProvider, currentUserRankProvider, totalOnlinePlayersProvider)', async () => {
+    await seed({
+      'users/alice': { displayName: 'Alice', rating: 1216, isRanked: true, status: 'online', lastSeenAt: Timestamp.now() },
+      'users/bob': { displayName: 'Bob', rating: 1200, status: 'online', lastSeenAt: Timestamp.now() },
+    });
+    const users = collection(db(BOB), 'users');
+    const ranked = await assertSucceeds(getDocs(query(users, where('isRanked', '==', true), orderBy('rating', 'desc'), limit(100))));
+    if (ranked.size !== 1) throw new Error(`expected 1 ranked player, got ${ranked.size}`);
+    await assertSucceeds(getDocs(query(users, orderBy('rating', 'desc'), limit(300))));
+    await assertSucceeds(getCountFromServer(query(users, where('isRanked', '==', true), where('rating', '>', 1200))));
+    const cutoff = Timestamp.fromMillis(Date.now() - 3 * 60_000);
+    await assertSucceeds(getCountFromServer(query(users, where('lastSeenAt', '>', cutoff), where('status', '==', 'online'))));
+    await assertSucceeds(getCountFromServer(query(users, where('lastSeenAt', '>', cutoff))));
+    await assertFails(getCountFromServer(query(collection(guestDb(), 'users'), where('lastSeenAt', '>', cutoff))));
+  });
+
   it('wallet and inventory are private to the owner (WalletSyncService)', async () => {
     await seed({ 'users/alice/data/wallet': { coins: 10 } });
     await assertSucceeds(getDoc(doc(db(ALICE), 'users/alice/data/wallet')));
@@ -219,6 +281,39 @@ describe('games', () => {
     await assertFails(updateDoc(doc(db(CAROL), 'games/g1'), { status: 'completed' }));
     await assertFails(updateDoc(doc(db(ALICE), 'games/g1'), { createdAt: Timestamp.now() }));
     await assertFails(deleteDoc(doc(db(ALICE), 'games/g1')));
+  });
+
+  it('each player records a finished game in their own stats, once (applyGameResult)', async () => {
+    await seed({
+      'games/g1': { ...game(ALICE, BOB), mode: 'ranked', status: 'completed', winnerId: ALICE, statsPending: { alice: true, bob: true } },
+      'users/alice': { displayName: 'Alice', rating: 1200, rankedGames: 0 },
+      'users/bob': { displayName: 'Bob', rating: 1200, rankedGames: 0 },
+    });
+    for (const uid of [ALICE, BOB]) {
+      const playerDb = db(uid);
+      await assertSucceeds(runTransaction(playerDb, async (tx) => {
+        const gameRef = doc(playerDb, 'games/g1');
+        const userRef = doc(playerDb, `users/${uid}`);
+        await tx.get(gameRef);
+        await tx.get(userRef);
+        tx.update(userRef, { rating: uid === ALICE ? 1216 : 1184, rankedGames: 1, isRanked: true, lastSeenAt: serverTimestamp() });
+        tx.update(gameRef, { statsAppliedFor: arrayUnion(uid), [`statsPending.${uid}`]: deleteField() });
+      }));
+    }
+    // Nobody records a result in another player's profile.
+    await assertFails(updateDoc(doc(db(ALICE), 'users/bob'), { rating: 1000 }));
+    await assertFails(updateDoc(doc(db(CAROL), 'games/g1'), { statsAppliedFor: arrayUnion(CAROL) }));
+  });
+
+  it('a player finds the results still owed to their stats (applyPendingResults)', async () => {
+    await seed({
+      'games/g1': { ...game(ALICE, BOB), status: 'completed', winnerId: ALICE, statsPending: { alice: true, bob: true } },
+      'games/g2': { ...game(BOB, CAROL), status: 'completed', winnerId: CAROL, statsPending: { bob: true, carol: true } },
+    });
+    const games = collection(db(BOB), 'games');
+    const pending = await assertSucceeds(getDocs(query(games, where('playerIds', 'array-contains', BOB), where('statsPending.bob', '==', true), limit(20))));
+    if (pending.size !== 2) throw new Error(`expected 2 games, got ${pending.size}`);
+    await assertFails(getDocs(query(collection(db(CAROL), 'games'), where('statsPending.bob', '==', true))));
   });
 
   it('a player finds their games by playerIds (AccountRepository._anonymizeGames)', async () => {
