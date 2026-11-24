@@ -368,7 +368,13 @@ class OnlineGameRepository {
         final existingProfile = OnlineUserProfile.fromFirestore(doc);
         // Ranked counters an old version left out, and the flag the
         // ranking query uses.
-        final repair = OnlineRanking.legacyRankedRepair(doc.data()!);
+        final repair = {
+          ...OnlineRanking.legacyRankedRepair(doc.data()!),
+          // From now on this app records the player's results; see
+          // applyPendingResults.
+          if (!doc.data()!.containsKey(resultsSinceField))
+            resultsSinceField: FieldValue.serverTimestamp(),
+        };
 
         // Update profile if displayName changed (e.g., Guest -> Gmail name).
         // Profiles are readable by every signed-in user, so an e-mail address
@@ -394,7 +400,8 @@ class OnlineGameRepository {
             displayName: displayName,
             photoUrl: photoUrl ?? existingProfile.photoUrl,
             email: null,
-            rankedGames: (repair['rankedGames'] as int?) ?? existingProfile.rankedGames,
+            rankedGames: (repair['rankedGames'] as int?) ??
+                existingProfile.rankedGames,
             rankedWins: (repair['rankedWins'] as int?) ?? existingProfile.rankedWins,
             rankedLosses:
                 (repair['rankedLosses'] as int?) ?? existingProfile.rankedLosses,
@@ -413,7 +420,10 @@ class OnlineGameRepository {
         lastSeenAt: DateTime.now(),
       );
 
-      await _usersRef.doc(oddserId).set(profile.toFirestore());
+      await _usersRef.doc(oddserId).set({
+        ...profile.toFirestore(),
+        resultsSinceField: FieldValue.serverTimestamp(),
+      });
       debugPrint('🆕 Created new profile: displayName=$displayName');
       return profile;
     } catch (e) {
@@ -571,10 +581,24 @@ class OnlineGameRepository {
     }
   }
 
+  /// When this app version started recording the player's results, set
+  /// on the profile at the first setup.
+  static const String resultsSinceField = 'resultsSince';
+
   /// Records the games that ended while [oddserId]'s app was closed or on
   /// another screen. Returns how many were recorded.
+  ///
+  /// Only games that ended after [resultsSinceField] count. Before that the
+  /// player ran an older version, which wrote its own stats at the end of
+  /// a game it watched but did not take the game's pending mark away;
+  /// recording those games again would count them twice. Older pending
+  /// games are only unmarked.
   Future<int> applyPendingResults(String oddserId, {int limit = 20}) async {
     try {
+      final userDoc = await _usersRef.doc(oddserId).get();
+      final since = userDoc.data()?[resultsSinceField];
+      if (since is! Timestamp) return 0;
+
       final pending = await _gamesRef
           .where('playerIds', arrayContains: oddserId)
           .where(FieldPath(['statsPending', oddserId]), isEqualTo: true)
@@ -582,6 +606,14 @@ class OnlineGameRepository {
           .get();
       var recorded = 0;
       for (final doc in pending.docs) {
+        final endedAt = doc.data()['completedAt'];
+        if (endedAt is! Timestamp || endedAt.compareTo(since) < 0) {
+          await _gamesRef.doc(doc.id).update({
+            'statsAppliedFor': FieldValue.arrayUnion([oddserId]),
+            'statsPending.$oddserId': FieldValue.delete(),
+          });
+          continue;
+        }
         if (await applyGameResult(doc.id, oddserId)) recorded++;
       }
       return recorded;

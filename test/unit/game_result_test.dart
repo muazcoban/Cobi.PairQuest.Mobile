@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pair_quest/data/repositories/online_game_repository.dart';
@@ -11,9 +12,14 @@ void main() {
     repository = OnlineGameRepository(firestore: firestore);
   });
 
+  final upgradedAt = Timestamp.fromDate(DateTime(2026, 11, 25, 10));
+  final afterUpgrade = Timestamp.fromDate(DateTime(2026, 11, 25, 12));
+  final beforeUpgrade = Timestamp.fromDate(DateTime(2026, 11, 24, 12));
+
   Future<void> seedUser(String uid, {int rating = 1200, Map<String, dynamic>? extra}) =>
       firestore.doc('users/$uid').set({
         'displayName': uid,
+        'resultsSince': upgradedAt,
         'rating': rating,
         'wins': 0,
         'losses': 0,
@@ -36,10 +42,12 @@ void main() {
     int aliceRating = 1200,
     int bobRating = 1200,
     bool pending = true,
+    Timestamp? completedAt,
   }) =>
       firestore.doc('games/$id').set({
         'mode': mode,
         'status': status,
+        if (status != 'inProgress') 'completedAt': completedAt ?? afterUpgrade,
         if (winnerId != null) 'winnerId': winnerId,
         'playerIds': ['alice', 'bob'],
         'players': [
@@ -173,6 +181,18 @@ void main() {
       expect(b['rankedLosses'], 1);
       expect(b['casualLosses'], 1);
     });
+
+    test('only unmarks games that ended before this version ran, which the old one may have counted', () async {
+      await seedUser('bob');
+      await seedGame('before', completedAt: beforeUpgrade);
+
+      expect(await repository.applyPendingResults('bob'), 0);
+
+      expect((await user('bob'))['totalGames'], 0);
+      final g = await game('before');
+      expect(g['statsAppliedFor'], ['bob']);
+      expect((g['statsPending'] as Map)['bob'], isNull);
+    });
   });
 
   group('getOrCreateProfile', () {
@@ -194,6 +214,7 @@ void main() {
       final c = await user('carol');
       expect([c['rankedGames'], c['rankedWins'], c['rankedLosses']], [1, 0, 1]);
       expect(c['isRanked'], isTrue);
+      expect(c['resultsSince'], isA<Timestamp>());
       expect(profile.rankedLosses, 1);
     });
   });
