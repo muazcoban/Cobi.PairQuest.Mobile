@@ -804,6 +804,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noPlayersYet => 'Henüz oyuncu yok';
 
   @override
+  String get noRankedPlayersYet =>
+      'Henüz dereceli maç oynayan yok. İlk dereceli maçını oyna, listeye gir.';
+
+  @override
+  String get unranked => 'Sıralamasız';
+
+  @override
+  String rankedRecord(int wins, int losses) {
+    return '${wins}G - ${losses}M';
+  }
+
+  @override
   String get tierBronze => 'Bronz';
 
   @override
@@ -822,7 +834,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get tierMaster => 'Usta';
 
   @override
-  String get rating => 'Rating';
+  String get rating => 'ELO puanı';
 
   @override
   String get turnTimedOut => 'Süren doldu, sıra rakibe geçti';

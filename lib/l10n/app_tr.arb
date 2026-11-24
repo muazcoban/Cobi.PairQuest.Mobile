@@ -586,13 +586,23 @@
   "onlineNow": "Çevrimiçi",
   "noFriendsOnLeaderboard": "Henüz skor tablosunda arkadaş yok",
   "noPlayersYet": "Henüz oyuncu yok",
+  "noRankedPlayersYet": "Henüz dereceli maç oynayan yok. İlk dereceli maçını oyna, listeye gir.",
+  "unranked": "Sıralamasız",
+  "rankedRecord": "{wins}G - {losses}M",
+  "@rankedRecord": {
+    "description": "Ranked wins and losses on a leaderboard row (G = galibiyet, M = mağlubiyet)",
+    "placeholders": {
+      "wins": {"type": "int"},
+      "losses": {"type": "int"}
+    }
+  },
   "tierBronze": "Bronz",
   "tierSilver": "Gümüş",
   "tierGold": "Altın",
   "tierPlatinum": "Platin",
   "tierDiamond": "Elmas",
   "tierMaster": "Usta",
-  "rating": "Rating",
+  "rating": "ELO puanı",
   "turnTimedOut": "Süren doldu, sıra rakibe geçti",
   "opponentNotResponding": "Rakip yanıt vermiyor",
   "claimWin": "Galibiyeti al",

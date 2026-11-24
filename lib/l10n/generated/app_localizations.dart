@@ -1646,6 +1646,24 @@ abstract class AppLocalizations {
   /// **'Henüz oyuncu yok'**
   String get noPlayersYet;
 
+  /// No description provided for @noRankedPlayersYet.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz dereceli maç oynayan yok. İlk dereceli maçını oyna, listeye gir.'**
+  String get noRankedPlayersYet;
+
+  /// No description provided for @unranked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamasız'**
+  String get unranked;
+
+  /// Ranked wins and losses on a leaderboard row (G = galibiyet, M = mağlubiyet)
+  ///
+  /// In tr, this message translates to:
+  /// **'{wins}G - {losses}M'**
+  String rankedRecord(int wins, int losses);
+
   /// No description provided for @tierBronze.
   ///
   /// In tr, this message translates to:
@@ -1685,7 +1703,7 @@ abstract class AppLocalizations {
   /// No description provided for @rating.
   ///
   /// In tr, this message translates to:
-  /// **'Rating'**
+  /// **'ELO puanı'**
   String get rating;
 
   /// No description provided for @turnTimedOut.
