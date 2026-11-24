@@ -6,7 +6,9 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/friends_provider.dart';
 import '../../providers/matchmaking_provider.dart';
+import '../../providers/online_leaderboard_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../utils/tier_label.dart';
 import '../../widgets/auth/account_name_dialog.dart';
 import '../../widgets/auth/apple_sign_in_button.dart';
 import '../../widgets/common/wallet_display.dart';
@@ -251,7 +253,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
   }
 
   Widget _buildProfileCard(AppLocalizations l10n, profile) {
-    final tierName = ref.watch(userTierNameProvider(profile.rating));
+    final tierName = tierLabel(l10n, PlayerTier.fromRating(profile.rating));
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -364,7 +366,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              '${profile.rankedWins}W',
+              l10n.winsShort(profile.rankedWins),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -379,7 +381,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
               ),
             ),
             Text(
-              '${profile.rankedLosses}L',
+              l10n.lossesShort(profile.rankedLosses),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -414,7 +416,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              '${profile.casualWins}W',
+              l10n.winsShort(profile.casualWins),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -429,7 +431,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
               ),
             ),
             Text(
-              '${profile.casualLosses}L',
+              l10n.lossesShort(profile.casualLosses),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,

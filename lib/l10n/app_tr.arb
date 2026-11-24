@@ -517,7 +517,7 @@
   "quickPlay": "Hızlı Oyun",
   "quickPlayDesc": "Rahat bir maç bul",
   "rankedPlay": "Dereceli",
-  "rankedPlayDesc": "Rating için yarış",
+  "rankedPlayDesc": "ELO puanı için yarış",
   "ranked": "Dereceli",
   "casual": "Rahat",
   "moreOptions": "Diğer Seçenekler",
@@ -530,7 +530,7 @@
   "noOpponentFound": "Rakip bulunamadı. Tekrar deneyelim mi?",
   "preparingMatch": "Maç hazırlanıyor...",
   "searchTime": "Süre",
-  "ratingRange": "Rating",
+  "ratingRange": "ELO aralığı",
   "ok": "Tamam",
   "gameNotFound": "Oyun bulunamadı",
   "goBack": "Geri Dön",
@@ -588,6 +588,18 @@
   "noPlayersYet": "Henüz oyuncu yok",
   "noRankedPlayersYet": "Henüz dereceli maç oynayan yok. İlk dereceli maçını oyna, listeye gir.",
   "unranked": "Sıralamasız",
+  "matchEndedNoResult": "Maç sonuçsuz bitti",
+  "opponentNeverPlayed": "Rakip hiç hamle yapmadı. Bu maç sıralamana ve istatistiklerine işlenmedi.",
+  "winsShort": "{count}G",
+  "@winsShort": {
+    "description": "Win count on the online lobby card (G = galibiyet)",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "lossesShort": "{count}M",
+  "@lossesShort": {
+    "description": "Loss count on the online lobby card (M = mağlubiyet)",
+    "placeholders": {"count": {"type": "int"}}
+  },
   "rankedRecord": "{wins}G - {losses}M",
   "@rankedRecord": {
     "description": "Ranked wins and losses on a leaderboard row (G = galibiyet, M = mağlubiyet)",
@@ -602,7 +614,7 @@
   "tierPlatinum": "Platin",
   "tierDiamond": "Elmas",
   "tierMaster": "Usta",
-  "rating": "ELO puanı",
+  "rating": "ELO",
   "turnTimedOut": "Süren doldu, sıra rakibe geçti",
   "opponentNotResponding": "Rakip yanıt vermiyor",
   "claimWin": "Galibiyeti al",

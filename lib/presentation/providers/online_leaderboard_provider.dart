@@ -67,7 +67,10 @@ class LeaderboardEntry {
 }
 
 /// Profile fields as the ranking shows them.
-OnlineUserProfile _profileFromData(String id, Map<String, dynamic> data) {
+OnlineUserProfile _profileFromData(String id, Map<String, dynamic> stored) {
+  // Profiles that an old app version wrote count ranked games only in the
+  // totals until their owner opens this version; derive them for display.
+  final data = {...stored, ...OnlineRanking.legacyRankedRepair(stored)};
   int read(String key) => (data[key] as num?)?.toInt() ?? 0;
   return OnlineUserProfile(
     oddserId: id,
@@ -133,8 +136,8 @@ final globalLeaderboardProvider =
     for (final doc in flagged.docs) {
       byId[doc.id] = doc.data();
     }
-  } on FirebaseException catch (e) {
-    debugPrint('Ranked index not available yet: ${e.code}');
+  } catch (e) {
+    debugPrint('Ranked index not available yet: $e');
   }
 
   // Players whose app has not set the flag yet (older versions): the top of
@@ -209,14 +212,17 @@ final currentUserRankProvider =
   // Below the listed players: count the ranked players above.
   final rating = (data['rating'] as num?)?.toInt() ?? OnlineRanking.startRating;
   try {
+    // Ordered as the (isRanked, rating DESC) index is declared; without
+    // the orderBy Firestore would need an ascending index.
     final above = await users
         .where('isRanked', isEqualTo: true)
         .where('rating', isGreaterThan: rating)
+        .orderBy('rating', descending: true)
         .count()
         .get();
     return (above.count ?? 0) + 1;
-  } on FirebaseException catch (e) {
-    debugPrint('Rank count not available: ${e.code}');
+  } catch (e) {
+    debugPrint('Rank count not available: $e');
     return null;
   }
 });
@@ -259,14 +265,15 @@ final totalOnlinePlayersProvider = StreamProvider.autoDispose<int>((ref) async* 
           .count()
           .get();
       yield count.count ?? 0;
-    } on FirebaseException {
+    } catch (e) {
+      debugPrint('Online count with status not available: $e');
       try {
         // Without that index: recent only, which also counts players who
         // closed the app in the last few minutes.
         final count = await recent.count().get();
         yield count.count ?? 0;
-      } on FirebaseException catch (e) {
-        debugPrint('Online count failed: ${e.code}');
+      } catch (e) {
+        debugPrint('Online count failed: $e');
       }
     }
     await Future<void>.delayed(OnlineUserProfile.presenceHeartbeat);

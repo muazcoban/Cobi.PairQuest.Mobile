@@ -310,10 +310,17 @@ class OnlineGameRepository {
           return false;
         }
 
-        debugPrint('🎮 $claimerId wins by forfeit: opponent stopped responding');
+        // An opponent who never made a move may never have seen the game
+        // (their search was cancelled or timed out as the match was made).
+        // Nobody wins such a game, so neither side gets a result.
+        final stalledId = game.players[game.currentPlayerIndex].oddserId;
+        final stalledEverMoved = game.moves.any((m) => m.oddserId == stalledId);
+        debugPrint(stalledEverMoved
+            ? '🎮 $claimerId wins by forfeit: opponent stopped responding'
+            : '🎮 Opponent never played; game ends without a result');
         transaction.update(gameDoc.reference, {
           'status': OnlineGameStatus.abandoned.name,
-          'winnerId': claimerId,
+          'winnerId': stalledEverMoved ? claimerId : null,
           'completedAt': FieldValue.serverTimestamp(),
           'lastActivityAt': FieldValue.serverTimestamp(),
           'statsPending': _statsPending(game.players),

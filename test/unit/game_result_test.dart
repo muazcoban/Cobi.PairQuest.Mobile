@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pair_quest/data/repositories/online_game_repository.dart';
+import 'package:pair_quest/domain/entities/online_game.dart';
+import 'package:pair_quest/domain/entities/online_player.dart';
 
 void main() {
   late FakeFirebaseFirestore firestore;
@@ -192,6 +194,69 @@ void main() {
       final g = await game('before');
       expect(g['statsAppliedFor'], ['bob']);
       expect((g['statsPending'] as Map)['bob'], isNull);
+    });
+  });
+
+  group('claimForfeitWin', () {
+    Future<void> seedRunningGame(String id, {required List<GameMove> moves}) {
+      final now = DateTime(2026, 11, 25, 12);
+      OnlinePlayer player(String uid) =>
+          OnlinePlayer(oddserId: uid, displayName: uid, lastActivityAt: now);
+      final game = OnlineGame(
+        id: id,
+        status: OnlineGameStatus.inProgress,
+        mode: OnlineGameMode.ranked,
+        level: 1,
+        rows: 2,
+        cols: 2,
+        players: [player('alice'), player('bob')],
+        // bob is to move and has stopped responding
+        currentPlayerIndex: 1,
+        cardPairIds: const ['a', 'a', 'b', 'b'],
+        moves: moves,
+        createdAt: now,
+      );
+      return firestore.doc('games/$id').set({
+        ...game.toFirestore(),
+        'playerIds': ['alice', 'bob'],
+      });
+    }
+
+    GameMove move(String uid) => GameMove(
+          oddserId: uid,
+          card1Position: 0,
+          card2Position: 2,
+          pairId: 'a',
+          matched: false,
+          timestamp: DateTime(2026, 11, 25, 12),
+        );
+
+    test('wins a game the opponent abandoned after playing', () async {
+      await seedRunningGame('g1', moves: [move('alice'), move('bob'), move('alice')]);
+
+      expect(
+        await repository.claimForfeitWin('g1', 'alice',
+            expectedMoveCount: 3, expectedPlayerIndex: 1),
+        isTrue,
+      );
+      final g = await game('g1');
+      expect(g['status'], 'abandoned');
+      expect(g['winnerId'], 'alice');
+    });
+
+    test('ends without a winner when the opponent never moved', () async {
+      // bob's search was cancelled as the match was made; he never saw it.
+      await seedRunningGame('g2', moves: [move('alice')]);
+
+      await repository.claimForfeitWin('g2', 'alice',
+          expectedMoveCount: 1, expectedPlayerIndex: 1);
+
+      final g = await game('g2');
+      expect(g['status'], 'abandoned');
+      expect(g['winnerId'], isNull);
+      await seedUser('bob');
+      expect(await repository.applyGameResult('g2', 'bob'), isFalse);
+      expect((await user('bob'))['totalGames'], 0);
     });
   });
 

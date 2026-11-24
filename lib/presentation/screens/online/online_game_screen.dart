@@ -1007,7 +1007,9 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
   }
 
   Widget _buildGameAbandoned(AppLocalizations l10n, OnlineGame game, String? myId) {
-    // Check if I won (opponent left) or I lost (I left)
+    // Check if I won (opponent left) or I lost (I left). No winner: the
+    // opponent never made a move, and no result was recorded.
+    final noResult = game.winnerId == null;
     final isWinner = game.winnerId == myId;
 
     return Center(
@@ -1030,22 +1032,34 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                isWinner ? Icons.emoji_events : Icons.exit_to_app,
+                noResult
+                    ? Icons.hourglass_disabled
+                    : (isWinner ? Icons.emoji_events : Icons.exit_to_app),
                 size: 80,
-                color: isWinner ? Colors.amber : Colors.orange,
+                color: noResult
+                    ? AppColors.textSecondary(context)
+                    : (isWinner ? Colors.amber : Colors.orange),
               ),
               const SizedBox(height: 24),
               Text(
-                isWinner ? l10n.youWin : l10n.youLose,
+                noResult
+                    ? l10n.matchEndedNoResult
+                    : (isWinner ? l10n.youWin : l10n.youLose),
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: noResult ? 24 : 32,
                   fontWeight: FontWeight.bold,
-                  color: isWinner ? Colors.green : Colors.red,
+                  color: noResult
+                      ? AppColors.textPrimary(context)
+                      : (isWinner ? Colors.green : Colors.red),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                isWinner ? l10n.opponentLeft : l10n.youLeftGame,
+                noResult
+                    ? l10n.opponentNeverPlayed
+                    : (isWinner ? l10n.opponentLeft : l10n.youLeftGame),
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
                   color: AppColors.textSecondary(context),

@@ -810,6 +810,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unranked => 'Unranked';
 
   @override
+  String get matchEndedNoResult => 'Match ended without a result';
+
+  @override
+  String get opponentNeverPlayed =>
+      'Your opponent never made a move. This match does not count toward your rating or stats.';
+
+  @override
+  String winsShort(int count) {
+    return '${count}W';
+  }
+
+  @override
+  String lossesShort(int count) {
+    return '${count}L';
+  }
+
+  @override
   String rankedRecord(int wins, int losses) {
     return '${wins}W - ${losses}L';
   }

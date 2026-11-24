@@ -135,6 +135,10 @@ class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>
         );
       }
 
+      // The account changed while the profile loaded: reset() has already
+      // cleared this one, so nothing of it may come back.
+      if (!_isSignedInAs(oddserId)) return null;
+
       // Set current player ID for game provider
       SchedulerBinding.instance.addPostFrameCallback((_) {
         _ref.read(currentPlayerIdProvider.notifier).state = oddserId;
@@ -142,6 +146,7 @@ class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>
 
       // Set online status
       await _repository.updateOnlineStatus(oddserId, ConnectionStatus.online);
+      if (!_isSignedInAs(oddserId)) return null;
       _startPresence(oddserId);
 
       _safeSetState(AsyncValue.data(profile));
@@ -159,6 +164,9 @@ class OnlineProfileNotifier extends StateNotifier<AsyncValue<OnlineUserProfile?>
       return null;
     }
   }
+
+  bool _isSignedInAs(String oddserId) =>
+      mounted && _ref.read(authProvider).user?.uid == oddserId;
 
   /// Start listening to real-time profile updates from Firestore
   void _startListeningToProfile(String oddserId) {

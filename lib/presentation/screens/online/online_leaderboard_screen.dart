@@ -6,17 +6,8 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/online_leaderboard_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../utils/tier_label.dart';
 import '../../widgets/moderation/player_safety.dart';
-
-/// The tier's name in the app language.
-String _tierLabel(AppLocalizations l10n, PlayerTier tier) => switch (tier) {
-      PlayerTier.bronze => l10n.tierBronze,
-      PlayerTier.silver => l10n.tierSilver,
-      PlayerTier.gold => l10n.tierGold,
-      PlayerTier.platinum => l10n.tierPlatinum,
-      PlayerTier.diamond => l10n.tierDiamond,
-      PlayerTier.master => l10n.tierMaster,
-    };
 
 /// Online multiplayer leaderboard screen
 class OnlineLeaderboardScreen extends ConsumerWidget {
@@ -207,7 +198,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${_tierLabel(l10n, tier)} • ${profile.rating} ${l10n.rating}',
+                          '${tierLabel(l10n, tier)} • ${profile.rating} ${l10n.rating}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withValues(alpha: 0.9),
@@ -259,7 +250,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _tierLabel(l10n, tier),
+                      tierLabel(l10n, tier),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.8),
@@ -382,10 +373,14 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
     return leaderboardAsync.when(
       data: (entries) {
         if (entries.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          // Scrollable, so pulling down reads the list again.
+          return RefreshIndicator(
+            onRefresh: refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(32),
               children: [
+                const SizedBox(height: 48),
                 Icon(
                   Icons.leaderboard_outlined,
                   size: 64,
@@ -427,13 +422,18 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
-            const SizedBox(height: 16),
-            Text('${l10n.errorOccurred}: $e'),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
+              const SizedBox(height: 16),
+              Text('${l10n.errorOccurred}: $e', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(onPressed: refresh, child: Text(l10n.retry)),
+            ],
+          ),
         ),
       ),
     );
@@ -459,9 +459,9 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
   String _getNextTierName(AppLocalizations l10n, PlayerTier tier) {
     final index = PlayerTier.values.indexOf(tier);
     if (index < PlayerTier.values.length - 1) {
-      return _tierLabel(l10n, PlayerTier.values[index + 1]);
+      return tierLabel(l10n, PlayerTier.values[index + 1]);
     }
-    return _tierLabel(l10n, tier);
+    return tierLabel(l10n, tier);
   }
 }
 
@@ -557,7 +557,7 @@ class _LeaderboardTile extends StatelessWidget {
         subtitle: Row(
           children: [
             Text(
-              _tierLabel(l10n, tier),
+              tierLabel(l10n, tier),
               style: TextStyle(
                 fontSize: 12,
                 color: _getTierColor(tier),

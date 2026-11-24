@@ -100,20 +100,22 @@ extension FriendshipExtension on Friendship {
 }
 
 /// Friends count provider
-final friendsCountProvider = Provider.family<int, String>((ref, oddserId) {
+final friendsCountProvider =
+    Provider.autoDispose.family<int, String>((ref, oddserId) {
   final friendsAsync = ref.watch(friendsListProvider(oddserId));
   return friendsAsync.valueOrNull?.length ?? 0;
 });
 
 /// Pending requests count provider
-final pendingRequestsCountProvider = Provider.family<int, String>((ref, oddserId) {
+final pendingRequestsCountProvider =
+    Provider.autoDispose.family<int, String>((ref, oddserId) {
   final requestsAsync = ref.watch(pendingFriendRequestsProvider(oddserId));
   return requestsAsync.valueOrNull?.length ?? 0;
 });
 
 /// Check if two users are friends
 final areFriendsProvider =
-    Provider.family<bool, (String, String)>((ref, userIds) {
+    Provider.autoDispose.family<bool, (String, String)>((ref, userIds) {
   final (currentUserId, otherUserId) = userIds;
   final friendsAsync = ref.watch(friendsListProvider(currentUserId));
 
@@ -125,7 +127,7 @@ final areFriendsProvider =
 
 /// Check if friend request is pending
 final friendRequestPendingProvider =
-    Provider.family<bool, (String, String)>((ref, userIds) {
+    Provider.autoDispose.family<bool, (String, String)>((ref, userIds) {
   final (currentUserId, otherUserId) = userIds;
   final requestsAsync = ref.watch(pendingFriendRequestsProvider(currentUserId));
 
@@ -138,8 +140,8 @@ final friendRequestPendingProvider =
 /// Online friends (friends who are currently online)
 /// Note: This requires fetching user profiles for each friend
 /// In production, you might want to use a more efficient approach
-final onlineFriendsProvider =
-    FutureProvider.family<List<String>, String>((ref, oddserId) async {
+final onlineFriendsProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, oddserId) async {
   final friendsAsync = ref.watch(friendsListProvider(oddserId));
   final friends = friendsAsync.valueOrNull ?? [];
 

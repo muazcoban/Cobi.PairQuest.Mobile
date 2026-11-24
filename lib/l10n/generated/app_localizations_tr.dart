@@ -602,7 +602,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get rankedPlay => 'Dereceli';
 
   @override
-  String get rankedPlayDesc => 'Rating için yarış';
+  String get rankedPlayDesc => 'ELO puanı için yarış';
 
   @override
   String get ranked => 'Dereceli';
@@ -641,7 +641,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchTime => 'Süre';
 
   @override
-  String get ratingRange => 'Rating';
+  String get ratingRange => 'ELO aralığı';
 
   @override
   String get ok => 'Tamam';
@@ -811,6 +811,23 @@ class AppLocalizationsTr extends AppLocalizations {
   String get unranked => 'Sıralamasız';
 
   @override
+  String get matchEndedNoResult => 'Maç sonuçsuz bitti';
+
+  @override
+  String get opponentNeverPlayed =>
+      'Rakip hiç hamle yapmadı. Bu maç sıralamana ve istatistiklerine işlenmedi.';
+
+  @override
+  String winsShort(int count) {
+    return '${count}G';
+  }
+
+  @override
+  String lossesShort(int count) {
+    return '${count}M';
+  }
+
+  @override
   String rankedRecord(int wins, int losses) {
     return '${wins}G - ${losses}M';
   }
@@ -834,7 +851,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get tierMaster => 'Usta';
 
   @override
-  String get rating => 'ELO puanı';
+  String get rating => 'ELO';
 
   @override
   String get turnTimedOut => 'Süren doldu, sıra rakibe geçti';
