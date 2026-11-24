@@ -14,7 +14,7 @@ final activeGameIdProvider = StateProvider<String?>((ref) => null);
 
 /// Online game state
 final onlineGameProvider =
-    StreamProvider.family<OnlineGame?, String>((ref, gameId) {
+    StreamProvider.autoDispose.family<OnlineGame?, String>((ref, gameId) {
   final repository = ref.watch(onlineGameRepositoryProvider);
   return repository.watchGame(gameId);
 });
@@ -31,7 +31,7 @@ final onlineGameProvider =
 final currentPlayerIdProvider = StateProvider<String?>((ref) => null);
 
 /// Check if it's current player's turn
-final isMyTurnProvider = Provider.family<bool, String>((ref, gameId) {
+final isMyTurnProvider = Provider.autoDispose.family<bool, String>((ref, gameId) {
   final game = ref.watch(onlineGameProvider(gameId)).valueOrNull;
   final myId = ref.watch(currentPlayerIdProvider);
 
@@ -40,7 +40,8 @@ final isMyTurnProvider = Provider.family<bool, String>((ref, gameId) {
 });
 
 /// Get opponent player
-final opponentPlayerProvider = Provider.family<OnlinePlayer?, String>((ref, gameId) {
+final opponentPlayerProvider =
+    Provider.autoDispose.family<OnlinePlayer?, String>((ref, gameId) {
   final game = ref.watch(onlineGameProvider(gameId)).valueOrNull;
   final myId = ref.watch(currentPlayerIdProvider);
 
@@ -54,7 +55,8 @@ final opponentPlayerProvider = Provider.family<OnlinePlayer?, String>((ref, game
 });
 
 /// Get my player data
-final myPlayerProvider = Provider.family<OnlinePlayer?, String>((ref, gameId) {
+final myPlayerProvider =
+    Provider.autoDispose.family<OnlinePlayer?, String>((ref, gameId) {
   final game = ref.watch(onlineGameProvider(gameId)).valueOrNull;
   final myId = ref.watch(currentPlayerIdProvider);
 

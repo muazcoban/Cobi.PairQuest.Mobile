@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,14 +24,26 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
   List<Map<String, dynamic>> _searchResults = [];
   bool _isSearching = false;
   String? _error;
+  Timer? _debounce;
+  // Only the newest search may show its results; an older one can finish
+  // later on a slow connection.
+  int _searchSeq = 0;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
+  /// Each search sends four queries, so it waits until typing pauses.
+  void _onQueryChanged(String query) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () => _search(query));
+  }
+
   Future<void> _search(String query) async {
+    final seq = ++_searchSeq;
     if (query.length < 3) {
       setState(() {
         _searchResults = [];
@@ -97,11 +111,13 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
         }
       }
 
+      if (!mounted || seq != _searchSeq) return;
       setState(() {
         _searchResults = userMap.values.toList();
         _isSearching = false;
       });
     } catch (e) {
+      if (!mounted || seq != _searchSeq) return;
       setState(() {
         _error = e.toString();
         _isSearching = false;
@@ -151,7 +167,7 @@ class _FriendSearchScreenState extends ConsumerState<FriendSearchScreen> {
                   borderSide: BorderSide(color: AppColors.primary, width: 2),
                 ),
               ),
-              onChanged: (value) => _search(value),
+              onChanged: _onQueryChanged,
             ),
           ),
 

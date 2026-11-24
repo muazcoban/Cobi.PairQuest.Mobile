@@ -23,7 +23,10 @@ class OnlineLobbyScreen extends ConsumerStatefulWidget {
 }
 
 class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
-  bool _initialized = false;
+  /// The account whose profile this screen set up; null until a signed-in
+  /// user is seen. Retry and a new sign-in run the setup again.
+  String? _initializedFor;
+  bool _initializing = false;
 
   @override
   void initState() {
@@ -34,15 +37,15 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
     });
   }
 
-  Future<void> _initializeProfile() async {
-    if (!mounted || _initialized) return;
-    _initialized = true;
-
-    final authState = ref.read(authProvider);
-    final user = authState.user;
+  Future<void> _initializeProfile({bool force = false}) async {
+    final user = ref.read(authProvider).user;
     // Guests play online too: Google Play's rule for apps that children
     // also use says no feature may require a Google account.
-    if (user != null) {
+    if (!mounted || user == null || _initializing) return;
+    if (!force && _initializedFor == user.uid) return;
+    _initializing = true;
+    _initializedFor = user.uid;
+    try {
       // A guest or an Apple account may have no name; ask before it goes
       // public.
       await ensureAccountName(context, ref);
@@ -52,12 +55,22 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
             displayName: ref.read(authProvider).displayName,
             photoUrl: user.photoURL,
           );
+    } finally {
+      _initializing = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // A sign-in on this screen, or one that finished after it opened, sets
+    // the profile up without leaving the lobby.
+    ref.listen<String?>(authProvider.select((s) => s.user?.uid), (prev, next) {
+      if (next != null && next != prev) {
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => _initializeProfile(force: true));
+      }
+    });
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final profileAsync = ref.watch(onlineProfileNotifierProvider);
@@ -132,10 +145,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
                   onPressed: () async {
                     final success =
                         await ref.read(authProvider.notifier).signInWithApple();
-                    if (success && mounted) {
-                      _initialized = false;
-                      _initializeProfile();
-                    }
+                    if (success && mounted) _initializeProfile();
                   },
                 ),
               ),
@@ -145,11 +155,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
               onPressed: () async {
                 // Sign in with Google
                 final success = await ref.read(authProvider.notifier).signInWithGoogle();
-                if (success && mounted) {
-                  // Re-initialize profile after login
-                  _initialized = false;
-                  _initializeProfile();
-                }
+                if (success && mounted) _initializeProfile();
               },
               icon: const Icon(Icons.login),
               label: Text(l10n.signInWithGoogle),
@@ -166,7 +172,6 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
               onPressed: () async {
                 await ref.read(authProvider.notifier).signInAnonymously();
                 if (mounted && ref.read(authProvider).isAuthenticated) {
-                  _initialized = false;
                   _initializeProfile();
                 }
               },
@@ -211,7 +216,7 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: _initializeProfile,
+              onPressed: () => _initializeProfile(force: true),
               child: Text(l10n.retry),
             ),
           ],
@@ -640,6 +645,12 @@ class _OnlineLobbyScreenState extends ConsumerState<OnlineLobbyScreen> {
   void _startMatchmaking({required bool ranked}) {
     final user = ref.read(authProvider).user;
     if (user == null) return;
+    // Matchmaking starts from the profile's rating; without a profile the
+    // search screen would wait forever, so set the profile up first.
+    if (ref.read(onlineProfileNotifierProvider).valueOrNull == null) {
+      _initializeProfile(force: true);
+      return;
+    }
 
     ref.read(selectedMatchmakingModeProvider.notifier).state =
         ranked ? MatchmakingMode.ranked : MatchmakingMode.casual;

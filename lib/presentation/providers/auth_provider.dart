@@ -105,8 +105,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _auth.signInAnonymously();
-      state = state.copyWith(isLoading: false, isAnonymous: true);
+      // The new user goes into state now; authStateChanges can report it
+      // after this future, and the lobby sets the profile up from state.
+      final credential = await _auth.signInAnonymously();
+      state = state.copyWith(
+        user: credential.user,
+        isLoading: false,
+        isAnonymous: true,
+      );
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {

@@ -469,6 +469,7 @@ class MatchmakingRepository {
           .collection(_invitationsCollection)
           .where('fromUserId', isEqualTo: fromUserId)
           .where('toUserId', isEqualTo: toUserId)
+          .where('status', isEqualTo: InvitationStatus.pending.name)
           .get();
 
       // Filter for pending ones and cancel them
@@ -505,14 +506,17 @@ class MatchmakingRepository {
     });
   }
 
-  /// Watch pending invitations for a user
-  /// Uses simplified query to avoid Firestore composite index requirement
+  /// Watch pending invitations for a user.
+  ///
+  /// Two equality filters need no composite index. Without the status
+  /// filter the listener read every invitation the player ever received,
+  /// since answered ones are kept. Expiry and order are checked here.
   Stream<List<GameInvitation>> watchPendingInvitations(String oddserId) {
     debugPrint('📨 Starting to watch invitations for user: $oddserId');
-    // Simplified query - only filter by toUserId, do status/sort client-side
     return _firestore
         .collection(_invitationsCollection)
         .where('toUserId', isEqualTo: oddserId)
+        .where('status', isEqualTo: InvitationStatus.pending.name)
         .snapshots()
         .map((snapshot) {
       debugPrint('📨 Received ${snapshot.docs.length} total invitations for user');
