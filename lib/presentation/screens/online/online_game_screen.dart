@@ -11,6 +11,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/friends_provider.dart';
 import '../../providers/online_game_provider.dart';
+import '../../providers/online_leaderboard_provider.dart';
 import '../../providers/online_profile_provider.dart';
 import '../../widgets/game/game_board.dart';
 import '../../widgets/moderation/player_safety.dart';
@@ -249,11 +250,6 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
       (p) => p.oddserId != myId,
       orElse: () => game.players.last,
     );
-
-    // Debug: Log turn state
-    debugPrint('🎮 Turn state: myId=$myId, currentPlayerIndex=${game.currentPlayerIndex}, '
-        'player0=${game.players[0].oddserId}, player1=${game.players.length > 1 ? game.players[1].oddserId : "N/A"}, '
-        'isMyTurn=$isMyTurn');
 
     return Column(
       children: [
@@ -1108,62 +1104,20 @@ class _OnlineGameScreenState extends ConsumerState<OnlineGameScreen>
     return result ?? false;
   }
 
-  /// Update player stats after game completion
-  /// Stats are updated for all game modes (ranked and casual)
-  /// Rating only changes for ranked games
+  /// Record the finished game in this player's stats.
+  ///
+  /// The repository applies each game once per player inside a transaction,
+  /// so a second call (rebuilds, the lobby's catch-up for games that ended
+  /// while the app was away) changes nothing. Draws count, and a ranked draw
+  /// moves the rating by half a win.
   Future<void> _updateStatsAfterGame(OnlineGame game, String myId) async {
-    if (game.players.length < 2) return;
-
-    final myPlayer = game.players.firstWhere(
-      (p) => p.oddserId == myId,
-      orElse: () => game.players.first,
-    );
-    final opponent = game.players.firstWhere(
-      (p) => p.oddserId != myId,
-      orElse: () => game.players.last,
-    );
-
-    final isWinner = game.winnerId == myId;
-    final isDraw = game.winnerId == null;
-    final isRanked = game.mode == OnlineGameMode.ranked;
-
-    debugPrint('🎮 Stats update: myId=$myId, winnerId=${game.winnerId}, isWinner=$isWinner, isDraw=$isDraw, isRanked=$isRanked');
-
-    // Skip stats update for draws (no win/loss recorded)
-    if (isDraw) {
-      debugPrint('🎮 Draw game - skipping stats update');
-      return;
+    final recorded = await ref
+        .read(onlineProfileNotifierProvider.notifier)
+        .recordGameResult(gameId: game.id, oddserId: myId);
+    if (recorded && mounted) {
+      // The rank card and the ranking read the new rating.
+      ref.invalidate(currentUserRankProvider(myId));
+      ref.invalidate(globalLeaderboardProvider);
     }
-
-    // Calculate new rating only for ranked games
-    int? newMyRating;
-    if (isRanked) {
-      if (isWinner) {
-        final (winnerRating, _) = EloCalculator.calculateNewRatings(
-          winnerRating: myPlayer.rating,
-          loserRating: opponent.rating,
-        );
-        newMyRating = winnerRating;
-      } else {
-        final (_, loserRating) = EloCalculator.calculateNewRatings(
-          winnerRating: opponent.rating,
-          loserRating: myPlayer.rating,
-        );
-        newMyRating = loserRating;
-      }
-      debugPrint('🎮 Ranked game - new rating: $newMyRating');
-    } else {
-      debugPrint('🎮 Casual game - no rating change');
-    }
-
-    // Update stats (works for both ranked and casual)
-    await ref.read(onlineProfileNotifierProvider.notifier).updateGameStats(
-          oddserId: myId,
-          isWin: isWinner,
-          isRanked: isRanked,
-          newRating: newMyRating,
-        );
-
-    debugPrint('🎮 Stats update complete for $myId');
   }
 }
