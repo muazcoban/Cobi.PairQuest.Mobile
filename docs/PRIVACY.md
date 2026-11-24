@@ -47,11 +47,13 @@ Memoko shows ads from Google AdMob: reward videos that play only when you choose
 - the advertising ID is not used: the Android app does not request it, and the iOS app never asks for tracking permission,
 - only Google's own ads; no other ad networks.
 
-To show and count ads, the Google Mobile Ads SDK processes data such as the device's IP address (for approximate location), ad views and taps, and crash and performance data. For every player, including players under 13, this data is used only to show contextual ads, limit how often they appear, measure them and prevent fraud; it is not used to build a profile of the player or to contact them. See [How Google uses information from sites or apps that use its services](https://policies.google.com/technologies/partner-sites).
+To show and count ads, the Google Mobile Ads SDK processes data such as the device's IP address (for approximate location), a device identifier scoped to this app or developer (not the advertising ID), ad views and taps, and crash and performance data. For every player, including players under 13, this data is used only to show contextual ads, limit how often they appear, measure them and prevent fraud; it is not used to build a profile of the player or to contact them. See [How Google uses information from sites or apps that use its services](https://policies.google.com/technologies/partner-sites).
 
 The one-time "Remove ads" purchase turns off the ads between levels; reward videos stay available if you want them. To report an ad you think is inappropriate, open **Settings → Ads → Report an inappropriate ad**.
 
-Memoko does not use analytics services. We do not sell your data or share it for advertising.
+Memoko itself uses no analytics service. The advertising data above goes to Google only through the Google Mobile Ads SDK, to show and measure ads as described here. We do not sell your data.
+
+Every third party listed above handles your data under its own privacy and security terms, which protect it at least as well as this policy does.
 
 ### Deleting your account and data
 In the app, open **Settings → Account → Delete Account**. This permanently deletes:
@@ -139,11 +141,13 @@ Memoko, Google AdMob reklamları gösterir: yalnızca siz izlemeyi seçtiğinizd
 - reklam kimliği kullanılmaz: Android uygulaması bu kimliği istemez, iOS uygulaması izleme izni sormaz,
 - yalnızca Google'ın kendi reklamları gösterilir; başka reklam ağı kullanılmaz.
 
-Reklamları göstermek ve saymak için Google Mobile Ads SDK; cihazın IP adresi (yaklaşık konum için), reklam görüntüleme ve dokunmaları, çökme ve performans verileri gibi bilgileri işler. 13 yaşından küçükler dahil her oyuncuda bu veriler yalnızca bağlama dayalı reklam göstermek, reklamların ne sıklıkla çıktığını sınırlamak, reklamları ölçmek ve dolandırıcılığı önlemek için kullanılır; oyuncunun profilini çıkarmak ya da onunla iletişime geçmek için kullanılmaz. Ayrıntı için [Google'ın, hizmetlerini kullanan site ve uygulamalardaki bilgileri nasıl kullandığı](https://policies.google.com/technologies/partner-sites?hl=tr) sayfasına bakın.
+Reklamları göstermek ve saymak için Google Mobile Ads SDK; cihazın IP adresi (yaklaşık konum için), bu uygulamaya ya da geliştiriciye özgü bir cihaz kimliği (reklam kimliği değil), reklam görüntüleme ve dokunmaları, çökme ve performans verileri gibi bilgileri işler. 13 yaşından küçükler dahil her oyuncuda bu veriler yalnızca bağlama dayalı reklam göstermek, reklamların ne sıklıkla çıktığını sınırlamak, reklamları ölçmek ve dolandırıcılığı önlemek için kullanılır; oyuncunun profilini çıkarmak ya da onunla iletişime geçmek için kullanılmaz. Ayrıntı için [Google'ın, hizmetlerini kullanan site ve uygulamalardaki bilgileri nasıl kullandığı](https://policies.google.com/technologies/partner-sites?hl=tr) sayfasına bakın.
 
 Tek seferlik "Reklamları kaldır" satın alması seviye aralarındaki reklamları kapatır; ödüllü videolar isterseniz kullanılabilir kalır. Uygunsuz bulduğunuz bir reklamı **Ayarlar → Reklamlar → Uygunsuz reklamı bildir** adımlarıyla bize bildirebilirsiniz.
 
-Memoko analitik hizmeti kullanmaz. Verilerinizi satmayız ve reklam amacıyla paylaşmayız.
+Memoko'nun kendisi analitik hizmeti kullanmaz. Yukarıdaki reklam verileri Google'a yalnız Google Mobile Ads SDK üzerinden, burada anlatıldığı gibi reklam göstermek ve ölçmek için gider. Verilerinizi satmayız.
+
+Yukarıda sayılan her üçüncü taraf verilerinizi kendi gizlilik ve güvenlik koşullarıyla işler; bu koşullar verilerinizi en az bu politika kadar korur.
 
 ### Hesabınızı ve verilerinizi silmek
 Uygulamada **Ayarlar → Hesap → Hesabı Sil** adımlarını izleyin. Bu işlem şunları kalıcı olarak siler:
