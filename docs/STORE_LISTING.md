@@ -26,6 +26,15 @@ in use by another app, so both stores use "Memory Card Game". The in-app subtitl
 
 **Promotional text** [170]: PairQuest is now Memoko. Same game, new name. Challenge real players in online memory duels and climb the ranked leagues from Bronze to Master. (143)
 
+**What's New in 2.4.0** (entered in App Store Connect on 24 November 2026, U.S. and U.K.):
+
+Memoko now shows ads, limited to content suitable for all ages.
+• Optional videos: double your coins after a win or on the daily reward, get 30 extra seconds when time runs out in Timed mode, or earn an extra hint
+• Ads may appear between games, but never in your first games or in multiplayer
+• A one-time purchase in Settings removes the ads between games; the optional videos stay
+• The game asks your age once on first launch; online features stay off for players under 13
+• Settings now has the terms of use and a way to report an inappropriate ad
+
 **What's New in 2.3.0**:
 
 PairQuest is now Memoko. Your progress, coins and online profile stay the same.
@@ -79,6 +88,15 @@ ASCII yazımlar (`hafiza`, `eslestirme`) bilerek var: Türkiye mağazası "hafiz
 yok: ilk ikisi flört uygulamalarına gidiyor, üçüncüsü 9+ bir oyunda App Review 2.3.8'e takılabilir.
 
 **Promosyon metni** [170]: PairQuest artık Memoko! Oyun aynı, adı yeni. Online hafıza düellolarında gerçek oyunculara meydan oku, Bronz'dan Usta'ya liglerde yüksel. (137)
+
+**Yenilikler (2.4.0)** (24 Kasım 2026'da App Store Connect'e girildi):
+
+Memoko'da artık reklam var; reklamlar tüm yaşlara uygun içerikle sınırlı.
+• İsteğe bağlı videolar: galibiyetten sonra ya da günlük ödülde altınını ikiye katla, Zamanlı Mod'da süre bitince 30 saniye ek süre al ya da fazladan ipucu kazan
+• Oyun aralarında reklam çıkabilir; ilk oyunlarda ve çok oyunculu maçlarda çıkmaz
+• Ayarlar'daki tek seferlik satın alma oyun aralarındaki reklamları kaldırır; isteğe bağlı videolar kalır
+• İlk açılışta yaşın bir kez sorulur; 13 yaş altındaki oyuncularda online özellikler kapalı kalır
+• Ayarlar'a kullanım koşulları ve uygunsuz reklamı bildirme eklendi
 
 **Yenilikler (2.3.0)**:
 

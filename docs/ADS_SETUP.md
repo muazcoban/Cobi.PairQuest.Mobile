@@ -35,7 +35,15 @@ yeniden dener. Bu süre her başarısızlıkta ikiye katlanır, en fazla 10 daki
 
 ## 1. AdMob konsolu (admob.google.com)
 
-**Durum (23 Kasım 2026):** Hesap (`pub-5547492389514605`) Play Console'dan ayrı bir Google hesabında. AdMob ilk incelemede hesabı reddetti: "Girdiğiniz hesap bilgileri yanlış veya eksik." Ödeme profilinde ad alanında soyad yoktu. Adreste il yerine bölge yazıyordu, posta kodu da mahalleyle uyuşmuyordu. Profili düzelttik ve hesabı 23 Kasım'da yeniden incelemeye gönderdik. Google'a göre inceleme genelde 24 saat sürüyor. Onay gelene kadar reklam istekleri doldurulmuyor. Memoko için yapılanlar:
+**Durum (24 Kasım 2026):** AdMob hesabı (`pub-5547492389514605`) onaylandı. Hesap Play Console'dan ayrı bir Google hesabında. İlk incelemede ret gelmişti, çünkü ödeme profilinde soyad eksikti ve adreste il yerine bölge yazıyordu. Profili düzelttik, 23 Kasım'da yeniden gönderdik, 24 Kasım'da onay geldi. Uygulamaların durumu:
+
+| Uygulama | Onay durumu | Reklam sunumu |
+|---|---|---|
+| Memoko iOS | Hazır | Etkin |
+| Memoko Android | İnceleme gerekli | Sınırlı: mağaza bağlantısı yok |
+| Cobi Paint iOS | Hazır | Etkin; Cobi reklamsız kalacağı için kodda reklam yok |
+
+Henüz gerçek reklam isteği gelmedi; app-ads.txt sayfası bu yüzden boş. Memoko için yapılanlar:
 
 | | Android | iOS |
 |---|---|---|
@@ -44,8 +52,8 @@ yeniden dener. Bu süre her başarısızlıkta ikiye katlanır, en fazla 10 daki
 | `memoko_interstitial` | `…/9610777928` | `…/5783038542` |
 
 - **İçerik ve kategori:** İki uygulamada da uygulama düzeyinde içerik derecesi G yapıldı ve 13 hassas kategorinin hepsi engellendi. Cobi Paint'in ayarlarına dokunulmadı.
-- **Android mağaza bağlantısı:** Uygulama Play'de listelenmemiş olarak eklendi. Onay durumu "İnceleme gerekli". Yayımlanınca AdMob'da "Mağaza ekle" ile bağlanacak.
-- **iOS doğrulaması (`app-ads.txt`):** AdMob'da "Doğrulandı" (23 Kasım 2026). Onay durumu hesap onayını bekliyor ("Hazırlanıyor").
+- **Android mağaza bağlantısı:** Uygulama Play'de listelenmemiş olarak eklendi. AdMob reklamı mağaza bağlanana kadar sınırlı sunuyor. 24 Kasım'da AdMob'un Play aramasında `com.cobistudio.pairquest` çıkmadı; kapalı testteki uygulama herkese açık listelenmediği için bulunmuyor. Üretim yayınından sonra AdMob'da "Mağaza ekle" ile bağlanacak.
+- **iOS doğrulaması (`app-ads.txt`):** AdMob'da "Doğrulandı" (23 Kasım 2026). Onay durumu "Hazır" (24 Kasım 2026).
   - Dosya `https://muazcoban.github.io/app-ads.txt` adresinde yayında. Kaynağı `muazcoban/muazcoban.github.io` deposunda (GitHub Pages, `main` dalı).
   - AdMob, App Store sayfasındaki geliştirici sitesine bakıyor. Bu yüzden App Store Connect'te pazarlama adresinin (Marketing URL) `https://muazcoban.github.io` olması ve bu adresi taşıyan sürümün yayında olması gerekiyor; ondan sonra AdMob'da "Güncellemeleri kontrol edin" denir.
   - Play'de de mağaza kaydındaki web sitesi aynı adres olacak.
@@ -110,6 +118,7 @@ Aşağıdaki adımlar ilk kurulum içindi ve hepsi yapıldı.
      - Adlar: "Reklamları Kaldır" (Türkçe), "Remove Ads" (U.S. ve U.K.).
      - İnceleme görüntüsü ve notu eklendi. Görüntü, simülatördeki İngilizce Ayarlar → Ads bölümü.
 3. Satın almayı ilk reklamlı sürümle birlikte incelemeye gönder.
+   - **Durum (24 Kasım 2026):** 2.4.0 sürümü açıldı ve Xcode Cloud derlemesi 9 seçildi. Bu derleme PR #8'in birleşme commit'inden çıktı. Üç dilde "Yenilikler" ve App Review notu girildi; metinler `docs/STORE_LISTING.md` dosyasında. Sürüm ve `remove_ads` aynı inceleme taslağına eklendi; ikisi de "Ready for Review". "Submit for Review" kullanıcıda. Yayın seçeneği "Automatically release this version".
 4. **App Privacy:** Google'ın listesine göre şunları ekle:
    - Device ID
    - Advertising Data
@@ -119,8 +128,11 @@ Aşağıdaki adımlar ilk kurulum içindi ve hepsi yapıldı.
    - Performance Data
 
    Amaç olarak Third-Party Advertising ve Analytics seç. Kaynak: developers.google.com/admob/ios/privacy/data-disclosure.
+   - **Durum (24 Kasım 2026):** Yayımlandı. Yaklaşık konum, ürün etkileşimi, reklam verisi, çökme verisi ve performans verisi eklendi; Device ID'ye reklam amaçları eklendi. Hepsinde amaç Third-Party Advertising ve Analytics, izleme "No". Çökme verisi kullanıcıya bağlı değil, diğerleri bağlı.
+   - Google'ın listesi (developers.google.com/admob/ios/privacy/data-disclosure): çökme günlüğü kullanıcıyla ilişkisiz, performans verisi kullanıcıyla ilişkili. Apple, gizlilik yasalarındaki kişisel veriyi "kullanıcıya bağlı" sayıyor.
    - "Used to track you" için resmî bir cevap yok. Reklam kimliği gönderilmediği ve ATT sorulmadığı için önerim "No"; bu bir hukuki yorum.
 5. **Yaş derecelendirme anketi:** Reklam sorusunu "Yes" yap. 9+ derecesi değişmemeli.
+   - **Durum (24 Kasım 2026):** "Advertising" "Yes" yapıldı. Yeni sorular cevaplandı: "Shared Location" ve "Dating and Relationships" "No". Hesaplanan derece 4+; mevcut "9+'ya yükselt" seçimi korundu, derece 9+.
 
 ## 3. Google Play Console
 
