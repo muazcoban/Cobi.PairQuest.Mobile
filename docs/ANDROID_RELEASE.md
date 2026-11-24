@@ -105,6 +105,8 @@ flutter build appbundle --release
 
 ## 4. Play Console
 
+**Durum (24 Kasım 2026):** Kapalı testte 8 (2.4.0) yayında. 9 (2.4.0) yüklendi ve kaydedildi; bu sürüm PR #8'i içeriyor ve 24 Kasım'da incelemeye gönderildi. Tek seferlik ürünler Google Payments satıcı hesabı açılınca tanımlanabilir. AdMob'da Android uygulaması mağazaya bağlanamıyor, çünkü kapalı testteki uygulama Play aramasında çıkmıyor; reklam sunumu üretim yayınına kadar sınırlı.
+
 ### Kapalı test: 12 kişi, 14 gün
 
 Yeni kişisel hesapta her uygulama üretime çıkmadan önce kapalı testten geçmeli: en az 12
@@ -134,7 +136,7 @@ hesap açılır açılmaz başlat.
 |---|---|
 | Gizlilik politikası | `https://github.com/muazcoban/Cobi.PairQuest.Mobile/blob/master/docs/PRIVACY.md` |
 | Uygulama erişimi | Özel erişim gerekmiyor: online özellikler herhangi bir Google hesabıyla açılıyor. |
-| Reklamlar | Şimdilik "Hayır". Reklamlı sürümle birlikte "Evet" yapılmalı. |
+| Reklamlar | "Evet" (24 Kasım 2026'da kontrol edildi). Veri güvenliği formunda AdMob verileri var. |
 | İçerik derecelendirmesi (IARC) | Oyun. Kullanıcılar etkileşimde bulunuyor: online oyun, görünen adlar, arkadaşlık istekleri. Konum paylaşımı yok. Dijital satın alma yok (mağaza yalnız oyun içi jeton ve elmasla). |
 | Hedef kitle | 6–8, 9–12, 13–15, 16–17, 18+ (karma kitle, Families politikası). Uygulamada nötr yaş ekranı var; 13 altında giriş, online oyun ve push kapalı. Ayrıntı: `docs/ADS_SETUP.md`, bölüm 3. |
 | Hesap silme | Uygulama içi silme var (Ayarlar → Hesap → Hesabı Sil). Web bağlantısı: `https://github.com/muazcoban/Cobi.PairQuest.Mobile/blob/master/docs/PRIVACY.md#deleting-your-account-and-data` |
