@@ -1247,7 +1247,7 @@ abstract class AppLocalizations {
   /// No description provided for @rankedPlayDesc.
   ///
   /// In tr, this message translates to:
-  /// **'Rating için yarış'**
+  /// **'ELO puanı için yarış'**
   String get rankedPlayDesc;
 
   /// No description provided for @ranked.
@@ -1325,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @ratingRange.
   ///
   /// In tr, this message translates to:
-  /// **'Rating'**
+  /// **'ELO aralığı'**
   String get ratingRange;
 
   /// No description provided for @ok.
@@ -1646,6 +1646,48 @@ abstract class AppLocalizations {
   /// **'Henüz oyuncu yok'**
   String get noPlayersYet;
 
+  /// No description provided for @noRankedPlayersYet.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz dereceli maç oynayan yok. İlk dereceli maçını oyna, listeye gir.'**
+  String get noRankedPlayersYet;
+
+  /// No description provided for @unranked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamasız'**
+  String get unranked;
+
+  /// No description provided for @matchEndedNoResult.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç sonuçsuz bitti'**
+  String get matchEndedNoResult;
+
+  /// No description provided for @opponentNeverPlayed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip hiç hamle yapmadı. Bu maç sıralamana ve istatistiklerine işlenmedi.'**
+  String get opponentNeverPlayed;
+
+  /// Win count on the online lobby card (G = galibiyet)
+  ///
+  /// In tr, this message translates to:
+  /// **'{count}G'**
+  String winsShort(int count);
+
+  /// Loss count on the online lobby card (M = mağlubiyet)
+  ///
+  /// In tr, this message translates to:
+  /// **'{count}M'**
+  String lossesShort(int count);
+
+  /// Ranked wins and losses on a leaderboard row (G = galibiyet, M = mağlubiyet)
+  ///
+  /// In tr, this message translates to:
+  /// **'{wins}G - {losses}M'**
+  String rankedRecord(int wins, int losses);
+
   /// No description provided for @tierBronze.
   ///
   /// In tr, this message translates to:
@@ -1685,7 +1727,7 @@ abstract class AppLocalizations {
   /// No description provided for @rating.
   ///
   /// In tr, this message translates to:
-  /// **'Rating'**
+  /// **'ELO'**
   String get rating;
 
   /// No description provided for @turnTimedOut.

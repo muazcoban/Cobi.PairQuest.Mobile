@@ -6,6 +6,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/online_leaderboard_provider.dart';
 import '../../providers/online_profile_provider.dart';
+import '../../utils/tier_label.dart';
 import '../../widgets/moderation/player_safety.dart';
 
 /// Online multiplayer leaderboard screen
@@ -197,7 +198,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${tier.name} • ${profile.rating} Rating',
+                          '${tierLabel(l10n, tier)} • ${profile.rating} ${l10n.rating}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withValues(alpha: 0.9),
@@ -220,7 +221,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                       child: Column(
                         children: [
                           Text(
-                            '#$rank',
+                            rank == null ? '—' : '#$rank',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -228,7 +229,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            l10n.yourRank,
+                            rank == null ? l10n.unranked : l10n.yourRank,
                             style: TextStyle(
                               fontSize: 11,
                               color: Colors.white.withValues(alpha: 0.8),
@@ -249,7 +250,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      tier.name,
+                      tierLabel(l10n, tier),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.8),
@@ -263,7 +264,7 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      _getNextTierName(tier),
+                      _getNextTierName(l10n, tier),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.8),
@@ -287,11 +288,20 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatItem(l10n.wins, '${profile.wins}', Colors.green.shade300),
-                  _buildStatItem(l10n.losses, '${profile.losses}', Colors.red.shade300),
+                  // Ranked games only: the rating above comes from them.
+                  _buildStatItem(
+                    l10n.wins,
+                    '${profile.rankedWins}',
+                    Colors.green.shade300,
+                  ),
+                  _buildStatItem(
+                    l10n.losses,
+                    '${profile.rankedLosses}',
+                    Colors.red.shade300,
+                  ),
                   _buildStatItem(
                     l10n.winRate,
-                    '${profile.winRate.toStringAsFixed(0)}%',
+                    '${profile.rankedWinRate.toStringAsFixed(0)}%',
                     Colors.amber.shade300,
                   ),
                   onlineCountAsync.when(
@@ -343,17 +353,34 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
     LeaderboardFilter filter,
     String? userId,
   ) {
-    final leaderboardAsync = filter == LeaderboardFilter.friends && userId != null
+    final isFriends = filter == LeaderboardFilter.friends && userId != null;
+    final leaderboardAsync = isFriends
         ? ref.watch(friendsLeaderboardProvider(userId))
         : ref.watch(globalLeaderboardProvider);
+
+    // The lists are read once per visit; pulling down reads them again.
+    Future<void> refresh() async {
+      if (userId != null) ref.invalidate(currentUserRankProvider(userId));
+      if (isFriends) {
+        ref.invalidate(friendsLeaderboardProvider(userId));
+        await ref.read(friendsLeaderboardProvider(userId).future);
+      } else {
+        ref.invalidate(globalLeaderboardProvider);
+        await ref.read(globalLeaderboardProvider.future);
+      }
+    }
 
     return leaderboardAsync.when(
       data: (entries) {
         if (entries.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          // Scrollable, so pulling down reads the list again.
+          return RefreshIndicator(
+            onRefresh: refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(32),
               children: [
+                const SizedBox(height: 48),
                 Icon(
                   Icons.leaderboard_outlined,
                   size: 64,
@@ -363,7 +390,8 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
                 Text(
                   filter == LeaderboardFilter.friends
                       ? l10n.noFriendsOnLeaderboard
-                      : l10n.noPlayersYet,
+                      : l10n.noRankedPlayersYet,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary(context),
@@ -374,29 +402,38 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: entries.length,
-          itemBuilder: (context, index) {
-            final entry = entries[index];
-            final isCurrentUser = entry.profile.oddserId == userId;
+        return RefreshIndicator(
+          onRefresh: refresh,
+          child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              final isCurrentUser = entry.profile.oddserId == userId;
 
-            return _LeaderboardTile(
-              entry: entry,
-              isCurrentUser: isCurrentUser,
-            );
-          },
+              return _LeaderboardTile(
+                entry: entry,
+                isCurrentUser: isCurrentUser,
+              );
+            },
+          ),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
-            const SizedBox(height: 16),
-            Text('${l10n.errorOccurred}: $e'),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
+              const SizedBox(height: 16),
+              Text('${l10n.errorOccurred}: $e', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(onPressed: refresh, child: Text(l10n.retry)),
+            ],
+          ),
         ),
       ),
     );
@@ -419,12 +456,12 @@ class OnlineLeaderboardScreen extends ConsumerWidget {
     }
   }
 
-  String _getNextTierName(PlayerTier tier) {
+  String _getNextTierName(AppLocalizations l10n, PlayerTier tier) {
     final index = PlayerTier.values.indexOf(tier);
     if (index < PlayerTier.values.length - 1) {
-      return PlayerTier.values[index + 1].name;
+      return tierLabel(l10n, PlayerTier.values[index + 1]);
     }
-    return tier.name;
+    return tierLabel(l10n, tier);
   }
 }
 
@@ -440,6 +477,7 @@ class _LeaderboardTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tier = PlayerTier.fromRating(entry.profile.rating);
 
     return Container(
@@ -519,7 +557,7 @@ class _LeaderboardTile extends StatelessWidget {
         subtitle: Row(
           children: [
             Text(
-              tier.name,
+              tierLabel(l10n, tier),
               style: TextStyle(
                 fontSize: 12,
                 color: _getTierColor(tier),
@@ -528,7 +566,11 @@ class _LeaderboardTile extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              '${entry.profile.wins}W - ${entry.profile.losses}L',
+              // Ranked games, the ones the rating on the right comes from.
+              l10n.rankedRecord(
+                entry.profile.rankedWins,
+                entry.profile.rankedLosses,
+              ),
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary(context),

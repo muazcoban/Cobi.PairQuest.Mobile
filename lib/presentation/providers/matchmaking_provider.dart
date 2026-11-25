@@ -137,7 +137,8 @@ class MatchmakingNotifier extends StateNotifier<MatchmakingSearchStatus> {
           state.queueId!,
           excludeUserIds: _ref.read(blockedUserIdsProvider(oddserId)),
         );
-        if (gameId != null) {
+        // The queue listener may have handled this match during the await.
+        if (gameId != null && state.state == MatchmakingUIState.searching) {
           _handleMatchFound(gameId);
         }
       });
@@ -174,6 +175,9 @@ class MatchmakingNotifier extends StateNotifier<MatchmakingSearchStatus> {
   }
 
   void _handleMatchFound(String gameId) {
+    // The poll and the queue listener can both report the same match; the
+    // second report would open the game screen twice.
+    if (state.state != MatchmakingUIState.searching) return;
     _cleanup();
 
     // The game ID is read; the queue entry with name and photo is no longer needed
@@ -229,8 +233,8 @@ final matchmakingProvider =
 });
 
 /// Game invitations provider; invitations from blocked players are hidden
-final pendingInvitationsProvider =
-    StreamProvider.family<List<GameInvitation>, String>((ref, oddserId) {
+final pendingInvitationsProvider = StreamProvider.autoDispose
+    .family<List<GameInvitation>, String>((ref, oddserId) {
   final repository = ref.watch(matchmakingRepositoryProvider);
   final blocked = ref.watch(blockedUserIdsProvider(oddserId));
   return repository.watchPendingInvitations(oddserId).map((invitations) => [
@@ -240,8 +244,8 @@ final pendingInvitationsProvider =
 });
 
 /// Watch a specific invitation (for sender to know when accepted)
-final watchInvitationProvider =
-    StreamProvider.family<GameInvitation?, String>((ref, invitationId) {
+final watchInvitationProvider = StreamProvider.autoDispose
+    .family<GameInvitation?, String>((ref, invitationId) {
   final repository = ref.watch(matchmakingRepositoryProvider);
   return repository.watchInvitation(invitationId);
 });

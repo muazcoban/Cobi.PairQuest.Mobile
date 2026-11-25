@@ -2,13 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/online_game.dart';
 import '../../domain/entities/online_player.dart';
+import '../../domain/services/online_ranking.dart';
 
 /// Repository for online multiplayer game operations
 ///
 /// KEY OPERATIONS:
 /// - [watchGame] - Real-time game state updates via Firestore stream
 /// - [submitMove] - Submit a card flip move (updates moves array)
-/// - [updateGameStats] - Update win/loss stats (ranked vs casual)
+/// - [applyGameResult] - Record a finished game in one player's stats, once
 /// - [getOrCreateProfile] - Create or fetch user profile
 ///
 /// STATS SYSTEM:
@@ -173,6 +174,7 @@ class OnlineGameRepository {
           'lastActivityAt': FieldValue.serverTimestamp(),
           if (winnerId != null) 'winnerId': winnerId,
           if (isCompleted) 'completedAt': FieldValue.serverTimestamp(),
+          if (isCompleted) 'statsPending': _statsPending(updatedPlayers),
         });
       });
     } catch (e) {
@@ -240,6 +242,7 @@ class OnlineGameRepository {
           'winnerId': opponent.oddserId, // Opponent wins by forfeit
           'completedAt': FieldValue.serverTimestamp(),
           'lastActivityAt': FieldValue.serverTimestamp(),
+          'statsPending': _statsPending(game.players),
         });
       });
     } catch (e) {
@@ -307,12 +310,20 @@ class OnlineGameRepository {
           return false;
         }
 
-        debugPrint('🎮 $claimerId wins by forfeit: opponent stopped responding');
+        // An opponent who never made a move may never have seen the game
+        // (their search was cancelled or timed out as the match was made).
+        // Nobody wins such a game, so neither side gets a result.
+        final stalledId = game.players[game.currentPlayerIndex].oddserId;
+        final stalledEverMoved = game.moves.any((m) => m.oddserId == stalledId);
+        debugPrint(stalledEverMoved
+            ? '🎮 $claimerId wins by forfeit: opponent stopped responding'
+            : '🎮 Opponent never played; game ends without a result');
         transaction.update(gameDoc.reference, {
           'status': OnlineGameStatus.abandoned.name,
-          'winnerId': claimerId,
+          'winnerId': stalledEverMoved ? claimerId : null,
           'completedAt': FieldValue.serverTimestamp(),
           'lastActivityAt': FieldValue.serverTimestamp(),
+          'statsPending': _statsPending(game.players),
         });
         return true;
       });
@@ -362,18 +373,29 @@ class OnlineGameRepository {
 
       if (doc.exists) {
         final existingProfile = OnlineUserProfile.fromFirestore(doc);
+        // Ranked counters an old version left out, and the flag the
+        // ranking query uses.
+        final repair = {
+          ...OnlineRanking.legacyRankedRepair(doc.data()!),
+          // From now on this app records the player's results; see
+          // applyPendingResults.
+          if (!doc.data()!.containsKey(resultsSinceField))
+            resultsSinceField: FieldValue.serverTimestamp(),
+        };
 
         // Update profile if displayName changed (e.g., Guest -> Gmail name).
         // Profiles are readable by every signed-in user, so an e-mail address
         // that older versions stored here is removed.
         final needsUpdate = existingProfile.displayName != displayName ||
             (photoUrl != null && existingProfile.photoUrl != photoUrl) ||
-            existingProfile.email != null;
+            existingProfile.email != null ||
+            repair.isNotEmpty;
 
         if (needsUpdate) {
           final updates = <String, dynamic>{
             'displayName': displayName,
             'lastSeenAt': FieldValue.serverTimestamp(),
+            ...repair,
           };
           if (photoUrl != null) updates['photoUrl'] = photoUrl;
           if (existingProfile.email != null) updates['email'] = FieldValue.delete();
@@ -385,6 +407,11 @@ class OnlineGameRepository {
             displayName: displayName,
             photoUrl: photoUrl ?? existingProfile.photoUrl,
             email: null,
+            rankedGames: (repair['rankedGames'] as int?) ??
+                existingProfile.rankedGames,
+            rankedWins: (repair['rankedWins'] as int?) ?? existingProfile.rankedWins,
+            rankedLosses:
+                (repair['rankedLosses'] as int?) ?? existingProfile.rankedLosses,
           );
         }
 
@@ -400,7 +427,10 @@ class OnlineGameRepository {
         lastSeenAt: DateTime.now(),
       );
 
-      await _usersRef.doc(oddserId).set(profile.toFirestore());
+      await _usersRef.doc(oddserId).set({
+        ...profile.toFirestore(),
+        resultsSinceField: FieldValue.serverTimestamp(),
+      });
       debugPrint('🆕 Created new profile: displayName=$displayName');
       return profile;
     } catch (e) {
@@ -451,49 +481,152 @@ class OnlineGameRepository {
     }
   }
 
-  /// Update user stats after game
-  /// [isRanked] determines which stats to update (ranked vs casual)
-  /// Rating only changes for ranked games
-  Future<void> updateGameStats(
-    String oddserId, {
-    required bool isWin,
-    required bool isRanked,
-    int? newRating,
-  }) async {
-    try {
-      final updates = <String, dynamic>{
-        'lastSeenAt': FieldValue.serverTimestamp(),
-        // Legacy fields (for backward compatibility)
-        if (isWin) 'wins': FieldValue.increment(1),
-        if (!isWin) 'losses': FieldValue.increment(1),
-        'totalGames': FieldValue.increment(1),
+  /// Marks every player of a game that just ended as still owing the
+  /// result to their own stats. Each player's app records it and removes
+  /// its own mark, even when that player was not watching the end.
+  static Map<String, bool> _statsPending(List<OnlinePlayer> players) => {
+        for (final player in players) player.oddserId: true,
       };
 
-      if (isRanked) {
-        // Ranked game stats
-        if (newRating != null) {
-          updates['rating'] = newRating;
-        }
-        if (isWin) {
-          updates['rankedWins'] = FieldValue.increment(1);
-        } else {
-          updates['rankedLosses'] = FieldValue.increment(1);
-        }
-        updates['rankedGames'] = FieldValue.increment(1);
-      } else {
-        // Casual game stats
-        if (isWin) {
-          updates['casualWins'] = FieldValue.increment(1);
-        } else {
-          updates['casualLosses'] = FieldValue.increment(1);
-        }
-        updates['casualGames'] = FieldValue.increment(1);
-      }
+  /// Records a finished game in [oddserId]'s stats, once.
+  ///
+  /// Each player's app writes only that player's profile, so the result is
+  /// applied by each side separately. The game remembers who has applied
+  /// it (`statsAppliedFor`), which makes a second call, from the result
+  /// screen and from [applyPendingResults], a no-op. Ranked games move the
+  /// rating by the Elo change between the ratings stored in the game; the
+  /// change is added to the current rating, so a stale copy of the profile
+  /// cannot overwrite a newer rating. Returns whether anything was written.
+  Future<bool> applyGameResult(String gameId, String oddserId) async {
+    try {
+      return await _firestore.runTransaction((transaction) async {
+        final gameRef = _gamesRef.doc(gameId);
+        final userRef = _usersRef.doc(oddserId);
+        final gameDoc = await transaction.get(gameRef);
+        if (!gameDoc.exists) return false;
+        final userDoc = await transaction.get(userRef);
+        if (!userDoc.exists) return false;
 
-      await _usersRef.doc(oddserId).update(updates);
-      debugPrint('🎮 Stats updated: isRanked=$isRanked, isWin=$isWin');
+        final game = gameDoc.data()!;
+        final status = game['status'];
+        if (status != OnlineGameStatus.completed.name &&
+            status != OnlineGameStatus.abandoned.name) {
+          return false;
+        }
+        final applied = List<String>.from(
+          (game['statsAppliedFor'] as List?) ?? const <String>[],
+        );
+        // Firebase user IDs are letters and digits, so the dotted path
+        // names the map entry.
+        final markApplied = <String, dynamic>{
+          'statsAppliedFor': FieldValue.arrayUnion([oddserId]),
+          'statsPending.$oddserId': FieldValue.delete(),
+        };
+        if (applied.contains(oddserId)) return false;
+
+        final players = [
+          for (final p in (game['players'] as List? ?? const []))
+            Map<String, dynamic>.from(p as Map),
+        ];
+        final me = players.where((p) => p['oddserId'] == oddserId).firstOrNull;
+        final opponent =
+            players.where((p) => p['oddserId'] != oddserId).firstOrNull;
+        final winnerId = game['winnerId'] as String?;
+        // No opponent, or an abandoned game nobody won: nothing to record.
+        if (me == null ||
+            opponent == null ||
+            (winnerId == null && status == OnlineGameStatus.abandoned.name)) {
+          transaction.update(gameRef, markApplied);
+          return false;
+        }
+
+        final isRanked = game['mode'] == OnlineGameMode.ranked.name;
+        final isDraw = winnerId == null;
+        final isWin = winnerId == oddserId;
+        final updates = <String, dynamic>{
+          'lastSeenAt': FieldValue.serverTimestamp(),
+          // Totals over every mode, read by older app versions.
+          'totalGames': FieldValue.increment(1),
+          if (isDraw) 'draws': FieldValue.increment(1),
+          if (isWin) 'wins': FieldValue.increment(1),
+          if (!isDraw && !isWin) 'losses': FieldValue.increment(1),
+        };
+        if (isRanked) {
+          final user = userDoc.data()!;
+          final current =
+              (user['rating'] as num?)?.toInt() ?? OnlineRanking.startRating;
+          final delta = OnlineRanking.ratingDelta(
+            rating: (me['rating'] as num?)?.toInt() ?? current,
+            opponentRating: (opponent['rating'] as num?)?.toInt() ??
+                OnlineRanking.startRating,
+            score: isDraw ? 0.5 : (isWin ? 1 : 0),
+          );
+          updates['rating'] = OnlineRanking.applyDelta(current, delta);
+          updates['isRanked'] = true;
+          updates['rankedGames'] = FieldValue.increment(1);
+          if (isWin) updates['rankedWins'] = FieldValue.increment(1);
+          if (!isDraw && !isWin) {
+            updates['rankedLosses'] = FieldValue.increment(1);
+          }
+        } else {
+          updates['casualGames'] = FieldValue.increment(1);
+          if (isWin) updates['casualWins'] = FieldValue.increment(1);
+          if (!isDraw && !isWin) {
+            updates['casualLosses'] = FieldValue.increment(1);
+          }
+        }
+
+        transaction.update(userRef, updates);
+        transaction.update(gameRef, markApplied);
+        debugPrint('🎮 Result recorded: game=$gameId ranked=$isRanked '
+            'win=$isWin draw=$isDraw');
+        return true;
+      });
     } catch (e) {
-      debugPrint('Error updating game stats: $e');
+      debugPrint('Error recording game result: $e');
+      return false;
+    }
+  }
+
+  /// When this app version started recording the player's results, set
+  /// on the profile at the first setup.
+  static const String resultsSinceField = 'resultsSince';
+
+  /// Records the games that ended while [oddserId]'s app was closed or on
+  /// another screen. Returns how many were recorded.
+  ///
+  /// Only games that ended after [resultsSinceField] count. Before that the
+  /// player ran an older version, which wrote its own stats at the end of
+  /// a game it watched but did not take the game's pending mark away;
+  /// recording those games again would count them twice. Older pending
+  /// games are only unmarked.
+  Future<int> applyPendingResults(String oddserId, {int limit = 20}) async {
+    try {
+      final userDoc = await _usersRef.doc(oddserId).get();
+      final since = userDoc.data()?[resultsSinceField];
+      if (since is! Timestamp) return 0;
+
+      final pending = await _gamesRef
+          .where('playerIds', arrayContains: oddserId)
+          .where(FieldPath(['statsPending', oddserId]), isEqualTo: true)
+          .limit(limit)
+          .get();
+      var recorded = 0;
+      for (final doc in pending.docs) {
+        final endedAt = doc.data()['completedAt'];
+        if (endedAt is! Timestamp || endedAt.compareTo(since) < 0) {
+          await _gamesRef.doc(doc.id).update({
+            'statsAppliedFor': FieldValue.arrayUnion([oddserId]),
+            'statsPending.$oddserId': FieldValue.delete(),
+          });
+          continue;
+        }
+        if (await applyGameResult(doc.id, oddserId)) recorded++;
+      }
+      return recorded;
+    } catch (e) {
+      debugPrint('Error recording pending results: $e');
+      return 0;
     }
   }
 
