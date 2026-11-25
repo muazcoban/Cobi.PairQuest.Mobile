@@ -26,6 +26,15 @@ in use by another app, so both stores use "Memory Card Game". The in-app subtitl
 
 **Promotional text** [170]: PairQuest is now Memoko. Same game, new name. Challenge real players in online memory duels and climb the ranked leagues from Bronze to Master. (143)
 
+**What's New in 2.4.1**:
+
+Fixes for online play.
+• The global ranking lists only players who have played a ranked game; new players show as Unranked
+• Each game counts for both players, even if one of them closes the app before the end; draws count too
+• Players with the same rating share a rank
+• Retry on the online screen works again after a connection or sign-in error
+• Leaderboards open faster; pull down to refresh
+
 **What's New in 2.4.0** (entered in App Store Connect on 24 November 2026, U.S. and U.K.):
 
 Memoko now shows ads, limited to content suitable for all ages.
@@ -88,6 +97,15 @@ ASCII yazımlar (`hafiza`, `eslestirme`) bilerek var: Türkiye mağazası "hafiz
 yok: ilk ikisi flört uygulamalarına gidiyor, üçüncüsü 9+ bir oyunda App Review 2.3.8'e takılabilir.
 
 **Promosyon metni** [170]: PairQuest artık Memoko! Oyun aynı, adı yeni. Online hafıza düellolarında gerçek oyunculara meydan oku, Bronz'dan Usta'ya liglerde yüksel. (137)
+
+**Yenilikler (2.4.1)**:
+
+Online oyun düzeltmeleri.
+• Global sıralamada yalnız dereceli maç oynamış oyuncular var; yeni oyuncular "Sıralamasız" görünüyor
+• Her maç iki oyuncuya da sayılıyor, biri uygulamayı maç bitmeden kapatsa bile; beraberlikler de sayılıyor
+• Aynı puandaki oyuncular aynı sırayı paylaşıyor
+• Bağlantı ya da giriş hatasından sonra "Tekrar dene" yeniden çalışıyor
+• Liderlik tablosu daha hızlı açılıyor; yenilemek için aşağı çek
 
 **Yenilikler (2.4.0)** (24 Kasım 2026'da App Store Connect'e girildi):
 
