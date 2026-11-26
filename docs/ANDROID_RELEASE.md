@@ -105,7 +105,7 @@ flutter build appbundle --release
 
 ## 4. Play Console
 
-**Durum (24 Kasım 2026):** Kapalı testte 8 (2.4.0) yayında. 9 (2.4.0) yüklendi ve kaydedildi; bu sürüm PR #8'i içeriyor ve 24 Kasım'da incelemeye gönderildi. Tek seferlik ürünler Google Payments satıcı hesabı açılınca tanımlanabilir. AdMob'da Android uygulaması mağazaya bağlanamıyor, çünkü kapalı testteki uygulama Play aramasında çıkmıyor; reklam sunumu üretim yayınına kadar sınırlı.
+**Durum (25 Kasım 2026):** Kapalı testte 9 (2.4.0) yayında. 10 (2.4.1) 25 Kasım'da incelemeye gönderildi; bu sürüm online düzeltmelerini (PR #10) içeriyor. Yönetilen yayınlama kapalı: onay gelince 10 kendiliğinden yayına çıkar ve 9'un yerini alır. Kanalın 15 kişilik e-posta listesinden henüz kimse teste katılmadı; üretim için 12 kişinin 14 gün testte kalması gerekiyor. Tek seferlik ürünler Google Payments satıcı hesabı açılınca tanımlanabilir. AdMob'da Android uygulaması mağazaya bağlanamıyor, çünkü kapalı testteki uygulama Play aramasında çıkmıyor; reklam sunumu üretim yayınına kadar sınırlı. Üretime çıkınca bağı yeni bir AdMob uygulaması açarak kurma; koddaki kimliği taşıyan mevcut uygulamayı (`~4676860498`) seç.
 
 ### Kapalı test: 12 kişi, 14 gün
 
